@@ -1,0 +1,205 @@
+import API from './axios';
+
+/**
+ * BUS MANAGEMENT SERVICE
+ */
+
+export const fetchAllBuses = async (params = {}) => {
+  try {
+    const response = await API.get('/admin/buses', { params });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch buses');
+  }
+};
+
+export const fetchBusCount = async (params = {}) => {
+  try {
+    const response = await API.get('/admin/buses/count', { params });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch count');
+  }
+};
+
+export const createAdminBus = async (data) => {
+  try {
+    const response = await API.post('/admin/buses', data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to create bus');
+  }
+};
+
+export const deleteAdminBus = async (id) => {
+  try {
+    const response = await API.delete(`/admin/buses/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to delete bus');
+  }
+};
+
+export const updateBusStatus = async (id, action) => {
+  try {
+    const response = await API.patch(`/admin/buses/${id}/${action}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || `Failed to ${action} bus`);
+  }
+};
+
+/**
+ * OPERATOR MANAGEMENT SERVICE
+ */
+
+export const fetchAllOperators = async () => {
+  try {
+    const response = await API.get('/admin/operators');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch operators');
+  }
+};
+
+export const fetchOperatorById = async (id) => {
+  try {
+    const response = await API.get(`/admin/operators/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch operator details');
+  }
+};
+
+/**
+ * BUS TYPES SERVICE
+ */
+
+export const fetchBusTypes = async () => {
+  try {
+    const response = await API.get('/admin/bus-types');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch bus types');
+  }
+};
+
+export const createBusType = async (data) => {
+  try {
+    const response = await API.post('/admin/bus-types', data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to create bus type');
+  }
+};
+
+export const deleteBusType = async (id) => {
+  try {
+    const response = await API.delete(`/admin/bus-types/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to delete bus type');
+  }
+};
+
+/**
+ * ROUTE NETWORK SERVICE (Super Admin)
+ */
+
+export const fetchGlobalRoutes = async (params = {}) => {
+  try {
+    const response = await API.get('/admin/routes', { params });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch global routes');
+  }
+};
+
+export const createGlobalRoute = async (data) => {
+  try {
+    const response = await API.post('/admin/routes', data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to create global route');
+  }
+};
+
+export const updateGlobalRoute = async (id, data) => {
+  try {
+    const response = await API.put(`/admin/routes/${id}`, data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to update global route');
+  }
+};
+
+export const deleteGlobalRoute = async (id) => {
+  try {
+    const response = await API.delete(`/admin/routes/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to delete global route');
+  }
+};
+
+/**
+ * UTILITIES / COMMON SERVICE
+ */
+
+export const fetchGlobalCities = async () => {
+    try {
+        const response = await API.get('/cities');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch cities');
+    }
+};
+
+/**
+ * BOOKING CONTROL SERVICE (Super Admin)
+ */
+
+export const fetchAdminBookings = async (params = {}) => {
+  try {
+    const response = await API.get('/admin/bookings', { params });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch bookings');
+  }
+};
+
+export const cancelAdminBooking = async (id, data) => {
+  try {
+    const response = await API.patch(`/admin/bookings/${id}/force-cancel`, data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to cancel booking');
+  }
+};
+
+export const fetchRefundLogs = async () => {
+  try {
+    const response = await API.get('/admin/bookings/refunds');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch refund logs');
+  }
+};
+
+export const fetchFraudAlerts = async () => {
+  try {
+    const response = await API.get('/admin/bookings/fraud-alerts');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch fraud alerts');
+  }
+};
+
+export const processFraudAction = async (id, action) => {
+  try {
+    const response = await API.post(`/admin/bookings/fraud-alerts/${id}/action`, { action });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to process fraud action');
+  }
+};

@@ -1,0 +1,151 @@
+.search-page__header {
+  background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+  padding-bottom: 40px; color: #fff;
+}
+.search-page__breadcrumb { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.search-page__header h1 { color: #fff; }
+
+.search-page__body {
+  display: grid; grid-template-columns: 260px 1fr;
+  gap: 28px; padding: 32px 0 64px;
+}
+
+/* Filters */
+.filters {
+  background: #fff; border-radius: var(--radius-lg);
+  padding: 24px; border: 1px solid var(--border);
+  height: fit-content; position: sticky; top: 90px;
+}
+.filters__header { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.filters__header h3 { font-size: 17px; font-weight: 700; }
+.filter-group { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.filter-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.filter-group h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-gray); margin-bottom: 12px; }
+.filter-check {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--text-dark); margin-bottom: 8px;
+  cursor: pointer;
+}
+.filter-check input { accent-color: var(--primary); }
+.range-input { width: 100%; accent-color: var(--primary); margin-bottom: 8px; }
+.filter-group__range-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-gray); }
+
+/* Results */
+.results__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.results__count { font-size: 15px; color: var(--text-gray); }
+.results__sort {
+  display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-gray);
+}
+.results__sort select {
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+  font-size: 14px; color: var(--text-dark); background: #fff;
+}
+
+.result-skeleton { background: #fff; border-radius: var(--radius); padding: 24px; margin-bottom: 12px; border: 1px solid var(--border); }
+
+.result-card {
+  background: #fff; border-radius: var(--radius-lg); padding: 20px 24px;
+  border: 1px solid var(--border); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 20px;
+  cursor: pointer; transition: var(--transition);
+}
+.result-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.result-card--hotel { align-items: stretch; padding: 0; overflow: hidden; }
+.result-card--hotel .result-card__main { padding: 20px; justify-content: space-between; }
+
+.result-card__main { flex: 1; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.result-card__aside { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding: 20px 24px; flex-shrink: 0; }
+.result-card__price { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--primary); }
+.result-card__seats { font-size: 12px; color: var(--accent-green); font-weight: 600; }
+
+.airline-logo {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 18px;
+}
+.flight-airline { display: flex; align-items: center; gap: 10px; min-width: 140px; }
+.flight-name { font-weight: 700; font-size: 15px; }
+.flight-code { font-size: 12px; color: var(--text-gray); }
+
+.flight-times { display: flex; align-items: center; gap: 16px; flex: 1; }
+.flight-time { display: flex; flex-direction: column; align-items: center; }
+.time-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+.time-city { font-size: 12px; color: var(--text-gray); }
+.flight-duration { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.flight-duration span { font-size: 12px; color: var(--text-gray); }
+.duration-line { display: flex; align-items: center; gap: 4px; width: 100%; }
+.duration-line div { flex: 1; height: 1px; background: var(--border); }
+.duration-line span { font-size: 16px; }
+.result-card__rating { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; }
+
+.hotel-img { width: 200px; flex-shrink: 0; object-fit: cover; }
+.hotel-stars { font-size: 14px; margin-bottom: 6px; }
+.hotel-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.hotel-loc { font-size: 13px; color: var(--text-gray); margin-bottom: 10px; }
+.hotel-amenities { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.amenity-tag { padding: 3px 10px; background: var(--bg); border-radius: 99px; font-size: 11px; color: var(--text-gray); font-weight: 500; }
+.hotel-reviews { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600; }
+.review-count { font-size: 12px; color: var(--text-gray); font-weight: 400; }
+
+.train-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.train-number { font-size: 13px; color: var(--text-gray); }
+
+/* Premium Bus Card Styles */
+.bus-card {
+  background: #fff; border-radius: 20px; padding: 0;
+  border: 1px solid var(--border); margin-bottom: 20px;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.bus-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #3b82f6; }
+
+.bus-card__header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e5e7eb; position: relative; }
+.bus-card__header::before, .bus-card__header::after {
+  content: ''; position: absolute; bottom: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg);
+}
+.bus-card__header::before { left: -8px; }
+.bus-card__header::after { right: -8px; }
+
+.badge-primo { display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: 16px; color: #1e40af; font-style: italic; }
+.badge-primo span { color: #f59e0b; }
+.badge-discount { background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; border: 1px solid #fde68a; }
+
+.bus-card__body { padding: 20px; }
+.bus-card__id-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.reg-tag { background: #fef08a; color: #1f2937; padding: 2px 10px; border-radius: 6px; font-family: monospace; font-weight: 700; font-size: 13px; border: 1px solid #facc15; }
+.status-badge { background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.route-stops { font-size: 13px; color: #6b7280; }
+
+.bus-card__times { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
+.bus-time-group { flex: 1; }
+.bus-time-val { font-size: 22px; font-weight: 800; color: #111827; letter-spacing: -0.5px; }
+.bus-duration-group { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px; border-left: 1px solid #f3f4f6; border-right: 1px solid #f3f4f6; }
+.bus-duration-val { font-size: 12px; color: #6b7280; font-weight: 500; }
+.bus-seats-val { font-size: 12px; color: #9a3412; font-weight: 700; }
+
+.bus-card__price-col { text-align: right; min-width: 100px; }
+.bus-original-price { font-size: 14px; color: #9ca3af; text-decoration: line-through; margin-right: 6px; }
+.bus-final-price { font-size: 20px; font-weight: 800; color: #111827; }
+.onwards { display: block; font-size: 11px; color: #6b7280; }
+
+.bus-card__footer { padding: 12px 20px; background: #f9fafb; display: flex; justify-content: space-between; align-items: center; }
+.operator-info { display: flex; flex-direction: column; gap: 2px; }
+.operator-name { font-weight: 700; font-size: 15px; color: #111827; display: flex; align-items: center; gap: 6px; }
+.bus-type-desc { font-size: 12px; color: #6b7280; }
+.rating-badge { background: #059669; color: #fff; padding: 4px 8px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; min-width: 40px; }
+.rating-val { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 2px; }
+.rating-count { font-size: 10px; opacity: 0.9; }
+
+@media (max-width: 900px) {
+  .search-page__body { grid-template-columns: 1fr; padding: 20px; }
+  .filters { position: static; margin-bottom: 20px; }
+}
+@media (max-width: 600px) {
+  .bus-time-val { font-size: 18px; }
+  .bus-card__header { padding: 10px 16px; }
+}
