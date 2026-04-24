@@ -7,7 +7,7 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const BusList = React.lazy(() => import('./pages/BusList'));
 const RouteList = React.lazy(() => import('./pages/RouteList'));
 const TripList = React.lazy(() => import('./pages/TripList'));
-const BookingList = React.lazy(() => import('./pages/BookingList'));
+const LiveBookings = React.lazy(() => import('./pages/LiveBookings'));
 const CouponList = React.lazy(() => import('./pages/CouponList'));
 const ReviewList = React.lazy(() => import('./pages/ReviewList'));
 
@@ -48,7 +48,7 @@ const BusOperatorApp = () => {
                         <Route path="trips/add" element={<TripForm />} />
                         <Route path="trips/edit/:id" element={<TripForm />} />
                         
-                        <Route path="bookings" element={<BookingList />} />
+                        <Route path="bookings" element={<LiveBookings />} />
                         <Route path="pricing" element={<Placeholder title="Pricing & Surplus" />} />
                         <Route path="coupons">
                             <Route index element={<CouponList />} />

@@ -221,7 +221,11 @@ export default function Detail() {
                 <span>Total</span>
                 <span className="total-price">₹{data.price.toLocaleString()}</span>
               </div>
-              <button className="btn btn-primary" style={{width:'100%',padding:'14px',fontSize:16}} onClick={() => navigate(`/booking/${id}?type=${type}`)}>
+              <button 
+                className="btn btn-primary" 
+                style={{width:'100%',padding:'14px',fontSize:16}} 
+                onClick={() => type === 'bus' ? navigate(`/bus-selection/${id}`) : navigate(`/booking/${id}?type=${type}`)}
+              >
                 Book Now →
               </button>
               <p className="booking-note">✓ Free cancellation &nbsp; ✓ Instant confirmation</p>

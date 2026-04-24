@@ -98,7 +98,12 @@ export default function Sidebar() {
                             { to: '/admin/buses/active', label: 'Active Buses' },
                             { to: '/admin/buses/suspended', label: 'Suspended Buses' },
                             { to: '/admin/buses/operators', label: 'Operators' },
-                            { to: '/admin/buses/types', label: 'Bus Types' }
+                            { to: '/admin/buses/types', label: 'Bus Types' },
+                            { isHeader: true, label: 'Booking Control' },
+                            { to: '/admin/bookings/all', label: 'All Bookings' },
+                            { to: '/admin/bookings/cancel-requests', label: 'Cancel Requests' },
+                            { to: '/admin/bookings/refund-initiate', label: 'Refund Initiate' },
+                            { to: '/admin/bookings/operator-wise', label: 'Operator Wise Bookings' }
                         ]}
                     />
 

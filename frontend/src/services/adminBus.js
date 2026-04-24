@@ -168,6 +168,24 @@ export const fetchAdminBookings = async (params = {}) => {
   }
 };
 
+export const fetchBookingStats = async () => {
+  try {
+    const response = await API.get('/admin/bookings/stats');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch booking stats');
+  }
+};
+
+export const forceCancelAdminBooking = async (id, data) => {
+  try {
+    const response = await API.patch(`/admin/bookings/${id}/force-cancel`, data);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to force cancel booking');
+  }
+};
+
 export const cancelAdminBooking = async (id, data) => {
   try {
     const response = await API.patch(`/admin/bookings/${id}/force-cancel`, data);
@@ -183,6 +201,51 @@ export const fetchRefundLogs = async () => {
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to fetch refund logs');
+  }
+};
+
+export const getCancelRequests = async () => {
+  try {
+    const response = await API.get('/admin/bookings/cancel-requests');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch cancel requests');
+  }
+};
+
+export const approveCancel = async (id) => {
+  try {
+    const response = await API.post(`/admin/bookings/cancel/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to approve cancellation');
+  }
+};
+
+export const rejectCancel = async (id) => {
+  try {
+    const response = await API.post(`/admin/bookings/reject-cancel/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to reject cancellation');
+  }
+};
+
+export const initiateRefund = async (id) => {
+  try {
+    const response = await API.post(`/admin/bookings/refund/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to initiate refund');
+  }
+};
+
+export const getOperatorBookings = async (operatorId) => {
+  try {
+    const response = await API.get(`/admin/bookings/operator/${operatorId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch operator bookings');
   }
 };
 

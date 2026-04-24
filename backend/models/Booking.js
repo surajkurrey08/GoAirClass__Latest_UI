@@ -67,12 +67,20 @@ const bookingSchema = new mongoose.Schema({
     ipAddress: { type: String },
 
     // Payment
-    status: { type: String, enum: ['Confirmed', 'Cancelled', 'Pending'], default: 'Confirmed' },
+    status: { type: String, enum: ['Confirmed', 'Cancelled', 'Pending', 'cancel_requested', 'refund_initiated', 'refunded', 'cancel_rejected'], default: 'Confirmed' },
     paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Failed', 'Cancelled'], default: 'Completed' },
     paymentMethod: { type: String, default: 'razorpay' },
     razorpayPaymentId: { type: String },
     razorpayOrderId: { type: String },
     razorpaySignature: { type: String },
+
+    // Boarding Status (For Operator)
+    boardingStatus: { 
+        type: String, 
+        enum: ['Not Boarded', 'Boarded', 'No Show'], 
+        default: 'Not Boarded' 
+    },
+    operatorNotes: { type: String, default: '' },
 
     bookingDate: { type: Date, default: Date.now },
 }, { timestamps: true });

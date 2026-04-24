@@ -5,6 +5,12 @@ import Dashboard from '../pages/Dashboard';
 import Bookings from '../pages/Bookings';
 import Users from '../pages/Users';
 
+// Booking Control Pages (Shared from SuperAdmin for consistency)
+import AllBookings from '../../SuperAdminPanel/pages/bookings/AllBookings';
+import CancelRequests from '../../SuperAdminPanel/pages/bookings/CancelRequests';
+import RefundInitiate from '../../SuperAdminPanel/pages/bookings/RefundInitiate';
+import OperatorBookings from '../../SuperAdminPanel/pages/bookings/OperatorBookings';
+
 // Bus Management Pages
 import AllBuses from '../pages/buses/AllBuses';
 import AddBus from '../pages/buses/AddBus';
@@ -30,6 +36,12 @@ export default function AdminRoutes() {
                 <Route path="buses/suspended" element={<SuspendedBuses />} />
                 <Route path="buses/operators" element={<Operators />} />
                 <Route path="buses/types" element={<BusTypes />} />
+
+                {/* Booking Control */}
+                <Route path="bookings/all" element={<AllBookings />} />
+                <Route path="bookings/cancel-requests" element={<CancelRequests />} />
+                <Route path="bookings/refund-initiate" element={<RefundInitiate />} />
+                <Route path="bookings/operator-wise" element={<OperatorBookings />} />
 
                 {/* Catch all for admin subroutes */}
                 <Route path="*" element={<Navigate to="" replace />} />

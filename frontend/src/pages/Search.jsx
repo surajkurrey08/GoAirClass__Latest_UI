@@ -30,7 +30,7 @@ export default function Search() {
             date: params.get('date')
           }
           const apiData = await searchBusSchedules(searchParams)
-          
+
           // Map API data to UI format
           const mappedBuses = apiData.map(schedule => {
             // Simple duration calculation helper
@@ -57,7 +57,10 @@ export default function Search() {
               price: schedule.finalPrice || schedule.ticketPrice,
               seats: schedule.bus?.totalSeats || 36,
               rating: schedule.operator?.rating || 4.5,
-              amenities: schedule.bus?.amenities || []
+              amenities: schedule.bus?.amenities || [],
+              coupon: schedule.coupon,
+              operatorId: schedule.operator?._id || schedule.operator,
+              routeId: schedule.route?._id || schedule.route
             }
           })
           setResults(mappedBuses)
@@ -83,12 +86,12 @@ export default function Search() {
       <Navbar />
       <div className="search-page__header">
         <div className="container">
-          <div style={{paddingTop: 80}}>
-            <p className="search-page__breadcrumb">Home / Search / {type.charAt(0).toUpperCase()+type.slice(1)}</p>
-            <h1 style={{fontSize:28,marginBottom:20}}>
+          <div style={{ paddingTop: 80 }}>
+            <p className="search-page__breadcrumb">Home / Search / {type.charAt(0).toUpperCase() + type.slice(1)}</p>
+            <h1 style={{ fontSize: 28, marginBottom: 20 }}>
               {params.get('from') && params.get('to')
                 ? `${params.get('from')} → ${params.get('to')}`
-                : `Search ${type.charAt(0).toUpperCase()+type.slice(1)}`}
+                : `Search ${type.charAt(0).toUpperCase() + type.slice(1)}`}
             </h1>
             <SearchForm variant="page" />
           </div>
@@ -100,7 +103,7 @@ export default function Search() {
           {/* Filters Sidebar */}
           <aside className="filters">
             <div className="filters__header">
-              <SlidersHorizontal size={18} color="var(--primary)"/>
+              <SlidersHorizontal size={18} color="var(--primary)" />
               <h3>Filters</h3>
             </div>
 
@@ -129,7 +132,7 @@ export default function Search() {
             {type === 'hotels' && (
               <div className="filter-group">
                 <h4>Star Rating</h4>
-                {[5,4,3,2,1].map(s => (
+                {[5, 4, 3, 2, 1].map(s => (
                   <label key={s} className="filter-check">
                     <input type="checkbox" defaultChecked={s >= 4} />
                     {'⭐'.repeat(s)} ({s} Star)
@@ -153,7 +156,7 @@ export default function Search() {
             <div className="results__header">
               <p className="results__count">{results.length} {type} found</p>
               <div className="results__sort">
-                <ArrowUpDown size={14}/>
+                <ArrowUpDown size={14} />
                 <span>Sort by:</span>
                 <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
                   <option value="price">Price: Low to High</option>
@@ -166,11 +169,11 @@ export default function Search() {
 
             <div className="results__list">
               {loading ? (
-                Array.from({length:3}).map((_,i) => (
+                Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="result-skeleton">
-                    <div className="skeleton" style={{height:40,width:'30%',marginBottom:8}}/>
-                    <div className="skeleton" style={{height:20,width:'60%',marginBottom:6}}/>
-                    <div className="skeleton" style={{height:20,width:'45%'}}/>
+                    <div className="skeleton" style={{ height: 40, width: '30%', marginBottom: 8 }} />
+                    <div className="skeleton" style={{ height: 20, width: '60%', marginBottom: 6 }} />
+                    <div className="skeleton" style={{ height: 20, width: '45%' }} />
                   </div>
                 ))
               ) : error ? (
@@ -217,7 +220,7 @@ function ResultCard({ item, type, navigate }) {
             <span className="time-city">{item.from.split('(')[0]}</span>
           </div>
           <div className="flight-duration">
-            <div className="duration-line"><div/><span>✈</span><div/></div>
+            <div className="duration-line"><div /><span>✈</span><div /></div>
             <span>{item.duration} · {item.stops}</span>
           </div>
           <div className="flight-time">
@@ -226,14 +229,14 @@ function ResultCard({ item, type, navigate }) {
           </div>
         </div>
         <div className="result-card__rating">
-          <Star size={14} fill="#F59E0B" color="#F59E0B"/>
+          <Star size={14} fill="#F59E0B" color="#F59E0B" />
           <span>{item.rating}</span>
         </div>
       </div>
       <div className="result-card__aside">
         <div className="result-card__price">₹{item.price.toLocaleString()}</div>
         <div className="result-card__seats">{item.seats} seats left</div>
-        <button className="btn btn-primary" style={{padding:'10px 20px',fontSize:14}} onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=flight`) }}>
+        <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: 14 }} onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=flight`) }}>
           Book Now
         </button>
       </div>
@@ -253,7 +256,7 @@ function ResultCard({ item, type, navigate }) {
           </div>
         </div>
         <div className="hotel-reviews">
-          <Star size={14} fill="#F59E0B" color="#F59E0B"/>
+          <Star size={14} fill="#F59E0B" color="#F59E0B" />
           <span>{item.rating}</span>
           <span className="review-count">({item.reviews} reviews)</span>
         </div>
@@ -261,7 +264,7 @@ function ResultCard({ item, type, navigate }) {
       <div className="result-card__aside">
         <div className="result-card__price">₹{item.price.toLocaleString()}</div>
         <div className="result-card__seats">per night</div>
-        <button className="btn btn-primary" style={{padding:'10px 20px',fontSize:14}} onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=hotel`) }}>
+        <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: 14 }} onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=hotel`) }}>
           Book Now
         </button>
       </div>
@@ -281,7 +284,7 @@ function ResultCard({ item, type, navigate }) {
             <span className="time-city">{item.from}</span>
           </div>
           <div className="flight-duration">
-            <div className="duration-line"><div/><span>🚆</span><div/></div>
+            <div className="duration-line"><div /><span>🚆</span><div /></div>
             <span>{item.duration}</span>
           </div>
           <div className="flight-time">
@@ -294,7 +297,7 @@ function ResultCard({ item, type, navigate }) {
       <div className="result-card__aside">
         <div className="result-card__price">₹{item.price.toLocaleString()}</div>
         <div className="result-card__seats">{item.seats} seats</div>
-        <button className="btn btn-primary" style={{padding:'10px 20px',fontSize:14}} onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=train`) }}>
+        <button className="btn btn-primary" style={{ padding: '10px 20px', fontSize: 14 }} onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=train`) }}>
           Book Now
         </button>
       </div>
@@ -302,15 +305,18 @@ function ResultCard({ item, type, navigate }) {
   )
 
   return (
-    <div className="bus-card" onClick={() => navigate(`/detail/${item.id}?type=bus`)}>
+    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}`)}>
       {/* Brand Header */}
       <div className="bus-card__header">
         <div className="badge-primo">
           Primo <span>★</span>
         </div>
-        <div className="badge-discount">
-          {Math.random() > 0.5 ? 'Last min. 7.5% OFF' : 'Try new 5.0% OFF'}
-        </div>
+        {item.coupon && (
+          <div className="badge-discount">
+            {item.coupon.rules?.lastMinute ? 'Last min ' : 'Special '}
+            {item.coupon.discountValue}{item.coupon.discountType === 'percentage' ? '%' : ''} OFF
+          </div>
+        )}
       </div>
 
       <div className="bus-card__body">
@@ -349,7 +355,7 @@ function ResultCard({ item, type, navigate }) {
       <div className="bus-card__footer">
         <div className="operator-info">
           <div className="operator-name">
-            {item.operator} 
+            {item.operator}
             <span style={{ color: '#9ca3af' }}><MapPin size={14} /></span>
           </div>
           <div className="bus-type-desc">{item.type} (2+1)</div>

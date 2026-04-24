@@ -39,9 +39,13 @@ router.delete('/routes/:id', authMiddleware, routeController.deleteRoute);
 
 // ─── BOOKING CONTROL MANAGEMENT ──────────────────────────────────────────────
 router.get('/bookings', authMiddleware, adminBookingController.getAllBookings);
+router.get('/bookings/stats', authMiddleware, adminBookingController.getBookingStats);
+router.get('/bookings/cancel-requests', authMiddleware, adminBookingController.getCancelRequests);
 router.patch('/bookings/:id/force-cancel', authMiddleware, adminBookingController.forceCancelBooking);
-router.get('/bookings/refunds', authMiddleware, adminBookingController.getRefundLogs);
-router.get('/bookings/fraud-alerts', authMiddleware, adminBookingController.getFraudAlerts);
+router.post('/bookings/cancel/:id', authMiddleware, adminBookingController.approveCancel);
+router.post('/bookings/reject-cancel/:id', authMiddleware, adminBookingController.rejectCancel);
+router.post('/bookings/refund/:id', authMiddleware, adminBookingController.initiateRefund);
+router.get('/bookings/operator/:operatorId', authMiddleware, adminBookingController.getOperatorBookings);
 router.post('/bookings/fraud-alerts/:id/action', authMiddleware, adminBookingController.handleFraudAction);
 
 // GET /api/admin/hotel/dashboard

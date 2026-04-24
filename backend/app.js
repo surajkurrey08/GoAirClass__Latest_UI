@@ -27,6 +27,7 @@ const operatorManagementRoutes = require("./routes/operatorRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const busRequestRoutes = require("./routes/busRequestRoutes");
+const busOperatorRoutes = require("./routes/busOperatorRoutes");
 
 // Hotel module routes
 const hotelRoutes = require('./routes/hotel/hotelRoutes');
@@ -77,6 +78,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/operators", operatorRoutes);
 app.use("/api/buses", busRoutes);
+app.use("/api/bus", busRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/coupons", couponRoutes);
@@ -90,6 +92,7 @@ app.use("/api/trains", trainRoutes);
 app.use("/api/train-bookings", trainRoutes);
 app.use("/api/pnr", trainRoutes);
 app.use("/api", coachRoutes);
+app.use("/api/bus-operator", busOperatorRoutes);
 
 // Hotel module
 app.use('/api/hotels', hotelRoutes);

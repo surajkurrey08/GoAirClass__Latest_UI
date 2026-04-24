@@ -3,6 +3,9 @@ const User = require('../models/User');
 const OperatorRequest = require('../models/OperatorRequest');
 const Operator = require('../models/Operator');
 const HotelOperator = require('../models/hotel/HotelOperator');
+const Bus = require('../models/Bus');
+const Schedule = require('../models/Schedule');
+const mongoose = require('mongoose');
 const { sendSetPasswordEmail } = require('../utils/emailService');
 
 // Submit Operator Request (Customer)
@@ -65,6 +68,26 @@ const approveOperatorRequest = async (req, res) => {
         
         // Send actual email dynamically to the address in the request
         await sendSetPasswordEmail(request.email, request.fullName, request.operatorType, setPasswordLink);
+        
+        // [NEW] Cascading Approval: If operator already exists, activate their fleet
+        if (request.operatorType === 'bus') {
+            const operator = await Operator.findOne({ email: request.email.toLowerCase() });
+            if (operator) {
+                // Activate operator status
+                operator.status = 'Active';
+                await operator.save();
+
+                // Activate all buses
+                await Bus.updateMany({ operator: operator._id }, { status: 'active' });
+                
+                // Activate all schedules for these buses
+                const buses = await Bus.find({ operator: operator._id });
+                const busIds = buses.map(b => b._id);
+                await Schedule.updateMany({ bus: { $in: busIds } }, { status: 'active' });
+                
+                console.log(`[Operator Approval] Cascaded activation to fleet for ${operator.name}`);
+            }
+        }
         
         res.status(200).json({ 
             success: true, 

@@ -18,8 +18,9 @@ import AllRoutes from '../pages/routes/AllRoutes';
 import AddRoute from '../pages/routes/AddRoute';
 import PopularRoutes from '../pages/routes/PopularRoutes';
 import AllBookings from '../pages/bookings/AllBookings';
-import CancelledBookings from '../pages/bookings/CancelledBookings';
-import RefundManagement from '../pages/bookings/RefundManagement';
+import CancelRequests from '../pages/bookings/CancelRequests';
+import RefundInitiate from '../pages/bookings/RefundInitiate';
+import OperatorBookings from '../pages/bookings/OperatorBookings';
 import FraudAlerts from '../pages/bookings/FraudAlerts';
 import BusTypes from '../pages/buses/BusTypes';
 
@@ -49,8 +50,9 @@ export default function AdminRoutes() {
 
                 {/* Booking Control */}
                 <Route path="bookings/all" element={<AllBookings />} />
-                <Route path="bookings/cancelled" element={<CancelledBookings />} />
-                <Route path="bookings/refunds" element={<RefundManagement />} />
+                <Route path="bookings/cancel-requests" element={<CancelRequests />} />
+                <Route path="bookings/refund-initiate" element={<RefundInitiate />} />
+                <Route path="bookings/operator-wise" element={<OperatorBookings />} />
                 <Route path="bookings/fraud" element={<FraudAlerts />} />
 
                 <Route path="buses/types" element={<BusTypes />} />

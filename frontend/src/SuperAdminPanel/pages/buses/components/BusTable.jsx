@@ -178,8 +178,8 @@ const BusTable = ({ statusFilter = '', operatorId = '' }) => {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                                                {/* Super Admin Actions */}
-                                                {isSuperAdmin && (['pending', 'under_review'].includes(bus.status)) && (
+                                                {/* Admin/Super Admin Actions: Final Approval */}
+                                                {isAdmin && (['pending', 'under_review'].includes(bus.status)) && (
                                                     <button 
                                                         onClick={() => handleAction(bus._id, 'approve')}
                                                         className="p-3 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-2xl transition-all shadow-sm"
@@ -189,19 +189,8 @@ const BusTable = ({ statusFilter = '', operatorId = '' }) => {
                                                     </button>
                                                 )}
 
-                                                {/* Admin Action: Submit for approval */}
+                                                {/* Reject (Admin/Super Admin) */}
                                                 {isAdmin && bus.status === 'pending' && (
-                                                    <button 
-                                                        onClick={() => handleAction(bus._id, 'submit_for_approval')}
-                                                        className="p-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-2xl transition-all shadow-sm"
-                                                        title="Submit for Approval"
-                                                    >
-                                                        <ShieldCheck size={18} />
-                                                    </button>
-                                                )}
-
-                                                {/* Final Reject (Super Admin Only) */}
-                                                {isSuperAdmin && bus.status === 'pending' && (
                                                     <button 
                                                         onClick={() => handleAction(bus._id, 'reject')}
                                                         className="p-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-2xl transition-all shadow-sm"
@@ -222,8 +211,8 @@ const BusTable = ({ statusFilter = '', operatorId = '' }) => {
                                                     </button>
                                                 )}
 
-                                                {/* Activate Action (Super Admin Only) */}
-                                                {isSuperAdmin && bus.status.toLowerCase() === 'suspended' && (
+                                                {/* Activate Action (Admin/Super Admin) */}
+                                                {isAdmin && bus.status.toLowerCase() === 'suspended' && (
                                                     <button 
                                                         onClick={() => handleAction(bus._id, 'activate')}
                                                         className="p-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-2xl transition-all shadow-sm"

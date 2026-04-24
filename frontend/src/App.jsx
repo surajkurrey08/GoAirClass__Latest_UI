@@ -13,6 +13,7 @@ import SetPassword from './pages/SetPassword'
 import AdminApp from './AdminPanel/AdminApp'
 import SuperAdminApp from './SuperAdminPanel/AdminApp'
 import BusOperatorApp from './BusOperatorPanel/BusOperatorApp'
+import SeatSelection from './pages/SeatSelection'
 import ProtectedRoute from './components/ProtectedRoute'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/detail/:id" element={<Detail />} />
+        <Route path="/bus-selection/:scheduleId" element={<SeatSelection />} />
         <Route path="/booking/:id" element={<Booking />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/success" element={<Success />} />

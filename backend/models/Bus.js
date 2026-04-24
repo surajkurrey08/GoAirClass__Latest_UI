@@ -10,9 +10,13 @@ const busSchema = new mongoose.Schema({
     images: [{ type: String }], // Store image paths
     seatLayout: [{
         seatNo: String,
+        row: Number,
+        col: Number,
         type: { type: String, enum: ['seater', 'sleeper', 'ladies', 'ladies-sleeper'] },
         deck: { type: String, enum: ['lower', 'upper'], default: 'lower' },
-        price: Number
+        side: { type: String, enum: ['left', 'right', 'single', 'double'] },
+        price: Number,
+        status: { type: String, default: 'available' }
     }],
     status: { 
         type: String, 

@@ -20,41 +20,44 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+// Helper to parse JSON safely from FormData
+const parseJsonField = (field) => {
+    if (typeof field === 'string') {
+        try {
+            return JSON.parse(field);
+        } catch (e) {
+            return field;
+        }
+    }
+    return field;
+};
+
 // Create Bus with Images
 router.post('/create', operatorAuthMiddleware, upload.array('images', 6), async (req, res) => {
     try {
         const imagePaths = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
-        // Parse JSON fields if sent as FormData
+        // Parse JSON fields from FormData
+        const { images: _, ...otherBody } = req.body;
         const busData = {
-            ...req.body,
+            ...otherBody,
             images: imagePaths,
-            operator: req.operator.id
+            operator: req.operator.id,
+            amenities: parseJsonField(req.body.amenities),
+            seatLayout: parseJsonField(req.body.seatLayout)
         };
 
-        // Convert types if necessary (FormData sends everything as strings)
-        if (typeof busData.totalSeats === 'string') {
-            busData.totalSeats = parseInt(busData.totalSeats);
-        }
-        if (typeof busData.amenities === 'string') {
-            try {
-                busData.amenities = JSON.parse(busData.amenities);
-            } catch (e) {
-                busData.amenities = busData.amenities.split(',').map(a => a.trim());
-            }
-        }
-        if (typeof busData.seatLayout === 'string') {
-            try {
-                busData.seatLayout = JSON.parse(busData.seatLayout);
-            } catch (e) {
-                busData.seatLayout = [];
-            }
-        }
+        // Convert types
+        if (busData.totalSeats) busData.totalSeats = parseInt(busData.totalSeats);
 
         const bus = new Bus(busData);
         await bus.save();
-        res.status(201).json(bus);
+        res.status(201).json({
+            ...bus.toObject(),
+            _debug_files_received: imagePaths.length
+        });
     } catch (err) {
+        console.error('Create Bus Error:', err);
         res.status(400).json({ error: err.message });
     }
 });
@@ -67,9 +70,9 @@ router.get('/my-buses', operatorAuthMiddleware, async (req, res) => {
 
         if (routeIds) {
             const Schedule = require('../models/Schedule');
-            const schedules = await Schedule.find({ 
-                operator: req.operator.id, 
-                route: { $in: routeIds.split(',') } 
+            const schedules = await Schedule.find({
+                operator: req.operator.id,
+                route: { $in: routeIds.split(',') }
             });
             const busIds = schedules.map(s => s.bus);
             query._id = { $in: busIds };
@@ -82,7 +85,7 @@ router.get('/my-buses', operatorAuthMiddleware, async (req, res) => {
     }
 });
 
-// Get All (For Admin) — scoped by adminId for 'admin' role, all for 'superadmin'
+// Get All (For Admin)
 router.get('/all', async (req, res) => {
     try {
         const buses = await Bus.find().populate('operator');
@@ -92,7 +95,7 @@ router.get('/all', async (req, res) => {
     }
 });
 
-// GET /api/buses - Aggregated for Sandbox
+// GET /api/buses
 router.get('/', async (req, res) => {
     try {
         const Schedule = require('../models/Schedule');
@@ -100,7 +103,7 @@ router.get('/', async (req, res) => {
             .populate('bus')
             .populate('route')
             .populate('operator');
-        
+
         const mergedData = schedules.map(s => ({
             _id: s.bus?._id,
             busName: s.bus?.busName || 'Unknown Bus',
@@ -111,7 +114,7 @@ router.get('/', async (req, res) => {
             toCity: s.route?.toCity,
             distance: s.route?.distance,
             baseFare: s.ticketPrice
-        })).filter(item => item._id); // Only return buses with schedules
+        })).filter(item => item._id);
 
         res.json(mergedData);
     } catch (err) {
@@ -119,7 +122,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get Single Bus by ID (for View/Edit pages)
+// Get Single Bus by ID
 router.get('/:id', async (req, res) => {
     try {
         const bus = await Bus.findById(req.params.id).populate('operator');
@@ -131,22 +134,38 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update
-router.put('/:id', operatorAuthMiddleware, async (req, res) => {
+router.put('/:id', operatorAuthMiddleware, upload.array('images', 6), async (req, res) => {
     try {
+        const newImagePaths = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+        let { images: _, existingImages: __, ...updateData } = req.body;
+
+        // Parse complex fields
+        updateData.amenities = parseJsonField(updateData.amenities);
+        updateData.seatLayout = parseJsonField(updateData.seatLayout);
+        const existingImages = parseJsonField(req.body.existingImages) || [];
+
+        // Combine existing images (that were kept) with new uploads
+        updateData.images = [...existingImages, ...newImagePaths];
+
+        if (updateData.totalSeats) updateData.totalSeats = parseInt(updateData.totalSeats);
+
         // Ensure the bus belongs to the logged-in operator
         const bus = await Bus.findOneAndUpdate(
             { _id: req.params.id, operator: req.operator.id },
-            req.body,
-            { new: true }
+            updateData,
+            { new: true, runValidators: true }
         );
+
         if (!bus) {
             return res.status(404).json({ error: 'Bus not found or unauthorized' });
         }
         res.json(bus);
     } catch (err) {
+        console.error('Update Bus Error:', err);
         res.status(400).json({ error: err.message });
     }
 });
+
 
 // Delete
 router.delete('/:id', operatorAuthMiddleware, async (req, res) => {
@@ -157,6 +176,75 @@ router.delete('/:id', operatorAuthMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'Bus not found or unauthorized' });
         }
         res.json({ message: 'Bus deleted' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * GET /api/bus/:scheduleId/seats
+ * Public endpoint to fetch seat layout and status for a specific schedule
+ */
+router.get('/:scheduleId/seats', async (req, res) => {
+    try {
+        const Schedule = require('../models/Schedule');
+        const Booking = require('../models/Booking');
+
+        const schedule = await Schedule.findById(req.params.scheduleId)
+            .populate('bus')
+            .populate('route');
+
+        if (!schedule) {
+            return res.status(404).json({ error: 'Schedule not found' });
+        }
+
+        const bus = schedule.bus;
+        if (!bus) {
+            return res.status(404).json({ error: 'Bus not found for this schedule' });
+        }
+
+        // Fetch all confirmed/pending bookings for this schedule to find booked seats
+        const bookings = await Booking.find({
+            schedule: schedule._id,
+            status: { $in: ['Confirmed', 'Pending'] }
+        });
+
+        const bookedSeats = [];
+        bookings.forEach(booking => {
+            if (booking.selectedSeats && Array.isArray(booking.selectedSeats)) {
+                bookedSeats.push(...booking.selectedSeats);
+            }
+        });
+
+        // Map seat layout with status
+        const seatLayout = bus.seatLayout.map(seat => ({
+            ...seat.toObject(),
+            status: bookedSeats.includes(seat.seatNo) ? 'Booked' : 'Available'
+        }));
+
+        const busId = bus._id || bus; // If populated, use ._id; if not, use the value itself
+
+        const response = {
+            busId: busId,
+            busName: bus.busName || 'Unknown Bus',
+            busType: bus.busType,
+            totalSeats: bus.totalSeats,
+            seatLayout: seatLayout,
+            images: bus.images || [],
+            amenities: bus.amenities || [],
+            operator: bus.operator,
+            operatorId: schedule.operator?._id || schedule.operator,
+            routeId: schedule.route?._id || schedule.route,
+            departureTime: schedule.departureTime,
+            arrivalTime: schedule.arrivalTime,
+            ticketPrice: schedule.ticketPrice,
+            boardingPoints: schedule.boardingPoints,
+            droppingPoints: schedule.droppingPoints,
+            fromCity: schedule.route?.fromCity,
+            toCity: schedule.route?.toCity
+        };
+
+        res.json(response);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

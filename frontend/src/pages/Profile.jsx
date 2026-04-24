@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, Phone, Mail, Shield, LogOut, Loader2, 
-  ArrowLeft, CreditCard, Ticket, Settings, 
-  ChevronRight, Star, Wallet, MapPin, ShieldCheck 
+import {
+  User, Phone, Mail, Shield, LogOut, Loader2,
+  ArrowLeft, CreditCard, Ticket, Settings,
+  ChevronRight, Star, Wallet, MapPin, ShieldCheck, Bus, Calendar
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { submitAdminRequest } from '../services/auth';
+import { getUserBookings } from '../services/busService';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [bookings, setBookings] = useState([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +39,24 @@ export default function Profile() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    if (activeTab === 'bookings') {
+      fetchBookings();
+    }
+  }, [activeTab]);
+
+  const fetchBookings = async () => {
+    setBookingLoading(true);
+    try {
+      const data = await getUserBookings();
+      setBookings(data);
+    } catch (err) {
+      toast.error(err.message || 'Failed to load bookings');
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -45,12 +66,12 @@ export default function Profile() {
 
   const handleAdminRequest = async () => {
     if (!user?.mobileNumber) return;
-    
+
     setSubmitting(true);
     try {
       await submitAdminRequest(
-        user.mobileNumber, 
-        user.fullName || 'N/A', 
+        user.mobileNumber,
+        user.fullName || 'N/A',
         user.email || 'no-email@provided.com'
       );
       toast.success('Admin request submitted successfully!');
@@ -75,11 +96,10 @@ export default function Profile() {
   const SidebarItem = ({ icon: Icon, label, id }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${
-        activeTab === id 
-        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 translate-x-1' 
-        : 'text-gray-500 hover:bg-white hover:text-blue-600 hover:shadow-md'
-      }`}
+      className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${activeTab === id
+          ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 translate-x-1'
+          : 'text-gray-500 hover:bg-white hover:text-blue-600 hover:shadow-md'
+        }`}
     >
       <div className="flex items-center gap-3">
         <Icon className="w-5 h-5" />
@@ -100,7 +120,7 @@ export default function Profile() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Top Header */}
         <div className="flex items-center justify-between mb-8">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-400 hover:text-blue-600 transition-all font-medium group"
           >
@@ -109,7 +129,7 @@ export default function Profile() {
             </div>
             Back to explore
           </button>
-          
+
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Live Profile</span>
@@ -146,7 +166,7 @@ export default function Profile() {
 
               <div className="mt-8 pt-8 border-t border-gray-100 flex flex-col gap-3">
                 {user?.role !== 'superadmin' && user?.role !== 'admin' && (
-                  <button 
+                  <button
                     onClick={handleAdminRequest}
                     disabled={submitting}
                     className="w-full flex items-center gap-3 p-4 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all font-semibold disabled:opacity-50"
@@ -159,7 +179,7 @@ export default function Profile() {
                     Request to Admin
                   </button>
                 )}
-                <button 
+                <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 p-4 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-semibold"
                 >
@@ -194,7 +214,7 @@ export default function Profile() {
             {/* Main Information card */}
             <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-50 flex-1 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-bl-[100px] pointer-events-none" />
-              
+
               <div className="flex items-center justify-between mb-10">
                 <h3 className="text-2xl font-bold text-gray-900">
                   {activeTab === 'overview' && 'Account Overview'}
@@ -226,12 +246,128 @@ export default function Profile() {
                 </div>
               )}
 
-              {activeTab !== 'overview' && (
+              {activeTab === 'bookings' && (
+                <div className="space-y-6">
+                  {bookingLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
+                      <p className="text-gray-400">Fetching your journey history...</p>
+                    </div>
+                  ) : bookings.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-6">
+                      {bookings.map((booking) => (
+                        <div key={booking._id} className="group relative bg-gray-50/50 hover:bg-white border border-gray-100 hover:border-blue-200 rounded-3xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5 overflow-hidden">
+                          {/* Status Badge */}
+                          <div className="absolute top-0 right-0 p-1">
+                            <div className={`px-4 py-1.5 rounded-bl-2xl text-[10px] font-bold uppercase tracking-wider ${booking.paymentStatus === 'Completed' ? 'bg-green-100 text-green-600' :
+                                booking.paymentStatus === 'Cancelled' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                              }`}>
+                              {booking.paymentStatus}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex-1 space-y-4">
+                              <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                  <Bus className="w-6 h-6" />
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                                    {booking.bus?.busName || 'Premium Bus'}
+                                    {booking.couponCode && (
+                                      <span className="px-1.5 py-0.5 bg-green-50 text-green-600 text-[8px] font-black rounded border border-green-100 uppercase tracking-tighter flex items-center gap-0.5">
+                                        <Ticket size={8} />
+                                        {booking.couponCode}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-lg font-bold text-gray-900">PNR: {booking.pnrNumber}</div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-4 text-gray-500">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4 text-blue-500" />
+                                  <span className="font-semibold text-sm capitalize">{booking.boarding?.point || booking.boardingPoint}</span>
+                                </div>
+                                <ArrowLeft className="w-4 h-4 rotate-180 text-gray-300" />
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4 text-red-500" />
+                                  <span className="font-semibold text-sm capitalize">{booking.dropping?.point || booking.droppingPoint}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-8 md:border-l border-gray-100 md:pl-8">
+                              <div className="text-center">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Travel Date</div>
+                                <div className="flex items-center gap-2 font-bold text-gray-900">
+                                  <Calendar className="w-4 h-4 text-blue-500" />
+                                  {booking.travelDate}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Seats</div>
+                                <div className="flex items-center gap-2 font-bold text-gray-900">
+                                  <Ticket className="w-4 h-4 text-blue-500" />
+                                  {booking.seatNumbers?.join(', ') || booking.seatNumber}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Paid</div>
+                                <div className="text-xl font-extrabold text-blue-600">
+                                  ₹{booking.totalFare}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-between">
+                            <div className="text-xs text-gray-400">Booked on {new Date(booking.createdAt).toLocaleDateString()}</div>
+                            <div className="flex gap-3">
+                              <button className="px-4 py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all">Download Ticket</button>
+                              {booking.status !== 'Cancelled' && (
+                                <button className="px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all">Cancel Ticket</button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200">
+                        <Ticket className="w-10 h-10" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-gray-900">No bookings yet</h4>
+                        <p className="text-gray-400 mt-1 max-w-xs">You haven't made any travel plans yet. Ready to start your journey?</p>
+                        <button onClick={() => navigate('/')} className="mt-6 px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+                          Book Now
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'wallet' && (
                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                   <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200">
-                    {activeTab === 'bookings' && <Ticket className="w-10 h-10" />}
-                    {activeTab === 'wallet' && <Wallet className="w-10 h-10" />}
-                    {activeTab === 'settings' && <Settings className="w-10 h-10" />}
+                    <Wallet className="w-10 h-10" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900 capitalize">{activeTab} coming soon</h4>
+                    <p className="text-gray-400 mt-1 max-w-xs">We are currently building this section for a better travel experience.</p>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'settings' && (
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-200">
+                    <Settings className="w-10 h-10" />
                   </div>
                   <div>
                     <h4 className="text-xl font-bold text-gray-900 capitalize">{activeTab} coming soon</h4>
@@ -240,7 +376,7 @@ export default function Profile() {
                 </div>
               )}
             </div>
-            
+
             {/* Promo Card */}
             <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 rounded-[2.5rem] shadow-xl shadow-blue-900/10 text-white flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl group-hover:scale-125 transition-transform duration-700" />

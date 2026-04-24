@@ -18,7 +18,7 @@ const SidebarItem = ({ to, icon: Icon, label, badge, isSubItem = false }) => {
             to={to}
             end
             className={({ isActive }) => `
-                flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+                flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 group
                 ${isActive
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                     : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50 hover:text-blue-600'}
@@ -62,7 +62,7 @@ const SidebarDropdown = ({ label, icon: Icon, children, sidebarOpen, active }) =
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className={`
-                    w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200
+                    w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200
                     ${active && !isExpanded ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:bg-slate-100'}
                     ${isExpanded ? 'text-blue-600' : ''}
                 `}
@@ -136,7 +136,7 @@ export default function Sidebar() {
             </div>
 
             {/* Navigation Section */}
-            <div className="p-4 h-[calc(100%-80px)] overflow-y-auto no-scrollbar">
+            <div className="p-4 h-[calc(100%-80px)] overflow-y-auto">
                 <SidebarSection title="General" isOpen={sidebarOpen}>
                     <SidebarItem to="" icon={LayoutDashboard} label="Dashboard" />
                     <SidebarItem to="requests" icon={ShieldAlert} label="Admin Requests" badge="3" />
@@ -185,8 +185,9 @@ export default function Sidebar() {
                             </div>
                         </div>
                         <SidebarItem to="bookings/all" icon={List} label="All Bookings" isSubItem />
-                        <SidebarItem to="bookings/cancelled" icon={XCircle} label="Cancelled Bookings" isSubItem />
-                        <SidebarItem to="bookings/refunds" icon={Tag} label="Refund Management" isSubItem />
+                        <SidebarItem to="bookings/cancel-requests" icon={XCircle} label="Cancel Requests" isSubItem />
+                        <SidebarItem to="bookings/refund-initiate" icon={Tag} label="Refund Initiate" isSubItem />
+                        <SidebarItem to="bookings/operator-wise" icon={Users} label="Operator Wise Bookings" isSubItem />
                         <SidebarItem to="bookings/fraud" icon={ShieldAlert} label="Fraud Alerts" isSubItem />
                     </SidebarDropdown>
 

@@ -42,31 +42,40 @@ const SidebarDropdown = ({ icon: Icon, label, items, isOpen, sidebarOpen }) => {
                 />
             </button>
 
-            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="pl-12 pr-4 space-y-1 py-1 relative">
                     {/* Vertical line indicator */}
                     <div className="absolute left-[26px] top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-800" />
                     
                     {items.map((item, index) => (
-                        <NavLink
-                            key={index}
-                            to={item.to}
-                            className={({ isActive }) => `
-                                flex items-center justify-between py-2.5 rounded-lg text-xs font-bold transition-all duration-200
-                                ${isActive 
-                                    ? 'text-blue-600 bg-blue-50/50 dark:bg-blue-500/10 px-3' 
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:translate-x-1'}
-                            `}
-                        >
-                            <span className="relative">
-                                {item.label}
-                                {item.badge > 0 && (
-                                    <span className="absolute -top-1 -right-6 px-1.5 py-0.5 text-[8px] bg-amber-500 text-white rounded-full">
-                                        {item.badge}
+                        <React.Fragment key={index}>
+                            {item.isHeader ? (
+                                <div className="py-2 mt-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100 pt-2 block">
+                                        {item.label}
                                     </span>
-                                )}
-                            </span>
-                        </NavLink>
+                                </div>
+                            ) : (
+                                <NavLink
+                                    to={item.to}
+                                    className={({ isActive }) => `
+                                        flex items-center justify-between py-2 rounded-lg text-xs font-bold transition-all duration-200
+                                        ${isActive 
+                                            ? 'text-blue-600 bg-blue-50/50 dark:bg-blue-500/10 px-3' 
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:translate-x-1'}
+                                    `}
+                                >
+                                    <span className="relative">
+                                        {item.label}
+                                        {item.badge > 0 && (
+                                            <span className="absolute -top-1 -right-6 px-1.5 py-0.5 text-[8px] bg-amber-500 text-white rounded-full">
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </span>
+                                </NavLink>
+                            )}
+                        </React.Fragment>
                     ))}
                 </div>
             </div>

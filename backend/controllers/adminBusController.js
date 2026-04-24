@@ -3,6 +3,7 @@ const Operator = require('../models/Operator');
 const BusType = require('../models/BusType');
 const User = require('../models/User');
 const Schedule = require('../models/Schedule');
+const mongoose = require('mongoose');
 
 /**
  * GET /api/admin/buses
@@ -80,14 +81,16 @@ exports.getBusCounts = async (req, res) => {
 exports.updateBusStatus = async (req, res) => {
     try {
         const { id, action } = req.params;
+        const busId = id.trim();
+        const actionKey = action.toLowerCase();
         let status;
 
-        switch (action) {
+        switch (actionKey) {
             case 'approve':
-                status = 'approved';
+                status = 'active'; // Changed from 'approved' to 'active' to match system visibility
                 break;
             case 'activate':
-                status = 'live';
+                status = 'active'; // Standardizing on 'active'
                 break;
             case 'reject':
                 status = 'rejected';
@@ -99,27 +102,49 @@ exports.updateBusStatus = async (req, res) => {
                 status = 'under_review';
                 break;
             default:
-                return res.status(400).json({ success: false, message: 'Invalid action' });
+                status = actionKey;
         }
 
-        const bus = await Bus.findByIdAndUpdate(id, { status }, { new: true });
-        if (!bus) return res.status(404).json({ success: false, message: 'Bus not found' });
+        console.log(`[Bus Status Update Request] ID: ${busId}, Action: ${actionKey}, Target Status: ${status}`);
 
-        // Cascading Status Update for Schedules
+        const bus = await Bus.findOneAndUpdate(
+            { _id: new mongoose.Types.ObjectId(busId) }, 
+            { $set: { status: status } }, 
+            { new: true, runValidators: true }
+        );
+
+        if (!bus) {
+            console.log(`[Bus Status Update] Bus not found: ${busId}`);
+            return res.status(404).json({ success: false, message: 'Bus not found' });
+        }
+
+        console.log(`[Bus Status Update] Bus ${busId} status successfully updated to ${bus.status}`);
+
+        // Update all related schedules
         let scheduleStatus;
-        if (['approved', 'live', 'active'].includes(status)) {
+        if (status === 'active') {
             scheduleStatus = 'active';
-        } else if (status === 'suspended') {
+        } else if (status === 'suspended' || status === 'rejected') {
             scheduleStatus = 'inactive';
-        } else if (status === 'rejected') {
-            scheduleStatus = 'canceled';
         }
 
         if (scheduleStatus) {
-            await Schedule.updateMany({ bus: id }, { status: scheduleStatus });
+            try {
+                const result = await Schedule.updateMany(
+                    { bus: busId }, 
+                    { status: scheduleStatus }
+                );
+                console.log(`[Bus Status Update] Cascaded to ${result.modifiedCount} schedules for bus ${busId}`);
+            } catch (schedError) {
+                console.error(`[Bus Status Update] Error updating schedules for bus ${busId}:`, schedError);
+            }
         }
 
-        res.json({ success: true, bus, message: `Bus ${action}ed successfully and schedules updated` });
+        res.json({ 
+            success: true, 
+            bus, 
+            message: `Bus ${actionKey === 'approve' ? 'approved' : actionKey === 'submit_for_approval' ? 'submitted' : actionKey} successfully. Status is now ${status}.` 
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

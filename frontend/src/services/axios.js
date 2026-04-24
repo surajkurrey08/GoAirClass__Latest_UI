@@ -3,9 +3,6 @@ import axios from 'axios';
 // Create an instance of axios
 const API = axios.create({
   baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Add a request interceptor to attach JWT token

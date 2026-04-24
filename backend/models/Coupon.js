@@ -117,6 +117,9 @@ const couponSchema = new mongoose.Schema({
     isGlobal: { 
         type: Boolean, 
         default: false 
+    },
+    rules: {
+        lastMinute: { type: Boolean, default: false }
     }
 }, { timestamps: true });
 

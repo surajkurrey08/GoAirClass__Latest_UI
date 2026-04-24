@@ -51,6 +51,13 @@
   background: rgba(16,185,129,0.1); color: var(--accent-green);
   padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 700;
 }
+.ticket-coupon {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f0fdf4; color: #166534;
+  padding: 4px 10px; border-radius: 8px; border: 1px solid #bbf7d0;
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-top: 4px;
+}
 
 .ticket-divider {
   display: flex; align-items: center; position: relative;

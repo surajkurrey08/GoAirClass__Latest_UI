@@ -93,8 +93,9 @@ router.get('/search', async (req, res) => {
 
         let schedules = await Schedule.find(query).populate('bus route operator');
 
-        // SECURITY: Filter for visibility - only show approved/live buses in search
+        // SECURITY: Filter for visibility - only show approved/live buses AND active schedules in search
         schedules = schedules.filter(schedule => 
+            schedule.status === 'active' &&
             schedule.bus && ['live', 'approved', 'active'].includes(schedule.bus.status)
         );
 
@@ -105,6 +106,26 @@ router.get('/search', async (req, res) => {
 
         const orchestratedSchedules = await Promise.all(schedules.map(async (schedule) => {
             const schedObj = schedule.toObject();
+
+            // Find best available coupon for this specific bus/operator/route
+            const Coupon = require('../models/Coupon');
+            const availableCoupons = await Coupon.find({
+                status: 'Active',
+                applicableOn: { $in: ['Bus', 'All'] },
+                validFrom: { $lte: searchDate || new Date() },
+                validTill: { $gte: searchDate || new Date() },
+                $or: [
+                    { isGlobal: true },
+                    { specificOperators: schedObj.operator?._id || schedObj.operator },
+                    { applicableBuses: schedObj.bus?._id || schedObj.bus }
+                ]
+            }).sort({ discountValue: -1 }); // Get highest discount first
+
+            // filter by route if not global routes
+            const bestCoupon = availableCoupons.find(c => {
+                if (c.applyToAllRoutes) return true;
+                return c.applicableRoutes.some(r => r.toString() === schedObj.route?._id?.toString());
+            });
 
             // Prepare matching parameters for Pricing Engine
             const context = {
@@ -117,30 +138,22 @@ router.get('/search', async (req, res) => {
                 destinationCity: schedObj.route?.toCity,
                 busType: schedObj.bus?.busType,
                 timeSlot: getTimeSlot(schedObj.departureTime),
-                // Derived Seat Type: Search 'AC' in amenities to match Commission Rule 'AC' requirement
                 seatType: (schedObj.bus?.amenities || []).some(a => a.toUpperCase().includes('AC')) ? 'AC' : 'Non-AC',
                 distance: schedObj.route?.distance || 0,
                 isWeekend,
                 isFestival: false,
-                userRole: 'B2C' // Default for search
+                userRole: 'B2C'
             };
 
             const breakdown = await pricingEngine.calculate(context);
 
-            // Apply commission to individual seats in layout if they exist
             if (schedObj.bus && schedObj.bus.seatLayout) {
                 schedObj.bus.seatLayout = schedObj.bus.seatLayout.map(seat => {
-                    // Re-calculate for specific seat
-                    const seatContext = { ...context, selectedSeats: [seat.seatNo] };
-
-                    // Fallback to schedule's ticketPrice if individual seat price is not set
                     const baseSeatPrice = Number(seat.price || schedObj.ticketPrice || 0);
-
                     return {
                         ...seat,
                         basePrice: baseSeatPrice,
                         commission: breakdown.commission,
-                        // Use the standardized Pricing Engine formula for seat-level display
                         price: Math.round(
                             baseSeatPrice +
                             (breakdown.seatPremiums / (context.selectedSeats?.length || 1)) +
@@ -154,13 +167,18 @@ router.get('/search', async (req, res) => {
                 });
             }
 
-            // Inject calculated price into the result
             return {
                 ...schedObj,
-                baseFare: schedObj.ticketPrice, // The original operator fare
+                baseFare: schedObj.ticketPrice,
                 commission: breakdown.commission,
-                finalPrice: breakdown.totalFare, // The total price including commission
-                ticketPrice: breakdown.totalFare // Override displayed price for backward compatibility
+                finalPrice: breakdown.totalFare,
+                ticketPrice: breakdown.totalFare,
+                coupon: bestCoupon ? {
+                    code: bestCoupon.code,
+                    discountType: bestCoupon.discountType,
+                    discountValue: bestCoupon.discountValue,
+                    rules: bestCoupon.rules
+                } : null
             };
         }));
 
