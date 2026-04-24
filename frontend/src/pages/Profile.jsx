@@ -377,17 +377,6 @@ export default function Profile() {
               )}
             </div>
 
-            {/* Promo Card */}
-            <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 rounded-[2.5rem] shadow-xl shadow-blue-900/10 text-white flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl group-hover:scale-125 transition-transform duration-700" />
-              <div className="relative z-10">
-                <h4 className="text-2xl font-bold mb-2">Upgrade to Platinum</h4>
-                <p className="text-blue-100 max-w-sm">Unlock limitless rewards, priority support, and free cabin upgrades on every flight.</p>
-              </div>
-              <button className="relative z-10 px-8 py-4 bg-white text-blue-800 font-bold rounded-2xl hover:bg-blue-50 transition-all shadow-xl active:scale-95 whitespace-nowrap">
-                Upgrade Now
-              </button>
-            </div>
           </div>
         </div>
       </div>
