@@ -19,7 +19,7 @@ import {
     fetchBusById, 
     createBus, 
     updateBus 
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const AMENITIES_OPTIONS = [
@@ -102,6 +102,7 @@ const BusForm = () => {
                             row: r,
                             col: c,
                             type: 'seater',
+                            isLadies: false,
                             deck: 'lower',
                             side: c <= 2 ? 'left' : 'right',
                             price: price
@@ -123,6 +124,7 @@ const BusForm = () => {
                                 row: r,
                                 col: c,
                                 type: 'sleeper',
+                                isLadies: false,
                                 deck: deck,
                                 side: layoutType === '2x1 Sleeper' ? (c <= 2 ? 'left' : 'right') : (c === 1 ? 'left' : 'right'),
                                 price: price + (deck === 'upper' ? 200 : 0)
@@ -380,8 +382,6 @@ const BusForm = () => {
                                                     >
                                                         <option value="seater">Seater</option>
                                                         <option value="sleeper">Sleeper</option>
-                                                        <option value="ladies">Ladies</option>
-                                                        <option value="ladies-sleeper">L.Sleeper</option>
                                                     </select>
                                                 </td>
                                                 <td className="px-6 py-4">

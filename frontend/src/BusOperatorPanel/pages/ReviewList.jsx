@@ -14,7 +14,7 @@ import {
 import {
     fetchMyReviews,
     replyToReview
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const ReviewList = () => {

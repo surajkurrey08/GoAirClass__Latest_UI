@@ -13,6 +13,7 @@ const busSchema = new mongoose.Schema({
         row: Number,
         col: Number,
         type: { type: String, enum: ['seater', 'sleeper', 'ladies', 'ladies-sleeper'] },
+        isLadies: { type: Boolean, default: false },
         deck: { type: String, enum: ['lower', 'upper'], default: 'lower' },
         side: { type: String, enum: ['left', 'right', 'single', 'double'] },
         price: Number,

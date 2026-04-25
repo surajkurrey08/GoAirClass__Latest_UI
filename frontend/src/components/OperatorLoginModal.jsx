@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Mail, Lock, Loader2, Bus } from 'lucide-react';
-import { loginOperator } from '../services/auth';
+import { loginOperator } from '../services/operatorService';
 import { toast } from 'react-toastify';
 
 export default function OperatorLoginModal({ isOpen, onClose }) {

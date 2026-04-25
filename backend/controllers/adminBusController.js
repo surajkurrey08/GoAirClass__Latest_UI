@@ -70,7 +70,8 @@ exports.getBusCounts = async (req, res) => {
         const count = await Bus.countDocuments(query);
         res.json({ success: true, count });
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        console.error('Error in getBusCounts:', error);
+        res.status(500).json({ success: false, message: error.message || 'Server error' });
     }
 };
 

@@ -36,6 +36,7 @@ router.get('/routes', authMiddleware, routeController.getAllRoutes);
 router.post('/routes', authMiddleware, routeController.createRoute);
 router.put('/routes/:id', authMiddleware, routeController.updateRoute);
 router.delete('/routes/:id', authMiddleware, routeController.deleteRoute);
+router.patch('/routes/:id/popular', authMiddleware, routeController.togglePopular);
 
 // ─── BOOKING CONTROL MANAGEMENT ──────────────────────────────────────────────
 router.get('/bookings', authMiddleware, adminBookingController.getAllBookings);

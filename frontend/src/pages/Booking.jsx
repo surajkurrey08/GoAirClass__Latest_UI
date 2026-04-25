@@ -15,25 +15,35 @@ export default function Booking() {
     const [searchParams] = useSearchParams()
     const navigate = useNavigate()
     const location = useLocation()
-    
+
     // Data from SeatSelection.jsx
-    const { 
-        selectedSeats = [], 
-        totalPrice = 0, 
+    const {
+        selectedSeats = [],
+        selectedSeatDetails = [],
+        totalPrice = 0,
         busId: stateBusId,
         operatorId: stateOperatorId,
         routeId: stateRouteId,
-        busData: stateBusData, 
+        busData: stateBusData,
         busName,
         busType,
         departureTime,
         arrivalTime,
-        boardingPoint = '', 
-        droppingPoint = '' 
+        boardingPoint = '',
+        droppingPoint = '',
+        boardingTime,
+        droppingTime,
+        travelDate: stateTravelDate
     } = location.state || {}
 
     // Normalize bus data
-    const busData = stateBusData || { busName, busType, departureTime, arrivalTime }
+    const busData = stateBusData || { 
+        busName, 
+        busType, 
+        departureTime, 
+        arrivalTime, 
+        travelDate: stateTravelDate 
+    }
 
     const type = searchParams.get('type') || 'bus'
     const [step, setStep] = useState(0)
@@ -50,12 +60,17 @@ export default function Booking() {
 
     // Passenger details
     const [passengers, setPassengers] = useState(
-        selectedSeats.map(seat => ({
-            name: '',
-            age: '',
-            gender: 'Male',
-            seatNumber: seat
-        }))
+        selectedSeats.map(seatNo => {
+            const seatDef = selectedSeatDetails.find(s => s.seatNo === seatNo);
+            const isLadies = seatDef?.type === 'ladies' || seatDef?.type === 'ladies-sleeper' || seatDef?.isLadies === true;
+            return {
+                name: '',
+                age: '',
+                gender: isLadies ? 'Female' : 'Male',
+                seatNumber: seatNo,
+                isLadies
+            };
+        })
     )
 
     // Contact details
@@ -122,6 +137,10 @@ export default function Booking() {
                 toast.error(`Please fill details for seat ${p.seatNumber}`)
                 return false
             }
+            if (p.isLadies && p.gender?.toLowerCase() !== 'female') {
+                toast.error(`Seat ${p.seatNumber} is reserved for ladies. Please select Female gender.`)
+                return false
+            }
         }
         if (!contact.email || !contact.phone) {
             toast.error("Please fill contact details")
@@ -136,7 +155,7 @@ export default function Booking() {
 
     const handleRazorpayPayment = async () => {
         if (!validateForms()) return
-        
+
         setLoading(true)
         try {
             // 1. Create order on backend
@@ -172,11 +191,11 @@ export default function Booking() {
                             passengerMobile: contact.phone,
                             passengers,
                             contactDetails: contact,
-                            travelDate: busData.travelDate || new Date().toISOString().split('T')[0],
+                            travelDate: stateTravelDate || busData.travelDate || new Date().toLocaleDateString("en-CA"),
                             boardingPoint,
                             droppingPoint,
-                            boarding: { point: boardingPoint, time: busData.departureTime },
-                            dropping: { point: droppingPoint, time: busData.arrivalTime },
+                            boarding: { point: boardingPoint, time: boardingTime || busData.departureTime },
+                            dropping: { point: droppingPoint, time: droppingTime || busData.arrivalTime },
                             selectedSeats,
                             seatNumbers: selectedSeats,
                             baseFare: totalPrice,
@@ -246,6 +265,37 @@ export default function Booking() {
 
                 <div className="container booking-body">
                     <div className="booking-main">
+                        <div className="booking-card animate-fadeInUp !bg-slate-900 !border-slate-800 !p-6 mb-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl">
+                                        🚌
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black text-xl leading-tight">{busData.busName || busData.operator?.name}</h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-white/50 text-[10px] font-black uppercase tracking-widest">{busData.busType}</span>
+                                            <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                                            <span className="text-red-400 text-[10px] font-black uppercase tracking-widest">{new Date(stateTravelDate || busData.travelDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 w-full md:w-auto grid grid-cols-2 gap-4 md:gap-8 pt-4 md:pt-0 border-t md:border-t-0 border-white/10">
+                                    <div className="relative">
+                                        <p className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Boarding Point</p>
+                                        <p className="text-white font-bold text-sm truncate">{boardingPoint}</p>
+                                        <p className="text-red-400 font-black text-xs mt-1">{boardingTime || busData.departureTime}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-1">Dropping Point</p>
+                                        <p className="text-white font-bold text-sm truncate">{droppingPoint}</p>
+                                        <p className="text-red-400 font-black text-xs mt-1">{droppingTime || busData.arrivalTime}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {step === 0 && (
                             <div className="space-y-6">
                                 {passengers.map((p, idx) => (
@@ -258,11 +308,11 @@ export default function Booking() {
                                         </div>
                                         <div className="form-grid">
                                             <div className="form-group form-group--full">
-                                                <label><User size={14}/> Full Name</label>
+                                                <label><User size={14} /> Full Name</label>
                                                 <input className="form-input" placeholder="Enter full name" value={p.name} onChange={e => updatePassenger(idx, 'name', e.target.value)} />
                                             </div>
                                             <div className="form-group">
-                                                <label><Calendar size={14}/> Age</label>
+                                                <label><Calendar size={14} /> Age</label>
                                                 <input className="form-input" type="number" placeholder="Age" value={p.age} onChange={e => updatePassenger(idx, 'age', e.target.value)} />
                                             </div>
                                             <div className="form-group">
@@ -281,12 +331,12 @@ export default function Booking() {
                                     <h2>Contact Information</h2>
                                     <div className="form-grid">
                                         <div className="form-group">
-                                            <label><Mail size={14}/> Email Address</label>
-                                            <input className="form-input" type="email" placeholder="your@email.com" value={contact.email} onChange={e => setContact({...contact, email: e.target.value})} />
+                                            <label><Mail size={14} /> Email Address</label>
+                                            <input className="form-input" type="email" placeholder="your@email.com" value={contact.email} onChange={e => setContact({ ...contact, email: e.target.value })} />
                                         </div>
                                         <div className="form-group">
-                                            <label><Phone size={14}/> Phone Number</label>
-                                            <input className="form-input" placeholder="+91 XXXXX XXXXX" value={contact.phone} onChange={e => setContact({...contact, phone: e.target.value})} />
+                                            <label><Phone size={14} /> Phone Number</label>
+                                            <input className="form-input" placeholder="+91 XXXXX XXXXX" value={contact.phone} onChange={e => setContact({ ...contact, phone: e.target.value })} />
                                         </div>
                                     </div>
                                 </div>
@@ -307,11 +357,13 @@ export default function Booking() {
                                                     <div>
                                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Boarding</p>
                                                         <p className="text-sm font-bold">{boardingPoint}</p>
+                                                        <p className="text-xs font-black text-red-500 mt-1">{boardingTime || busData.departureTime}</p>
                                                     </div>
                                                     <div className="w-px h-8 bg-slate-200"></div>
                                                     <div>
                                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dropping</p>
                                                         <p className="text-sm font-bold">{droppingPoint}</p>
+                                                        <p className="text-xs font-black text-red-500 mt-1">{droppingTime || busData.arrivalTime}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -387,19 +439,19 @@ export default function Booking() {
                         {/* Coupon Section */}
                         <div className="coupon-section animate-fadeInUp">
                             <h3><Tag size={16} className="text-red-500" /> Offers & Coupons</h3>
-                            
+
                             {!appliedCoupon ? (
                                 <>
                                     <div className="coupon-input-group">
-                                        <input 
-                                            type="text" 
-                                            className="coupon-input" 
-                                            placeholder="Enter Code" 
+                                        <input
+                                            type="text"
+                                            className="coupon-input"
+                                            placeholder="Enter Code"
                                             value={couponCode}
                                             onChange={e => setCouponCode(e.target.value.toUpperCase())}
                                         />
-                                        <button 
-                                            className="btn-apply" 
+                                        <button
+                                            className="btn-apply"
                                             onClick={() => handleApplyCoupon()}
                                             disabled={applyingCoupon || !couponCode}
                                         >
@@ -410,8 +462,8 @@ export default function Booking() {
                                     {availableCoupons.length > 0 && (
                                         <div className="available-coupons">
                                             {availableCoupons.map(coupon => (
-                                                <div 
-                                                    key={coupon._id} 
+                                                <div
+                                                    key={coupon._id}
                                                     className="coupon-card"
                                                     onClick={() => handleApplyCoupon(coupon.code)}
                                                 >
@@ -451,7 +503,7 @@ export default function Booking() {
                                 <span>Base Fare ({selectedSeats.length} Seats)</span>
                                 <span>₹{totalPrice.toLocaleString()}</span>
                             </div>
-                            
+
                             {discountAmount > 0 && (
                                 <div className="price-line">
                                     <span className="text-green-600 font-bold">Coupon Discount</span>
@@ -463,19 +515,19 @@ export default function Booking() {
                                 <span>Taxes & Fees (GST 5%)</span>
                                 <span>+₹{taxes.toLocaleString()}</span>
                             </div>
-                            
+
                             <div className="price-line price-line--total">
                                 <span>Total Payable</span>
                                 <span>₹{finalTotal.toLocaleString()}</span>
                             </div>
-                            
+
                             {discountAmount > 0 ? (
                                 <div className="price-saving mt-6 flex items-center gap-3">
                                     <span className="text-lg">🎉</span>
                                     <span>Awesome! You saved ₹{discountAmount} on this booking.</span>
                                 </div>
                             ) : (
-                                <div className="price-saving mt-6 flex items-center gap-3" style={{background: 'rgba(59,130,246,0.08)', color: '#3b82f6'}}>
+                                <div className="price-saving mt-6 flex items-center gap-3" style={{ background: 'rgba(59,130,246,0.08)', color: '#3b82f6' }}>
                                     <span className="text-lg">🎁</span>
                                     <span>Apply a coupon to save more!</span>
                                 </div>

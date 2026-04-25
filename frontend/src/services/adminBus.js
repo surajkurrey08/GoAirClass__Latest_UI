@@ -142,6 +142,15 @@ export const deleteGlobalRoute = async (id) => {
   }
 };
 
+export const toggleRoutePopularity = async (id) => {
+  try {
+    const response = await API.patch(`/admin/routes/${id}/popular`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to toggle route popularity');
+  }
+};
+
 /**
  * UTILITIES / COMMON SERVICE
  */

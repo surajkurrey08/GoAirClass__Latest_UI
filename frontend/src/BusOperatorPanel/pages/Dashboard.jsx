@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { 
     fetchOperatorStats
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 import {
     AreaChart,
@@ -26,7 +26,6 @@ import {
     Bar,
     Cell
 } from 'recharts';
-import API from '../../services/axios';
 
 const StatCard = ({ title, value, subValue, icon: Icon, trend, colorClass }) => (
     <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 group">
@@ -59,13 +58,14 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const response = await API.get('/dashboard/operator');
-                if (response.data.success) {
-                    setStats(response.data.stats);
-                    setChartData(response.data.chartData);
+                const data = await fetchOperatorStats();
+                if (data.success) {
+                    setStats(data.stats);
+                    setChartData(data.chartData);
                 }
             } catch (error) {
                 console.error("Dashboard Fetch Error:", error);
+                toast.error(error.message);
             } finally {
                 setLoading(false);
             }

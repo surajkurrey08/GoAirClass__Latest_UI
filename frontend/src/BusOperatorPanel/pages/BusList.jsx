@@ -17,7 +17,7 @@ import {
     fetchMyBuses,
     updateBus,
     deleteBus
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const BusList = () => {

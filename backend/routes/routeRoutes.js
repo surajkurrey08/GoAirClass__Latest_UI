@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Route = require('../models/Route');
 
+// Get Popular Routes (Public)
+router.get('/popular', async (req, res) => {
+    try {
+        const routes = await Route.find({ isPopular: true }).sort({ createdAt: -1 });
+        res.json(routes);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get All (Alias for root)
 router.get('/', async (req, res) => {
     try {

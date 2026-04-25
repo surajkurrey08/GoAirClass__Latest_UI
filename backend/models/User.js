@@ -82,6 +82,10 @@ const userSchema = new mongoose.Schema({
     isBlocked: {
         type: Boolean,
         default: false,
+    },
+    profileImage: {
+        type: String,
+        default: null,
     }
 }, { timestamps: true });
 

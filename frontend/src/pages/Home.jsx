@@ -1,17 +1,67 @@
 import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Star, Shield, Zap, Phone, Globe, Tag, CheckCircle, Play, ChevronRight } from 'lucide-react'
+import { ArrowRight, Star, Shield, Zap, Phone, Globe, Tag, CheckCircle, Play, ChevronRight, Plane, TrainFront, Bus as BusIcon, Sparkles } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import SearchForm from '../components/SearchForm'
 import Footer from '../components/Footer'
-import { destinations, popularRoutes, offers, features, testimonials } from '../data/mockData'
+import { destinations, offers, features, testimonials } from '../data/mockData'
+import { fetchPopularRoutes } from '../services/busService'
+import { fetchPublicCoupons } from '../services/couponService'
+import { fetchPublicDestinations } from '../services/destinationService.js'
+import { fetchVideoContent } from '../services/videoContentService'
+import { fetchPublicTestimonials } from '../services/reviewService'
 import './Home.css'
 
 export default function Home() {
   const navigate = useNavigate()
   const observerRef = useRef(null)
+  const [popularRoutes, setPopularRoutes] = React.useState([])
+  const [activeCoupons, setActiveCoupons] = React.useState([])
+  const [activeDestinations, setActiveDestinations] = React.useState([])
+  const [activeReviews, setActiveReviews] = React.useState([])
+  const [videoContent, setVideoContent] = React.useState({
+    title: "Your Story Begins the Moment You Decide to Travel",
+    subtitle: "At GoAirClass, we craft personalized trips that go beyond the ordinary — so you can focus on what truly matters: the experience.",
+    points: [
+      "Handpicked destinations worldwide",
+      "Best price guarantee",
+      "Dedicated travel support",
+      "Seamless booking experience"
+    ],
+    buttonText: "Start Exploring",
+    videoUrl: ""
+  })
+
+  const getRouteIcon = (type) => {
+    switch (type) {
+      case 'flight': return <Plane size={24} className="text-blue-500" />;
+      case 'train': return <TrainFront size={24} className="text-emerald-500" />;
+      case 'bus': return <BusIcon size={24} className="text-amber-500" />;
+      default: return <Globe size={24} className="text-slate-500" />;
+    }
+  };
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [routes, coupons, dests, vContent, reviews] = await Promise.all([
+          fetchPopularRoutes(),
+          fetchPublicCoupons(),
+          fetchPublicDestinations(),
+          fetchVideoContent(),
+          fetchPublicTestimonials()
+        ]);
+        setPopularRoutes(routes || []);
+        setActiveCoupons(coupons || []);
+        setActiveDestinations(dests || []);
+        setActiveReviews(reviews || []);
+        if (vContent) setVideoContent(vContent);
+      } catch (error) {
+        console.error("Home Load Error:", error);
+      }
+    };
+    loadData();
+
     observerRef.current = new IntersectionObserver(
       (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
       { threshold: 0.1 }
@@ -80,17 +130,38 @@ export default function Home() {
           </div>
           <div className="routes-grid reveal">
             {popularRoutes.map((r, i) => (
-              <button key={i} className="route-chip" onClick={() => navigate(`/search?type=${r.type}&from=${r.from}&to=${r.to}`)}>
-                <span className="route-chip__icon">{r.icon}</span>
-                <div className="route-chip__info">
-                  <span className="route-chip__route">{r.from} → {r.to}</span>
-                  <span className="route-chip__meta">{r.duration}</span>
+              <button
+                key={i}
+                className="route-chip"
+                onClick={() => {
+                  const searchType = r.type === 'flight' ? 'flights' : r.type === 'train' ? 'trains' : 'buses';
+                  navigate(`/search?type=${searchType}&from=${r.fromCity}&to=${r.toCity}`);
+                }}
+              >
+                <div className="route-chip__animate-side">
+                  <div className="route-chip__swipe-card">
+                    <div className="route-chip__card-line" />
+                  </div>
+                  <div className="route-chip__terminal">
+                    <div className="route-chip__terminal-line" />
+                    <div className="route-chip__screen">
+                      <span className="route-chip__icon">{getRouteIcon(r.type)}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="route-chip__right">
-                  <span className="route-chip__price">₹{r.price.toLocaleString()}</span>
-                  <span className={`badge badge-${r.type === 'flight' ? 'blue' : r.type === 'train' ? 'green' : 'orange'}`}>{r.type}</span>
+                <div className="route-chip__content-side">
+                  <div className="route-chip__info">
+                    <span className="route-chip__route">{r.fromCity} → {r.toCity}</span>
+                    <span className="route-chip__meta">{r.travelTime}</span>
+                  </div>
+                  <div className="route-chip__right">
+                    <div className="route-chip__price-group">
+                      <span className="route-chip__price">₹{Number(r.price).toLocaleString()}</span>
+                      <span className="route-chip__type">{r.type}</span>
+                    </div>
+                    <ChevronRight size={18} className="route-chip__arrow" />
+                  </div>
                 </div>
-                <ChevronRight size={16} className="route-chip__arrow" />
               </button>
             ))}
           </div>
@@ -106,22 +177,53 @@ export default function Home() {
             <p>Get the best offers & discounts on your bookings</p>
           </div>
           <div className="offers-grid reveal">
-            {offers.map((offer) => (
-              <div key={offer.id} className={`offer-card ${offer.isLight ? 'offer-card--light' : ''}`}
-                style={{ background: offer.isLight ? '#fff' : offer.color }}>
-                {offer.image && <img src={offer.image} alt={offer.title} className="offer-card__bg" />}
-                {!offer.isLight && <div className="offer-card__overlay" />}
-                <div className="offer-card__content">
-                  <span className="offer-card__badge">{offer.badge}</span>
-                  <h3>{offer.title}</h3>
-                  <p>{offer.subtitle}</p>
-                  <div className="offer-card__discount">{offer.discount}</div>
-                  <button className="offer-card__cta">
-                    {offer.tag} <ArrowRight size={14} />
-                  </button>
+            {activeCoupons.length > 0 ? (
+              activeCoupons.map((coupon) => (
+                <div
+                  key={coupon._id}
+                  className="offer-card offer-card--banner"
+                  onClick={() => navigate('/search')}
+                >
+                  {coupon.image && <img src={coupon.image} alt={coupon.title} className="offer-card__bg" />}
+                  <div className="offer-card__overlay" />
+                  <div className="offer-card__content">
+                    <span className="offer-card__badge">
+                      <Sparkles size={12} className="text-amber-400" /> {coupon.status === 'Active' ? 'LIVE OFFER' : 'PROMO'}
+                    </span>
+                    <h3>{coupon.title}</h3>
+                    <p>{coupon.subtitle}</p>
+                    <div className="offer-card__discount">{coupon.discountText}</div>
+
+                    <div className="offer-card__footer">
+                      <div className="offer-card__code-wrap">
+                        <span>CODE:</span>
+                        <strong>{coupon.code}</strong>
+                      </div>
+                      <button className="offer-card__cta">
+                        {coupon.buttonText || 'Book Now'} <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              offers.map((offer) => (
+                <div key={offer.id} className={`offer-card ${offer.isLight ? 'offer-card--light' : ''}`}
+                  style={{ background: offer.isLight ? '#fff' : offer.color }}>
+                  {offer.image && <img src={offer.image} alt={offer.title} className="offer-card__bg" />}
+                  {!offer.isLight && <div className="offer-card__overlay" />}
+                  <div className="offer-card__content">
+                    <span className="offer-card__badge">{offer.badge}</span>
+                    <h3>{offer.title}</h3>
+                    <p>{offer.subtitle}</p>
+                    <div className="offer-card__discount">{offer.discount}</div>
+                    <button className="offer-card__cta">
+                      {offer.tag} <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -135,23 +237,39 @@ export default function Home() {
             <p>Discover the world's most beautiful places and start planning your dream trip</p>
           </div>
           <div className="destinations-grid reveal">
-            {destinations.map((dest) => (
-              <div key={dest.id} className="dest-card" onClick={() => navigate(`/search?type=hotels&to=${dest.name}`)}>
-                <div className="dest-card__img-wrap">
-                  <img src={dest.image} alt={dest.name} className="dest-card__img" />
-                  <div className="dest-card__overlay" />
-                </div>
-                <div className="dest-card__content">
-                  <div className="dest-card__flag">{dest.flag}</div>
+            {(activeDestinations.length > 0 ? activeDestinations : destinations).map((dest) => (
+              <div key={dest._id || dest.id} className="dest-card" onClick={() => navigate(`/search?from=${dest.from || ''}&to=${dest.to || dest.name}`)}>
+                <div className="dest-card__inner-content">
+                  <div className="dest-card__flag">{dest.isPopular ? '⭐' : (dest.flag || '📍')}</div>
                   <h3>{dest.name}</h3>
-                  <p>{dest.country}</p>
                   <div className="dest-card__meta">
-                    <span>{dest.destinations} Destinations</span>
-                    <span>{dest.hotels} Hotels</span>
+                    {dest.distance ? (
+                      <>
+                        <span className="dest-card__meta-item">{dest.distance} KM</span>
+                        <span className="dest-card__meta-item">{dest.duration || 'Flexible'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="dest-card__meta-item">{dest.destinations} Destinations</span>
+                        <span className="dest-card__meta-item">{dest.hotels} Hotels</span>
+                      </>
+                    )}
                   </div>
-                  <div className="dest-card__footer">
-                    <span className="dest-card__price">from ₹{dest.price.toLocaleString()}</span>
-                    <button className="dest-card__btn">Explore <ChevronRight size={14}/></button>
+                  <button className="dest-card__btn-inside">Book Now</button>
+                </div>
+                <div className="dest-card__cover">
+                  <div className="dest-card__tools">
+                    <div className="dest-card__dot dest-card__dot--red"></div>
+                    <div className="dest-card__dot dest-card__dot--yellow"></div>
+                    <div className="dest-card__dot dest-card__dot--green"></div>
+                  </div>
+                  <div className="dest-card__img-wrap">
+                    <img src={dest.image} alt={dest.name} className="dest-card__img" />
+                    <div className="dest-card__overlay" />
+                    <div className="dest-card__cover-text">
+                      <h3>{dest.name}</h3>
+                      <p>Hover to Explore</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -186,19 +304,31 @@ export default function Home() {
           <div className="video-section__inner">
             <div className="video-section__text">
               <div className="tag">📽 Our Story</div>
-              <h2>Your Story Begins the Moment You Decide to Travel</h2>
-              <p>At GoAirClass, we craft personalized trips that go beyond the ordinary — so you can focus on what truly matters: the experience.</p>
+              <h2>{videoContent.title}</h2>
+              <p>{videoContent.subtitle}</p>
               <ul className="video-section__list">
-                {['Handpicked destinations worldwide', 'Best price guarantee', 'Dedicated travel support', 'Seamless booking experience'].map((item, i) => (
-                  <li key={i}><CheckCircle size={16} color="var(--accent-green)"/>{item}</li>
+                {videoContent.points.map((item, i) => (
+                  <li key={i}><CheckCircle size={16} color="var(--accent-green)" />{item}</li>
                 ))}
               </ul>
               <button className="btn btn-primary" onClick={() => navigate('/search')}>
-                Start Exploring <ArrowRight size={16}/>
+                {videoContent.buttonText} <ArrowRight size={16} />
               </button>
             </div>
             <div className="video-section__media">
-              <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=700&q=80" alt="travel" />
+              {videoContent.videoUrl ? (
+                <video 
+                  src={videoContent.videoUrl} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline
+                  className="video-section__video"
+                />
+              ) : (
+                <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=700&q=80" alt="travel" />
+              )}
+              <div className="video-section__overlay" />
               <button className="play-btn animate-float">
                 <Play size={24} fill="#fff" />
               </button>
@@ -216,17 +346,31 @@ export default function Home() {
             <p>Join thousands of satisfied travelers who book with us every day</p>
           </div>
           <div className="testimonials-grid reveal">
-            {testimonials.map((t, i) => (
-              <div key={t.id} className={`testimonial-card ${i === 1 ? 'testimonial-card--featured' : ''}`}>
-                <img src={t.avatar} alt={t.name} className="testimonial-card__avatar" />
-                <div className="testimonial-card__stars">
-                  {Array.from({length: t.rating}).map((_, j) => <Star key={j} size={14} fill="#F59E0B" color="#F59E0B"/>)}
+            {activeReviews.length > 0 ? (
+              activeReviews.map((t, i) => (
+                <div key={t._id} className={`testimonial-card ${i === 1 ? 'testimonial-card--featured' : ''}`}>
+                  <img src={t.image} alt={t.name} className="testimonial-card__avatar" />
+                  <div className="testimonial-card__stars">
+                    {Array.from({ length: t.rating }).map((_, j) => <Star key={j} size={18} fill="#F59E0B" color="#F59E0B" />)}
+                  </div>
+                  <h4>{t.name}</h4>
+                  <p className="testimonial-card__role">{t.role}</p>
+                  <p className="testimonial-card__review">"{t.reviewText}"</p>
                 </div>
-                <h4>{t.name}</h4>
-                <p className="testimonial-card__role">{t.role}</p>
-                <p className="testimonial-card__review">"{t.review}"</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              testimonials.map((t, i) => (
+                <div key={t.id} className={`testimonial-card ${i === 1 ? 'testimonial-card--featured' : ''}`}>
+                  <img src={t.avatar} alt={t.name} className="testimonial-card__avatar" />
+                  <div className="testimonial-card__stars">
+                    {Array.from({ length: t.rating }).map((_, j) => <Star key={j} size={18} fill="#F59E0B" color="#F59E0B" />)}
+                  </div>
+                  <h4>{t.name}</h4>
+                  <p className="testimonial-card__role">{t.role}</p>
+                  <p className="testimonial-card__review">"{t.review}"</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -241,10 +385,10 @@ export default function Home() {
               <p>Join 8 million+ travelers and book your dream trip today. Get exclusive deals and offers!</p>
               <div className="cta-section__actions">
                 <button className="btn btn-white" onClick={() => navigate('/search')}>
-                  Book Now <ArrowRight size={16}/>
+                  Book Now <ArrowRight size={16} />
                 </button>
-                <button className="btn btn-outline" style={{borderColor:'rgba(255,255,255,0.5)',color:'#fff'}}>
-                  <Phone size={16}/> Talk to an Expert
+                <button className="btn btn-outline" style={{ borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }}>
+                  <Phone size={16} /> Talk to an Expert
                 </button>
               </div>
               <p className="cta-section__note">✓ No booking fees &nbsp;&nbsp; ✓ Free cancellation &nbsp;&nbsp; ✓ Best price guarantee</p>

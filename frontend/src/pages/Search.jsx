@@ -5,13 +5,14 @@ import Navbar from '../components/Navbar'
 import SearchForm from '../components/SearchForm'
 import Footer from '../components/Footer'
 import { searchResults } from '../data/mockData'
-import { searchBusSchedules } from '../services/auth'
+import { searchBusSchedules } from '../services/busService'
 import './Search.css'
 
 export default function Search() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const type = params.get('type') || 'flights'
+  const womenOnly = params.get('women') === 'true'
   const [sortBy, setSortBy] = useState('price')
   const [priceRange, setPriceRange] = useState([0, 50000])
   const [loading, setLoading] = useState(true)
@@ -32,7 +33,7 @@ export default function Search() {
           const apiData = await searchBusSchedules(searchParams)
 
           // Map API data to UI format
-          const mappedBuses = apiData.map(schedule => {
+          let mappedBuses = apiData.map(schedule => {
             // Simple duration calculation helper
             const getDuration = (start, end) => {
               if (!start || !end) return '6h 30m'
@@ -44,6 +45,8 @@ export default function Search() {
                 return `${Math.floor(diff / 60)}h ${diff % 60}m`
               } catch { return '6h 30m' }
             }
+
+            const hasLadiesSeats = true; // All buses now support dynamic ladies reservation
 
             return {
               id: schedule._id,
@@ -60,9 +63,16 @@ export default function Search() {
               amenities: schedule.bus?.amenities || [],
               coupon: schedule.coupon,
               operatorId: schedule.operator?._id || schedule.operator,
-              routeId: schedule.route?._id || schedule.route
+              routeId: schedule.route?._id || schedule.route,
+              regNo: schedule.bus?.busNumber || 'N/A',
+              hasLadiesSeats
             }
           })
+
+          if (womenOnly) {
+            mappedBuses = mappedBuses.filter(bus => bus.hasLadiesSeats)
+          }
+
           setResults(mappedBuses)
         } else {
           // Keep mock data for other types
@@ -191,7 +201,13 @@ export default function Search() {
                 </div>
               ) : (
                 results.map(item => (
-                  <ResultCard key={item.id} item={item} type={type} navigate={navigate} />
+                  <ResultCard 
+                    key={item.id} 
+                    item={item} 
+                    type={type} 
+                    navigate={navigate} 
+                    travelDate={params.get('date')}
+                  />
                 ))
               )}
             </div>
@@ -203,7 +219,7 @@ export default function Search() {
   )
 }
 
-function ResultCard({ item, type, navigate }) {
+function ResultCard({ item, type, navigate, travelDate }) {
   if (type === 'flights') return (
     <div className="result-card" onClick={() => navigate(`/detail/${item.id}?type=flight`)}>
       <div className="result-card__main">
@@ -305,7 +321,7 @@ function ResultCard({ item, type, navigate }) {
   )
 
   return (
-    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}`)}>
+    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}${travelDate ? `?date=${travelDate}` : ''}`)}>
       {/* Brand Header */}
       <div className="bus-card__header">
         <div className="badge-primo">
@@ -317,13 +333,18 @@ function ResultCard({ item, type, navigate }) {
             {item.coupon.discountValue}{item.coupon.discountType === 'percentage' ? '%' : ''} OFF
           </div>
         )}
+        {item.hasLadiesSeats && (
+          <div className="badge-ladies">
+            👩 Ladies seats available
+          </div>
+        )}
       </div>
 
       <div className="bus-card__body">
         {/* Identity & Route */}
         <div className="bus-card__id-row">
           <span className="reg-tag">
-            {item.regNo || `MH${Math.floor(10 + Math.random() * 89)}C${Math.floor(1000 + Math.random() * 8999)}`}
+            {item.regNo}
           </span>
           <span className="status-badge">STARTING</span>
           <span className="route-stops">

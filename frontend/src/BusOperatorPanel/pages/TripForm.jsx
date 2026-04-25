@@ -10,7 +10,7 @@ import {
     Plus,
     X,
     Navigation,
-    MoreHorizontal
+    Sparkles
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
@@ -18,8 +18,8 @@ import {
     createTrip, 
     updateTrip, 
     fetchMyBuses, 
-    fetchRoutes 
-} from '../../services/auth';
+    fetchMyRoutes 
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const TripForm = () => {
@@ -50,7 +50,7 @@ const TripForm = () => {
         try {
             const [busesData, routesData] = await Promise.all([
                 fetchMyBuses(),
-                fetchRoutes()
+                fetchMyRoutes()
             ]);
             setBuses(busesData || []);
             setRoutes(routesData || []);
@@ -71,6 +71,36 @@ const TripForm = () => {
         } catch (error) {
             console.error("Fetch Trip Data Error:", error);
             toast.error("Failed to load trip details");
+        }
+    };
+
+    const handleRouteChange = (routeId) => {
+        const selectedRoute = routes.find(r => r._id === routeId);
+        if (selectedRoute) {
+            // Auto-fill boarding and dropping points if route has stops
+            let boarding = [{ location: selectedRoute.fromCity, time: selectedRoute.travelTime.split(' ')[0] }];
+            let dropping = [{ location: selectedRoute.toCity, time: selectedRoute.travelTime }];
+
+            if (selectedRoute.stops && selectedRoute.stops.length > 0) {
+                // Map intermediate stops
+                const intermediatePoints = selectedRoute.stops.map(s => ({
+                    location: s.city,
+                    time: s.arrivalTime
+                }));
+                // For simplicity, we just put them in boarding for now or let operator refine
+            }
+
+            setFormData({
+                ...formData,
+                route: routeId,
+                // We don't auto-fill departure/arrival as they depend on the specific trip
+            });
+            
+            toast.info(`Route ${selectedRoute.fromCity} → ${selectedRoute.toCity} selected. Time and distance pre-configured.`, {
+                icon: <Sparkles className="text-blue-500" />
+            });
+        } else {
+            setFormData({ ...formData, route: '' });
         }
     };
 
@@ -168,10 +198,10 @@ const TripForm = () => {
                                     required
                                     className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-600/20"
                                     value={formData.route}
-                                    onChange={(e) => setFormData({...formData, route: e.target.value})}
+                                    onChange={(e) => handleRouteChange(e.target.value)}
                                 >
                                     <option value="">Select Route</option>
-                                    {routes.map(r => <option key={r._id} value={r._id}>{r.fromCity} → {r.toCity}</option>)}
+                                    {routes.map(r => <option key={r._id} value={r._id}>{r.fromCity} → {r.toCity} ({r.distance} KM)</option>)}
                                 </select>
                             </div>
                         </div>

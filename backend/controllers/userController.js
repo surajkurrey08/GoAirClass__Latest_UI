@@ -95,8 +95,39 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+// @desc    Update profile image
+// @route   POST /api/users/profile/image
+// @access  Private
+const updateProfileImage = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Please upload an image" });
+        }
+
+        const imagePath = `/uploads/profiles/${req.file.filename}`;
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { profileImage: imagePath },
+            { new: true }
+        ).select("-adminPassword -otp");
+
+        if (user) {
+            res.json({
+                message: "Profile image updated successfully",
+                user
+            });
+        } else {
+            res.status(404).json({ message: "User not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
 module.exports = {
     registerUser,
     loginUser,
     getUserProfile,
+    updateProfileImage
 };

@@ -8,6 +8,11 @@ const couponSchema = new mongoose.Schema({
         uppercase: true,
         trim: true
     },
+    title: { type: String },
+    subtitle: { type: String },
+    discountText: { type: String },
+    buttonText: { type: String },
+    image: { type: String },
     description: { type: String },
     discountType: { 
         type: String, 
@@ -111,7 +116,7 @@ const couponSchema = new mongoose.Schema({
     },
     role: { 
         type: String, 
-        enum: ['superadmin', 'admin', 'operator'], 
+        enum: ['superadmin', 'admin', 'operator', 'bus_operator', 'hotel_operator'], 
         required: true 
     },
     isGlobal: { 

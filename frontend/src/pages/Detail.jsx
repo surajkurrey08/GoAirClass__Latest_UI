@@ -3,7 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { Star, MapPin, Wifi, Coffee, Car, Shield, Clock, Users, ArrowLeft, Heart, Share2, Loader2, AlertCircle } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { fetchTripById } from '../services/auth'
+import { fetchTripById } from '../services/busService'
 import './Detail.css'
 
 const detailData = {

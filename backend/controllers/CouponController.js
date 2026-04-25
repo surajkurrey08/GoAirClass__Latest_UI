@@ -133,16 +133,102 @@ exports.applyCoupon = async (req, res) => {
  */
 exports.createCoupon = async (req, res) => {
     try {
+        const parseJSON = (val) => {
+            if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch (e) { return val; }
+            }
+            return val;
+        };
+
         const couponData = {
             ...req.body,
             createdBy: req.user.id,
-            role: req.user.role
+            role: req.user.role,
+            isGlobal: req.body.isGlobal === 'true' || req.body.isGlobal === true,
+            applicableRoutes: parseJSON(req.body.applicableRoutes),
+            applicableBuses: parseJSON(req.body.applicableBuses),
+            specificOperators: parseJSON(req.body.specificOperators),
+            slabs: parseJSON(req.body.slabs),
+            targeting: parseJSON(req.body.targeting)
         };
+
+        if (req.file) {
+            couponData.image = `/uploads/coupons/${req.file.filename}`;
+        }
+
         const coupon = new Coupon(couponData);
         await coupon.save();
         res.status(201).json({ success: true, message: "Coupon created successfully", coupon });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Update an existing coupon
+ */
+exports.updateCoupon = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const parseJSON = (val) => {
+            if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch (e) { return val; }
+            }
+            return val;
+        };
+
+        const updateData = { 
+            ...req.body,
+            applicableRoutes: parseJSON(req.body.applicableRoutes),
+            applicableBuses: parseJSON(req.body.applicableBuses),
+            specificOperators: parseJSON(req.body.specificOperators),
+            slabs: parseJSON(req.body.slabs),
+            targeting: parseJSON(req.body.targeting)
+        };
+
+        if (req.file) {
+            updateData.image = `/uploads/coupons/${req.file.filename}`;
+        }
+
+        const coupon = await Coupon.findByIdAndUpdate(id, updateData, { new: true });
+        if (!coupon) return res.status(404).json({ success: false, message: "Coupon not found" });
+
+        res.json({ success: true, message: "Coupon updated successfully", coupon });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Get public global coupons for homepage banners
+ */
+exports.getPublicCoupons = async (req, res) => {
+    try {
+        const now = new Date();
+        const coupons = await Coupon.find({
+            status: 'Active',
+            isGlobal: true,
+            validFrom: { $lte: now },
+            validTill: { $gte: now }
+        }).sort({ createdAt: -1 });
+        res.json(coupons);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Delete a coupon
+ */
+exports.deleteCoupon = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const coupon = await Coupon.findByIdAndDelete(id);
+        if (!coupon) return res.status(404).json({ success: false, message: "Coupon not found" });
+
+        res.json({ success: true, message: "Coupon deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -156,7 +242,7 @@ exports.listCoupons = async (req, res) => {
             query.createdBy = req.user.id;
         }
         const coupons = await Coupon.find(query).sort({ createdAt: -1 });
-        res.json({ success: true, coupons });
+        res.json(coupons);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

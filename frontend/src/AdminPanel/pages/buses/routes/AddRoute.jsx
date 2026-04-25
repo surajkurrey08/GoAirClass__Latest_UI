@@ -1,0 +1,327 @@
+import React, { useState, useEffect } from 'react';
+import { 
+    ArrowLeft, Save, MapPin, Navigation, 
+    TrendingUp, Clock, Info, ArrowLeftRight, Plus, X
+} from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { fetchGlobalCities, createGlobalRoute, updateGlobalRoute, fetchGlobalRoutes } from '../../../../services/adminBus';
+import { toast } from 'react-toastify';
+import SearchableCityInput from '../../../../SuperAdminPanel/components/inputs/SearchableCityInput';
+
+export default function AddRoute() {
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const isEdit = !!id;
+
+    const [formData, setFormData] = useState({
+        fromCity: '',
+        toCity: '',
+        distance: '',
+        travelTime: '',
+        isPopular: false,
+        boardingPoints: [],
+        droppingPoints: [],
+        type: 'bus',
+        price: ''
+    });
+    const [cities, setCities] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [isSwapping, setIsSwapping] = useState(false);
+    const [bpInput, setBpInput] = useState('');
+    const [dpInput, setDpInput] = useState('');
+
+    useEffect(() => {
+        const loadInitialData = async () => {
+            try {
+                const citiesData = await fetchGlobalCities();
+                setCities(citiesData || []);
+
+                if (isEdit) {
+                    const res = await fetchGlobalRoutes({ id });
+                    if (res.success && res.routes.length > 0) {
+                        const route = res.routes[0];
+                        setFormData({
+                            fromCity: route.fromCity,
+                            toCity: route.toCity,
+                            distance: route.distance,
+                            travelTime: route.travelTime,
+                            isPopular: route.isPopular,
+                            boardingPoints: route.boardingPoints || [],
+                            droppingPoints: route.droppingPoints || [],
+                            type: route.type || 'bus',
+                            price: route.price || ''
+                        });
+                    }
+                }
+            } catch (error) {
+                toast.error("Failed to load data");
+            }
+        };
+        loadInitialData();
+    }, [id]);
+
+    const handleSwap = () => {
+        setIsSwapping(true);
+        setFormData(prev => ({
+            ...prev,
+            fromCity: prev.toCity,
+            toCity: prev.fromCity
+        }));
+        setTimeout(() => setIsSwapping(false), 500);
+    };
+
+    const addBoardingPoint = () => {
+        if (!bpInput.trim()) return;
+        if (formData.boardingPoints.includes(bpInput.trim())) return toast.warning("Point already added");
+        setFormData({ ...formData, boardingPoints: [...formData.boardingPoints, bpInput.trim()] });
+        setBpInput('');
+    };
+
+    const removeBoardingPoint = (point) => {
+        setFormData({ ...formData, boardingPoints: formData.boardingPoints.filter(p => p !== point) });
+    };
+
+    const addDroppingPoint = () => {
+        if (!dpInput.trim()) return;
+        if (formData.droppingPoints.includes(dpInput.trim())) return toast.warning("Point already added");
+        setFormData({ ...formData, droppingPoints: [...formData.droppingPoints, dpInput.trim()] });
+        setDpInput('');
+    };
+
+    const removeDroppingPoint = (point) => {
+        setFormData({ ...formData, droppingPoints: formData.droppingPoints.filter(p => p !== point) });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (formData.fromCity === formData.toCity) {
+            return toast.error("Origin and Destination cannot be the same");
+        }
+
+        setLoading(true);
+        try {
+            if (isEdit) {
+                await updateGlobalRoute(id, formData);
+                toast.success("Route updated successfully");
+            } else {
+                await createGlobalRoute(formData);
+                toast.success("Route created successfully");
+            }
+            navigate('/admin/buses/routes/all');
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                    <button 
+                        onClick={() => navigate(-1)}
+                        className="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-slate-400 hover:text-blue-600 transition-all shadow-sm"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            {isEdit ? 'Edit Connection' : 'Define New Route'}
+                        </h1>
+                        <p className="text-slate-500 font-medium">Establish a verified travel path for your network</p>
+                    </div>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="bg-white dark:bg-slate-900 p-8 md:p-12 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none space-y-12">
+                    
+                    {/* City Selection */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8 relative">
+                        <div className="hidden md:flex absolute left-1/2 top-[55px] -translate-x-1/2 z-10">
+                            <button 
+                                type="button"
+                                onClick={handleSwap}
+                                className={`p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full shadow-lg text-slate-400 hover:text-blue-600 transition-all active:scale-95 duration-500 ${isSwapping ? 'rotate-180' : ''}`}
+                            >
+                                <ArrowLeftRight size={18} />
+                            </button>
+                        </div>
+
+                        <SearchableCityInput 
+                            label="Origin City"
+                            placeholder="e.g. Mumbai"
+                            icon={MapPin}
+                            value={formData.fromCity}
+                            onChange={(val) => setFormData({...formData, fromCity: val})}
+                            cities={cities}
+                        />
+
+                        <SearchableCityInput 
+                            label="Destination City"
+                            placeholder="e.g. Pune"
+                            icon={Navigation}
+                            value={formData.toCity}
+                            onChange={(val) => setFormData({...formData, toCity: val})}
+                            cities={cities}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    <TrendingUp size={12} /> Distance (KM)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    required
+                                    placeholder="e.g. 450"
+                                    value={formData.distance}
+                                    onChange={(e) => setFormData({...formData, distance: e.target.value})}
+                                    className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-[24px] text-sm font-bold focus:ring-2 focus:ring-blue-600/10 outline-none"
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    <Clock size={12} /> Estimated Duration
+                                </label>
+                                <input 
+                                    type="text" 
+                                    required
+                                    placeholder="e.g. 8h 30m"
+                                    value={formData.travelTime}
+                                    onChange={(e) => setFormData({...formData, travelTime: e.target.value})}
+                                    className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-[24px] text-sm font-bold focus:ring-2 focus:ring-blue-600/10 outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    Price (₹)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    required
+                                    placeholder="e.g. 2499"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                    className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-[24px] text-sm font-bold focus:ring-2 focus:ring-blue-600/10 outline-none"
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                    Transport Type
+                                </label>
+                                <select 
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                    className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-[24px] text-sm font-bold focus:ring-2 focus:ring-blue-600/10 outline-none appearance-none"
+                                >
+                                    <option value="bus">Bus</option>
+                                    <option value="flight">Flight</option>
+                                    <option value="train">Train</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] flex flex-col justify-between space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-bold text-slate-900 dark:text-white">Mark as Popular</p>
+                                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Highlight this route in search results</p>
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={() => setFormData({...formData, isPopular: !formData.isPopular})}
+                                    className={`w-14 h-8 rounded-full transition-all relative ${formData.isPopular ? 'bg-amber-500' : 'bg-slate-300'}`}
+                                >
+                                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${formData.isPopular ? 'left-7' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            <div className="flex gap-4 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-white dark:border-slate-800">
+                                <Info size={20} className="text-blue-500 shrink-0" />
+                                <p className="text-[10px] leading-relaxed text-slate-500 font-medium italic">
+                                    Predefined routes ensure that all operators use validated travel paths, improving search accuracy.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Boarding & Dropping Points */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        {/* Boarding Points */}
+                        <div className="space-y-6">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Boarding Points</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text"
+                                    placeholder="Add boarding point..."
+                                    value={bpInput}
+                                    onChange={(e) => setBpInput(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addBoardingPoint())}
+                                    className="flex-grow px-6 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold outline-none"
+                                />
+                                <button type="button" onClick={addBoardingPoint} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {formData.boardingPoints.map(point => (
+                                    <span key={point} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold border border-blue-100 dark:border-blue-800">
+                                        {point}
+                                        <X size={14} className="cursor-pointer" onClick={() => removeBoardingPoint(point)} />
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Dropping Points */}
+                        <div className="space-y-6">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Dropping Points</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text"
+                                    placeholder="Add dropping point..."
+                                    value={dpInput}
+                                    onChange={(e) => setDpInput(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDroppingPoint())}
+                                    className="flex-grow px-6 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold outline-none"
+                                />
+                                <button type="button" onClick={addDroppingPoint} className="p-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {formData.droppingPoints.map(point => (
+                                    <span key={point} className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg text-xs font-bold border border-green-100 dark:border-green-800">
+                                        {point}
+                                        <X size={14} className="cursor-pointer" onClick={() => removeDroppingPoint(point)} />
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Submit */}
+                    <div className="flex items-center justify-end pt-8 border-t border-slate-50 dark:border-slate-800">
+                        <button 
+                            type="submit"
+                            disabled={loading}
+                            className="w-full md:w-auto flex items-center justify-center gap-3 bg-slate-900 dark:bg-blue-600 text-white px-12 py-5 rounded-[28px] font-black shadow-2xl shadow-slate-900/20 hover:-translate-y-1 transition-all disabled:opacity-50"
+                        >
+                            <Save size={22} className={loading ? 'animate-pulse' : ''} />
+                            {loading ? 'Processing...' : (isEdit ? 'Update Route Network' : 'Activate Route connection')}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    );
+}

@@ -5,16 +5,15 @@ import {
     MapPin,
     Navigation,
     Clock,
-    TrendingUp,
-    MoreVertical,
     Edit,
-    Trash2
+    Trash2,
+    Map
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
-    fetchRoutes,
-    deleteRoute
-} from '../../services/auth';
+    fetchMyRoutes,
+    deleteMyRoute
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const RouteList = () => {
@@ -26,7 +25,7 @@ const RouteList = () => {
     const getRoutes = async () => {
         try {
             setLoading(true);
-            const data = await fetchRoutes();
+            const data = await fetchMyRoutes();
             setRoutes(data);
         } catch (error) {
             console.error("Fetch Routes Error:", error);
@@ -43,7 +42,7 @@ const RouteList = () => {
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this route?")) return;
         try {
-            await deleteRoute(id);
+            await deleteMyRoute(id);
             toast.success("Route deleted successfully");
             getRoutes();
         } catch (error) {
@@ -103,7 +102,8 @@ const RouteList = () => {
                                     <th className="px-4 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center w-10"></th>
                                     <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Destination</th>
                                     <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Distance</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Duration</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Stops</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                                     <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -137,42 +137,72 @@ const RouteList = () => {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="flex items-center gap-2">
-                                                <span className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-xs font-black tracking-tight group-hover:bg-white transition-colors">
-                                                    {route.distance} KM
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-black text-slate-800">{route.distance} KM</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                                    <Clock size={10} /> {route.travelTime}
                                                 </span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-2">
-                                                <Clock size={16} className="text-slate-300" />
-                                                <span className="text-sm font-bold text-slate-600 italic">
-                                                    {route.travelTime}
+                                                <div className="flex -space-x-2">
+                                                    {[...Array(Math.min(route.stops?.length || 0, 3))].map((_, i) => (
+                                                        <div key={i} className="w-6 h-6 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                            <Map size={10} />
+                                                        </div>
+                                                    ))}
+                                                    {(route.stops?.length || 0) > 3 && (
+                                                        <div className="w-6 h-6 rounded-full bg-blue-50 border-2 border-white flex items-center justify-center text-[8px] font-black text-blue-600">
+                                                            +{route.stops.length - 3}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-xs font-bold text-slate-500">
+                                                    {route.stops?.length || 0} Stops
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                                <button
-                                                    onClick={() => navigate(`/bus-operator/routes/edit/${route._id}`)}
-                                                    className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 hover:shadow-lg rounded-2xl transition-all"
-                                                    title="Edit Route"
-                                                >
-                                                    <Edit size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(route._id)}
-                                                    className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 hover:shadow-lg rounded-2xl transition-all"
-                                                    title="Delete Route"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                    route.isActive 
+                                                        ? 'bg-green-50 text-green-600' 
+                                                        : 'bg-slate-100 text-slate-400'
+                                                }`}>
+                                                    {route.isActive ? 'Active' : 'Inactive'}
+                                                </span>
+                                                {!route.operatorId && (
+                                                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        Global
+                                                    </span>
+                                                )}
                                             </div>
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            {route.operatorId && (
+                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                                    <button
+                                                        onClick={() => navigate(`/bus-operator/routes/edit/${route._id}`)}
+                                                        className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 hover:shadow-lg rounded-2xl transition-all"
+                                                        title="Edit Route"
+                                                    >
+                                                        <Edit size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(route._id)}
+                                                        className="p-3 bg-white border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 hover:shadow-lg rounded-2xl transition-all"
+                                                        title="Delete Route"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="7" className="px-8 py-20 text-center">
+                                        <td colSpan="8" className="px-8 py-20 text-center">
                                             <div className="flex flex-col items-center gap-4">
                                                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
                                                     <Search size={32} />

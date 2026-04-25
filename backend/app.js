@@ -28,6 +28,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const busRequestRoutes = require("./routes/busRequestRoutes");
 const busOperatorRoutes = require("./routes/busOperatorRoutes");
+const destinationRoutes = require("./routes/destinationRoutes");
 
 // Hotel module routes
 const hotelRoutes = require('./routes/hotel/hotelRoutes');
@@ -59,13 +60,17 @@ const flightTicketRoutes = require('./routes/flight/ticket.routes');
 const faresRoutes = require('./routes/flight/fares.routes');
 
 
+const videoContentRoutes = require('./routes/videoContentRoutes');
+const testimonialRoutes = require('./routes/testimonialRoutes');
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use('/api/content', videoContentRoutes);
+app.use('/api/testimonials', testimonialRoutes);
 
-// Request logger - MUST be above routes
+// Request logger - MUST be above other routes
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
     if (req.body && Object.keys(req.body).length) {
@@ -73,6 +78,11 @@ app.use((req, res, next) => {
     }
     next();
 });
+
+app.use('/uploads', express.static('uploads'));
+app.use('/uploads/destinations', express.static('uploads/destinations'));
+app.use('/uploads/videos', express.static('uploads/videos'));
+app.use('/uploads/reviews', express.static('uploads/reviews'));
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -82,6 +92,7 @@ app.use("/api/bus", busRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/schedules", scheduleRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/destinations", destinationRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/cities", cityRoutes);
 app.use("/api/payments", paymentRoutes);

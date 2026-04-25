@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Ticket, Plane, Hotel,
     Bus, TrainFront, Users, BarChart3,
-    LogOut, ChevronLeft, ChevronRight, Settings
+    LogOut, ChevronLeft, ChevronRight, Settings,
+    Tag
 } from 'lucide-react';
 import { useAdmin } from '../../../context/AdminContext.jsx';
 import { toast } from 'react-toastify';
@@ -86,10 +87,10 @@ export default function Sidebar() {
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
                     <SidebarItem to="bookings?type=flights" icon={Plane} label="Flights" />
                     <SidebarItem to="bookings?type=hotels" icon={Hotel} label="Hotels" />
-                    
-                    <SidebarDropdown 
-                        icon={Bus} 
-                        label="Buses" 
+
+                    <SidebarDropdown
+                        icon={Bus}
+                        label="Buses"
                         sidebarOpen={sidebarOpen}
                         items={[
                             { to: '/admin/buses/all', label: 'All Buses' },
@@ -99,6 +100,10 @@ export default function Sidebar() {
                             { to: '/admin/buses/suspended', label: 'Suspended Buses' },
                             { to: '/admin/buses/operators', label: 'Operators' },
                             { to: '/admin/buses/types', label: 'Bus Types' },
+                            { isHeader: true, label: 'Route Network' },
+                            { to: '/admin/buses/routes/all', label: 'All Routes' },
+                            { to: '/admin/buses/routes/add', label: 'Add Route' },
+                            { to: '/admin/buses/routes/popular', label: 'Popular Routes' },
                             { isHeader: true, label: 'Booking Control' },
                             { to: '/admin/bookings/all', label: 'All Bookings' },
                             { to: '/admin/bookings/cancel-requests', label: 'Cancel Requests' },
@@ -112,6 +117,20 @@ export default function Sidebar() {
 
                 <SidebarSection title="Management" isOpen={sidebarOpen}>
                     <SidebarItem to="bookings" icon={Ticket} label="All Bookings" />
+                </SidebarSection>
+
+                <SidebarSection title="Growth" isOpen={sidebarOpen}>
+                    <SidebarDropdown
+                        icon={Tag}
+                        label="Marketing"
+                        sidebarOpen={sidebarOpen}
+                        items={[
+                            { to: '/admin/marketing/coupons', label: 'Coupons' },
+                            { to: '/admin/marketing/destinations', label: 'Top Destinations' },
+                            { to: '/admin/marketing/video', label: 'Video Content' },
+                            { to: '/admin/marketing/reviews', label: 'Reviews' }
+                        ]}
+                    />
                 </SidebarSection>
 
                 <SidebarSection title="Reports" isOpen={sidebarOpen}>

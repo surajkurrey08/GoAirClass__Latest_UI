@@ -17,13 +17,14 @@ import { useNavigate } from 'react-router-dom';
 import {
     fetchTrips,
     deleteTrip
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const TripList = () => {
     const navigate = useNavigate();
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'active', 'added'
 
     const getTrips = async () => {
         try {
@@ -53,6 +54,22 @@ const TripList = () => {
         }
     };
 
+    const isToday = (dateString) => {
+        const today = new Date();
+        const target = new Date(dateString);
+        return today.toDateString() === target.toDateString();
+    };
+
+    const filteredTrips = trips.filter(trip => {
+        if (activeFilter === 'active') {
+            return isToday(trip.startDate);
+        }
+        if (activeFilter === 'added') {
+            return isToday(trip.createdAt);
+        }
+        return true;
+    });
+
     return (
         <div className="p-8 space-y-8">
             <div className="flex justify-between items-center">
@@ -69,22 +86,58 @@ const TripList = () => {
                 </button>
             </div>
 
+            {/* Filter Toggle Pill */}
+            <div className="flex justify-start">
+                <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm flex items-center">
+                    <button
+                        onClick={() => setActiveFilter('all')}
+                        className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                            activeFilter === 'all' 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                            : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                    >
+                        All Schedules
+                    </button>
+                    <button
+                        onClick={() => setActiveFilter('active')}
+                        className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                            activeFilter === 'active' 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                            : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                    >
+                        Today's Active
+                    </button>
+                    <button
+                        onClick={() => setActiveFilter('added')}
+                        className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                            activeFilter === 'added' 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                            : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                    >
+                        Today's Added
+                    </button>
+                </div>
+            </div>
+
             {loading ? (
                 <div className="flex justify-center p-20">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {trips.length === 0 ? (
+                    {filteredTrips.length === 0 ? (
                         <div className="bg-white p-20 rounded-[32px] border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-center">
                             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-6">
                                 <Calendar size={40} />
                             </div>
-                            <h3 className="text-xl font-black text-slate-800">No active trips</h3>
-                            <p className="text-slate-500 max-w-xs mt-2 font-medium">You haven't scheduled any bus trips yet. Start by creating your first trip.</p>
+                            <h3 className="text-xl font-black text-slate-800">No {activeFilter !== 'all' ? activeFilter : ''} trips found</h3>
+                            <p className="text-slate-500 max-w-xs mt-2 font-medium">Try changing your filters or create a new trip schedule.</p>
                         </div>
                     ) : (
-                        trips.map((trip) => (
+                        filteredTrips.map((trip) => (
                             <div key={trip._id} className="bg-white group p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl transition-all flex flex-col md:flex-row gap-8 items-center">
                                 {/* Time & Status */}
                                 <div className="flex flex-col items-center justify-center min-w-[120px] py-4 bg-slate-50 rounded-2xl px-6">

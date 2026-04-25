@@ -4,7 +4,8 @@ const seatSchema = new mongoose.Schema({
     busId: { type: mongoose.Schema.Types.ObjectId, ref: 'Bus', required: true },
     seatNumber: { type: String, required: true },
     seatType: { type: String, enum: ['window', 'aisle', 'sleeper', 'seater'], required: true },
-    seatPremiumAmount: { type: Number, default: 0 },
+    isPremium: { type: Boolean, default: false },
+    isLadies: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true }
 }, { timestamps: true });
 
