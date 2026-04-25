@@ -291,269 +291,30 @@ export const toggleUserBlock = async (id, isBlocked) => {
     throw new Error(error.response?.data?.message || 'Failed to update block status');
   }
 };
-/**
- * DASHBOARD
- */
-export const fetchOperatorStats = async () => {
-    try {
-        const response = await API.get('/dashboard/operator');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.error || 'Failed to fetch dashboard stats');
-    }
-};
 
 /**
- * FLEET (BUSES)
+ * Upload profile image
+ * @param {FormData} formData 
  */
-export const fetchMyBuses = async () => {
-    try {
-        const response = await API.get('/buses/my-buses');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch buses');
-    }
-};
-
-export const fetchBusById = async (id) => {
-    try {
-        const response = await API.get(`/buses/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch bus details');
-    }
-};
-
-export const createBus = async (formData) => {
-    try {
-        const response = await API.post('/buses/create', formData);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.error || 'Failed to create bus');
-    }
-};
-
-export const updateBus = async (id, formData) => {
-    try {
-        const response = await API.put(`/buses/${id}`, formData);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.error || 'Failed to update bus');
-    }
-};
-
-export const deleteBus = async (id) => {
-    try {
-        const response = await API.delete(`/buses/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to delete bus');
-    }
+export const uploadProfileImage = async (formData) => {
+  try {
+    const response = await API.post('/users/profile/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to upload profile image.';
+    throw new Error(errorMessage);
+  }
 };
 
 /**
- * NETWORK (ROUTES)
+ * Logout
  */
-export const fetchRoutes = async () => {
-    try {
-        const response = await API.get('/routes');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch routes');
-    }
-};
-
-export const fetchRouteById = async (id) => {
-    try {
-        const response = await API.get(`/routes/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch route details');
-    }
-};
-
-export const createRoute = async (data) => {
-    try {
-        const response = await API.post('/routes/create', data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to create route');
-    }
-};
-
-export const updateRoute = async (id, data) => {
-    try {
-        const response = await API.put(`/routes/${id}`, data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to update route');
-    }
-};
-
-export const deleteRoute = async (id) => {
-    try {
-        const response = await API.delete(`/routes/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to delete route');
-    }
-};
-
-/**
- * SCHEDULES (TRIPS)
- */
-export const fetchTrips = async () => {
-    try {
-        const response = await API.get('/schedules/my-schedules');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch trips');
-    }
-};
-
-export const fetchTripById = async (id) => {
-    try {
-        const response = await API.get(`/schedules/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch trip details');
-    }
-};
-
-export const createTrip = async (data) => {
-    try {
-        const response = await API.post('/schedules/create', data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.error || 'Failed to create trip');
-    }
-};
-
-export const updateTrip = async (id, data) => {
-    try {
-        const response = await API.put(`/schedules/${id}`, data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.error || 'Failed to update trip');
-    }
-};
-
-export const deleteTrip = async (id) => {
-    try {
-        const response = await API.delete(`/schedules/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to delete trip');
-    }
-};
-
-/**
- * BOOKINGS
- */
-export const fetchMyBookings = async () => {
-    try {
-        const response = await API.get('/bookings/my-bookings');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch bookings');
-    }
-};
-
-/**
- * MARKETING (COUPONS)
- */
-export const fetchMyCoupons = async () => {
-    try {
-        const response = await API.get('/coupons/operator/list');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch coupons');
-    }
-};
-
-export const deleteCoupon = async (id) => {
-    try {
-        const response = await API.delete(`/coupons/delete/${id}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to delete coupon');
-    }
-};
-
-export const createCoupon = async (data) => {
-    try {
-        const response = await API.post('/coupons/create', data);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to create coupon');
-    }
-};
-
-/**
- * ENGAGEMENT (REVIEWS)
- */
-export const fetchMyReviews = async () => {
-    try {
-        const response = await API.get('/reviews/my-reviews');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch reviews');
-    }
-};
-
-export const replyToReview = async (id, reply) => {
-    try {
-        const response = await API.put(`/reviews/reply/${id}`, { reply });
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to send reply');
-    }
-};
-
-/**
- * UTILITIES
- */
-export const fetchCities = async () => {
-    try {
-        const response = await API.get('/cities');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch cities');
-    }
-};
-
-/**
- * PUBLIC SEARCH
- */
-export const searchCities = async (query) => {
-    try {
-        const response = await API.get(`/cities/search?q=${query}`);
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'City search failed');
-    }
-};
-
-export const searchBusSchedules = async (params) => {
-    try {
-        const { from, to, date } = params;
-        const response = await API.get('/schedules/search', {
-            params: { from, to, date }
-        });
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Bus search failed');
-    }
-};
-
-/**
- * OPERATOR AUTH
- */
-export const loginOperator = async (email, password) => {
-    try {
-        const response = await API.post('/operators/login', { email, password });
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Operator login failed');
-    }
+export const logoutUser = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('role');
 };

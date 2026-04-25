@@ -12,7 +12,8 @@ import {
     Settings, 
     LogOut,
     ChevronRight,
-    Users
+    Users,
+    Bell
 } from 'lucide-react';
 
 const SidebarItem = ({ to, icon: Icon, label }) => (
@@ -59,11 +60,13 @@ const Sidebar = () => {
                 <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Main Menu</p>
                 <SidebarItem to="/bus-operator" icon={LayoutDashboard} label="Dashboard" />
                 <SidebarItem to="/bus-operator/buses" icon={Bus} label="Fleet Management" />
+                <SidebarItem to="/bus-operator/routes" icon={MapPin} label="Route Management" />
+
                 <SidebarItem to="/bus-operator/trips" icon={CalendarCheck} label="Trip Schedules" />
                 
                 <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mt-6 mb-2">Operations</p>
                 <SidebarItem to="/bus-operator/bookings" icon={Ticket} label="Live Bookings" />
-                <SidebarItem to="/bus-operator/pricing" icon={TrendingUp} label="Pricing & Surplus" />
+                <SidebarItem to="/bus-operator/boarding-reminder" icon={Bell} label="Boarding Reminder" />
                 <SidebarItem to="/bus-operator/coupons" icon={Tag} label="Coupons & Offers" />
                 
                 <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mt-6 mb-2">Customer Relations</p>

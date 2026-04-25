@@ -26,7 +26,7 @@ import {
     createCoupon, 
     fetchMyBuses, 
     fetchRoutes 
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const CouponForm = () => {

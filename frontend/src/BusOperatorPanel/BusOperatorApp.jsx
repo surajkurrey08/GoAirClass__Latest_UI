@@ -16,13 +16,7 @@ const RouteForm = React.lazy(() => import('./pages/RouteForm'));
 const TripForm = React.lazy(() => import('./pages/TripForm'));
 const CouponForm = React.lazy(() => import('./pages/CouponForm'));
 
-// Placeholder pages until implemented
-const Placeholder = ({ title }) => (
-    <div className="p-8">
-        <h1 className="text-2xl font-bold text-slate-800">{title}</h1>
-        <p className="text-slate-500 mt-2">Implementation of this module is in progress...</p>
-    </div>
-);
+const BoardingReminder = React.lazy(() => import('./pages/BoardingReminder'));
 
 const BusOperatorApp = () => {
     return (
@@ -49,7 +43,7 @@ const BusOperatorApp = () => {
                         <Route path="trips/edit/:id" element={<TripForm />} />
                         
                         <Route path="bookings" element={<LiveBookings />} />
-                        <Route path="pricing" element={<Placeholder title="Pricing & Surplus" />} />
+                        <Route path="boarding-reminder" element={<BoardingReminder />} />
                         <Route path="coupons">
                             <Route index element={<CouponList />} />
                             <Route path="create" element={<CouponForm />} />

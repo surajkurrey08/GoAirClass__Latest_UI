@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
 const app = require("./app");
 const seedSuperAdmin = require("./config/seed");
@@ -13,10 +14,18 @@ mongoose.connect(process.env.MONGO_URI, {
         console.log("MongoDB Connected Successfully");
         await seedSuperAdmin();
 
+        // Initialize Boarding Reminder Cron
+        const { initReminderCron } = require('./services/reminderCron');
+        initReminderCron();
+
         const port = process.env.PORT || 5000;
-        app.listen(port, () => {
+        const server = app.listen(port, () => {
             console.log(` 🚀 Server running on port ${port}`);
         });
+        
+        // Increase timeout for large video uploads (10 minutes)
+        server.timeout = 600000;
+        server.keepAliveTimeout = 600000;
     })
     .catch((err) => {
         console.error("MongoDB Connection Error:", err.message);

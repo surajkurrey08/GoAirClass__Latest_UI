@@ -203,23 +203,38 @@ router.get('/:scheduleId/seats', async (req, res) => {
             return res.status(404).json({ error: 'Bus not found for this schedule' });
         }
 
-        // Fetch all confirmed/pending bookings for this schedule to find booked seats
+        const { date } = req.query;
+        const travelDateFilter = date || schedule.travelDate || new Date().toISOString().split('T')[0];
+
+        // Fetch all successful bookings for this specific schedule trip ON THIS SPECIFIC DATE
         const bookings = await Booking.find({
             schedule: schedule._id,
-            status: { $in: ['Confirmed', 'Pending'] }
+            travelDate: travelDateFilter,
+            paymentStatus: 'Completed',
+            status: 'Confirmed'
         });
+        
+        console.log(`Found ${bookings.length} bookings for Schedule ${schedule._id} on ${travelDateFilter}`);
 
         const bookedSeats = [];
+        const seatGenders = {}; // Map seatNo -> gender
+
         bookings.forEach(booking => {
-            if (booking.selectedSeats && Array.isArray(booking.selectedSeats)) {
-                bookedSeats.push(...booking.selectedSeats);
+            if (booking.passengers && Array.isArray(booking.passengers)) {
+                booking.passengers.forEach(p => {
+                    if (p.seatNumber) {
+                        bookedSeats.push(p.seatNumber);
+                        seatGenders[p.seatNumber] = p.gender?.toLowerCase() || 'male';
+                    }
+                });
             }
         });
 
-        // Map seat layout with status
+        // Map seat layout with status and gender info
         const seatLayout = bus.seatLayout.map(seat => ({
             ...seat.toObject(),
-            status: bookedSeats.includes(seat.seatNo) ? 'Booked' : 'Available'
+            status: bookedSeats.includes(seat.seatNo) ? 'Booked' : 'Available',
+            bookedGender: seatGenders[seat.seatNo] || null
         }));
 
         const busId = bus._id || bus; // If populated, use ._id; if not, use the value itself

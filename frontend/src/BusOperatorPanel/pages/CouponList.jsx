@@ -17,7 +17,7 @@ import {
 import {
     fetchMyCoupons,
     deleteCoupon
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const CouponList = () => {
@@ -30,7 +30,8 @@ const CouponList = () => {
         try {
             setLoading(true);
             const data = await fetchMyCoupons();
-            setCoupons(data);
+            // Handle both direct array and wrapped object responses
+            setCoupons(Array.isArray(data) ? data : (data.coupons || []));
         } catch (error) {
             console.error("Fetch Coupons Error:", error);
             toast.error(error.message);
@@ -54,7 +55,7 @@ const CouponList = () => {
         }
     };
 
-    const filteredCoupons = coupons.filter(c =>
+    const filteredCoupons = (Array.isArray(coupons) ? coupons : []).filter(c =>
         c.code.toLowerCase().includes(searchTerm.toLowerCase())
     );
 

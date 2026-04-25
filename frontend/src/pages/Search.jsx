@@ -5,8 +5,12 @@ import Navbar from '../components/Navbar'
 import SearchForm from '../components/SearchForm'
 import Footer from '../components/Footer'
 import { searchResults } from '../data/mockData'
+<<<<<<< HEAD
 import { searchBusSchedules } from '../services/auth'
 import { getHeroImages } from '../services/heroImageService'
+=======
+import { searchBusSchedules } from '../services/busService'
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
 import './Search.css'
 
 const TYPE_CONFIG = {
@@ -223,11 +227,17 @@ function SmartCard({ item, type, navigate, color }) {
 export default function Search() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
+<<<<<<< HEAD
 
   const type = params.get('type') || ''
   const isSmartMode = !type || type === 'all'
 
   const [sortBy, setSortBy]         = useState('price')
+=======
+  const type = params.get('type') || 'flights'
+  const womenOnly = params.get('women') === 'true'
+  const [sortBy, setSortBy] = useState('price')
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
   const [priceRange, setPriceRange] = useState([0, 50000])
   const [loading, setLoading]       = useState(!isSmartMode)
   const [results, setResults]       = useState([])
@@ -240,9 +250,22 @@ export default function Search() {
       setError(null)
       try {
         if (type === 'buses') {
+<<<<<<< HEAD
           const sp = { from: 'Pune', to: 'Delhi', date: params.get('date') || new Date().toISOString().split('T')[0] }
           const apiData = await searchBusSchedules(sp)
           const mappedBuses = apiData.map(schedule => {
+=======
+          const searchParams = {
+            from: params.get('from'),
+            to: params.get('to'),
+            date: params.get('date')
+          }
+          const apiData = await searchBusSchedules(searchParams)
+
+          // Map API data to UI format
+          let mappedBuses = apiData.map(schedule => {
+            // Simple duration calculation helper
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
             const getDuration = (start, end) => {
               if (!start || !end) return '14h 00m'
               try {
@@ -253,6 +276,12 @@ export default function Search() {
                 return `${Math.floor(diff/60)}h ${diff%60}m`
               } catch { return '14h 00m' }
             }
+<<<<<<< HEAD
+=======
+
+            const hasLadiesSeats = true; // All buses now support dynamic ladies reservation
+
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
             return {
               id: schedule._id,
               operator: schedule.bus?.busName || 'Premium Bus',
@@ -267,8 +296,20 @@ export default function Search() {
               rating: schedule.operator?.rating || 4.5,
               amenities: schedule.bus?.amenities || [],
               coupon: schedule.coupon,
+<<<<<<< HEAD
+=======
+              operatorId: schedule.operator?._id || schedule.operator,
+              routeId: schedule.route?._id || schedule.route,
+              regNo: schedule.bus?.busNumber || 'N/A',
+              hasLadiesSeats
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
             }
           })
+
+          if (womenOnly) {
+            mappedBuses = mappedBuses.filter(bus => bus.hasLadiesSeats)
+          }
+
           setResults(mappedBuses)
         } else {
           await new Promise(r => setTimeout(r, 800))
@@ -321,6 +362,19 @@ export default function Search() {
                     <label key={a} className="filter-check"><input type="checkbox" defaultChecked /> {a}</label>
                   ))}
                 </div>
+<<<<<<< HEAD
+=======
+              ) : (
+                results.map(item => (
+                  <ResultCard 
+                    key={item.id} 
+                    item={item} 
+                    type={type} 
+                    navigate={navigate} 
+                    travelDate={params.get('date')}
+                  />
+                ))
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
               )}
               {type === 'hotels' && (
                 <div className="filter-group">
@@ -390,8 +444,12 @@ export default function Search() {
   )
 }
 
+<<<<<<< HEAD
 /* ── Result Cards with Pune → Delhi routing ── */
 function ResultCard({ item, type, navigate }) {
+=======
+function ResultCard({ item, type, navigate, travelDate }) {
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
   if (type === 'flights') return (
     <div className="result-card" onClick={() => navigate(`/detail/${item.id}?type=flight`)}>
       <div className="result-card__main">
@@ -460,14 +518,40 @@ function ResultCard({ item, type, navigate }) {
   )
 
   return (
+<<<<<<< HEAD
     <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}`)}>
       <div className="bus-card__header">
         <div className="badge-primo">Primo <span>★</span></div>
         {item.coupon && <div className="badge-discount">{item.coupon.discountValue}{item.coupon.discountType==='percentage'?'%':''} OFF</div>}
+=======
+    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}${travelDate ? `?date=${travelDate}` : ''}`)}>
+      {/* Brand Header */}
+      <div className="bus-card__header">
+        <div className="badge-primo">
+          Primo <span>★</span>
+        </div>
+        {item.coupon && (
+          <div className="badge-discount">
+            {item.coupon.rules?.lastMinute ? 'Last min ' : 'Special '}
+            {item.coupon.discountValue}{item.coupon.discountType === 'percentage' ? '%' : ''} OFF
+          </div>
+        )}
+        {item.hasLadiesSeats && (
+          <div className="badge-ladies">
+            👩 Ladies seats available
+          </div>
+        )}
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
       </div>
       <div className="bus-card__body">
         <div className="bus-card__id-row">
+<<<<<<< HEAD
           <span className="reg-tag">MH12C1234</span>
+=======
+          <span className="reg-tag">
+            {item.regNo}
+          </span>
+>>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
           <span className="status-badge">STARTING</span>
           <span className="route-stops">Pune → Delhi</span>
         </div>

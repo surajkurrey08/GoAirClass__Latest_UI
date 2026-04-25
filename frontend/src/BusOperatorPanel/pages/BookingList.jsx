@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import {
     fetchMyBookings
-} from '../../services/auth';
+} from '../../services/operatorService';
 import { toast } from 'react-toastify';
 
 const BookingList = () => {

@@ -4,7 +4,8 @@ const passengerSchema = new mongoose.Schema({
     name: { type: String, required: true },
     age: { type: String },
     gender: { type: String },
-    seatNumber: { type: String }
+    seatNumber: { type: String },
+    boardingPoint: { type: String } // NEW: Per-passenger boarding point support
 }, { _id: false });
 
 const bookingSchema = new mongoose.Schema({
@@ -83,6 +84,9 @@ const bookingSchema = new mongoose.Schema({
     operatorNotes: { type: String, default: '' },
 
     bookingDate: { type: Date, default: Date.now },
+    notificationSent: { type: Boolean, default: false },
+    refundAmount: { type: Number, default: 0 },
+    cancelledAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);

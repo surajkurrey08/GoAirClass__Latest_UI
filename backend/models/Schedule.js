@@ -26,6 +26,12 @@ const scheduleSchema = new mongoose.Schema({
         }
     ],
     availableSeats: { type: Number, default: 40 },
+    // Boarding Reminder Details
+    driverName: { type: String, default: '' },
+    driverPhone: { type: String, default: '' },
+    pickupContactName: { type: String, default: '' },
+    pickupContactPhone: { type: String, default: '' },
+    reminderSent: { type: Boolean, default: false },
     status: { 
         type: String, 
         enum: ['pending', 'active', 'inactive', 'canceled'], 

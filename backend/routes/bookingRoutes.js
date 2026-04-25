@@ -16,13 +16,17 @@ const generatePNR = () => {
 
 const formatDateToYYYYMMDD = (dateStr) => {
     if (!dateStr) return '';
+    // If it's already in YYYY-MM-DD format, return as is (Most reliable)
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-    const parts = dateStr.split(/[-\/]/);
-    if (parts.length === 3) {
-        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-    }
+    
     const d = new Date(dateStr);
-    if (!isNaN(d)) return d.toISOString().split('T')[0];
+    if (!isNaN(d)) {
+        // Safe conversion using local parts to prevent day-shift
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
     return dateStr;
 };
 /**
@@ -103,22 +107,22 @@ router.post('/create', authMiddleware, async (req, res) => {
                 }
 
                 await existingBooking.save();
-                
+
                 // Increment coupon stats if payment just became Completed
                 if (wasPending && existingBooking.paymentStatus === 'Completed' && existingBooking.couponCode) {
                     await Coupon.findOneAndUpdate(
                         { code: existingBooking.couponCode.toString().toUpperCase().trim() },
-                        { 
-                            $inc: { 
+                        {
+                            $inc: {
                                 'analytics.totalTimesUsed': 1,
                                 'analytics.totalDiscountGiven': existingBooking.discount || 0,
                                 'analytics.revenueGenerated': existingBooking.totalFare || 0
-                            } 
+                            }
                         }
                     );
                     console.log(`📈 Coupon ${existingBooking.couponCode} usage incremented from update.`);
                 }
-                
+
                 console.log('✅ Booking Updated Successfully:', existingBooking._id, 'PNR:', existingBooking.pnrNumber);
                 return res.status(200).json({ success: true, booking: existingBooking, bookingId: existingBooking._id });
             }
@@ -130,6 +134,43 @@ router.post('/create', authMiddleware, async (req, res) => {
             const existing = await Booking.findOne({ pnrNumber });
             if (!existing) isUnique = true;
             else pnrNumber = generatePNR();
+        }
+
+        // Server-side validation for ladies seats (for NEW bookings)
+        const bus = await Bus.findById(busId);
+        if (bus && bus.seatLayout) {
+            const allBookings = await Booking.find({ bus: busId, travelDate: formatDateToYYYYMMDD(travelDate || journeyDate), paymentStatus: 'Completed' });
+            const seatsToCheck = passengers || [];
+            for (const p of seatsToCheck) {
+                const seatDef = bus.seatLayout.find(s => s.seatNo === p.seatNumber);
+
+                // DYNAMIC: Check if any adjacent seat is already booked by a lady
+                const isNextToLady = bus.seatLayout.some(s => {
+                    const isAdjacent = s.row === seatDef.row &&
+                        s.deck === seatDef.deck &&
+                        Math.abs(s.col - seatDef.col) === 1;
+                    if (!isAdjacent) return false;
+
+                    // Check if this adjacent seat is booked by a lady in EXISTING bookings
+                    const adjacentBooking = allBookings.find(b =>
+                        b.passengers.some(ap => ap.seatNumber === s.seatNo && ap.gender?.toLowerCase() === 'female')
+                    );
+                    return !!adjacentBooking;
+                });
+
+                const isLadiesSeat = seatDef.type?.toLowerCase() === 'ladies' ||
+                    seatDef.type?.toLowerCase() === 'ladies-sleeper' ||
+                    seatDef.isLadies === true;
+
+                if (seatDef && (isLadiesSeat || isNextToLady)) {
+                    if (p.gender?.toLowerCase() !== 'female') {
+                        return res.status(400).json({
+                            success: false,
+                            message: `Seat ${p.seatNumber} is reserved for female passengers.`
+                        });
+                    }
+                }
+            }
         }
 
         const booking = new Booking({
@@ -165,17 +206,17 @@ router.post('/create', authMiddleware, async (req, res) => {
         });
 
         await booking.save();
-        
+
         // Increment coupon stats if newly created booking is Completed
         if (booking.paymentStatus === 'Completed' && booking.couponCode) {
             await Coupon.findOneAndUpdate(
                 { code: booking.couponCode.toString().toUpperCase().trim() },
-                { 
-                    $inc: { 
+                {
+                    $inc: {
                         'analytics.totalTimesUsed': 1,
                         'analytics.totalDiscountGiven': booking.discount || 0,
                         'analytics.revenueGenerated': booking.totalFare || 0
-                    } 
+                    }
                 }
             );
             console.log(`📈 Coupon ${booking.couponCode} usage incremented from new creation.`);
@@ -382,67 +423,51 @@ router.post('/cancel-ticket', authMiddleware, async (req, res) => {
 
         // Calculate Time Difference
         const now = new Date();
-        // Assuming journey date is travelDate and departure time comes from schedule or boardingPoint
-        // Extract time from boardingPoint or schedule
-        let hour = 10, minute = 0; // fallback Default 10:00 AM
-        const timeStr = booking.schedule?.departureTime || (booking.boardingPoint?.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i)?.[0]);
+        
+        // Extract time from schedule or boarding info
+        let hour = 0, minute = 0;
+        const timeStr = booking.boarding?.time || booking.schedule?.departureTime || "10:00 AM";
 
-        if (timeStr) {
-            const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-            if (match) {
-                hour = parseInt(match[1]);
-                minute = parseInt(match[2]);
-                const ampm = match[3] ? match[3].toUpperCase() : null;
-
-                if (ampm === 'PM' && hour < 12) hour += 12;
-                if (ampm === 'AM' && hour === 12) hour = 0;
-            }
+        const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (timeMatch) {
+            hour = parseInt(timeMatch[1]);
+            minute = parseInt(timeMatch[2]);
+            const ampm = timeMatch[3] ? timeMatch[3].toUpperCase() : null;
+            if (ampm === 'PM' && hour < 12) hour += 12;
+            if (ampm === 'AM' && hour === 12) hour = 0;
         }
 
-        // Robust Date Parsing
-        let year, month, day;
-        const parts = booking.travelDate.split(/[-/]/);
-        if (parts[0].length === 4) {
-            // YYYY-MM-DD
-            year = parseInt(parts[0]);
-            month = parseInt(parts[1]) - 1;
-            day = parseInt(parts[2]);
-        } else {
-            // DD-MM-YYYY
-            day = parseInt(parts[0]);
-            month = parseInt(parts[1]) - 1;
-            year = parseInt(parts[2]);
-        }
+        // Parse travelDate (assuming YYYY-MM-DD based on previous fixes)
+        const dateParts = booking.travelDate.split('-');
+        const departureDate = new Date(
+            parseInt(dateParts[0]), 
+            parseInt(dateParts[1]) - 1, 
+            parseInt(dateParts[2]), 
+            hour, minute, 0
+        );
 
-        const departureDate = new Date(year, month, day, hour, minute, 0);
-        const hoursUntilDeparture = (departureDate - now) / (1000 * 60 * 60);
+        const hoursLeft = (departureDate - now) / (1000 * 60 * 60);
 
-        if (hoursUntilDeparture <= 0) {
+        if (hoursLeft <= 0) {
             return res.status(400).json({ success: false, message: 'Cannot cancel ticket after journey has started.' });
         }
 
-        // Calculate Refund
-        let refundPercentage = 0;
-        if (hoursUntilDeparture > 24) {
-            refundPercentage = 0.90;
-        } else if (hoursUntilDeparture > 12) {
-            refundPercentage = 0.70;
-        } else if (hoursUntilDeparture > 6) {
-            refundPercentage = 0.50;
-        } else {
-            refundPercentage = 0;
-        }
+        // Refund Calculation (User's specific tiers)
+        let refundPercent = 0;
+        if (hoursLeft > 24) refundPercent = 80;
+        else if (hoursLeft > 12) refundPercent = 50;
+        else if (hoursLeft > 6) refundPercent = 25;
+        else refundPercent = 0;
 
         const totalFare = booking.totalFare || 0;
-        const refundAmount = Math.round(totalFare * refundPercentage);
+        const refundAmount = Math.round((totalFare * refundPercent) / 100);
         const cancellationCharges = totalFare - refundAmount;
 
-        // Perform Cancellation
-        booking.paymentStatus = 'Cancelled';
+        // Update Booking - IMPORTANT: DO NOT clear seatNumbers
         booking.status = 'Cancelled';
-        // Clear seat numbers so they become available to others
-        booking.seatNumbers = [];
-        booking.seatNumber = '';
+        booking.paymentStatus = 'Cancelled';
+        booking.refundAmount = refundAmount;
+        booking.cancelledAt = now;
 
         await booking.save();
 
@@ -451,9 +476,10 @@ router.post('/cancel-ticket', authMiddleware, async (req, res) => {
             message: 'Ticket cancelled successfully',
             refundDetails: {
                 totalFare,
-                refundPercentage: refundPercentage * 100,
+                refundPercent,
                 refundAmount,
-                cancellationCharges
+                cancellationCharges,
+                releasedSeats: booking.seatNumbers // Showing seats that are now free
             }
         });
 
