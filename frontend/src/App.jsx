@@ -15,8 +15,15 @@ import SuperAdminApp from './SuperAdminPanel/AdminApp'
 import BusOperatorApp from './BusOperatorPanel/BusOperatorApp'
 import SeatSelection from './pages/SeatSelection'
 import ProtectedRoute from './components/ProtectedRoute'
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
+
+// ── Service Pages ──
+import FlightsPage from './pages/services/FlightsPage'
+import HotelsPage  from './pages/services/HotelsPage'
+import TrainsPage  from './pages/services/TrainsPage'
+import BusesPage   from './pages/services/BusesPage'
 
 export default function App() {
   return (
@@ -25,6 +32,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
+
+        {/* ── Service Pages ── */}
+        <Route path="/flights" element={<FlightsPage />} />
+        <Route path="/hotels"  element={<HotelsPage />} />
+        <Route path="/trains"  element={<TrainsPage />} />
+        <Route path="/buses"   element={<BusesPage />} />
+
         <Route path="/detail/:id" element={<Detail />} />
         <Route path="/bus-selection/:scheduleId" element={<SeatSelection />} />
         <Route path="/booking/:id" element={<Booking />} />
@@ -34,36 +48,27 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/set-password" element={<SetPassword />} />
-        
+
         {/* Admin Panel */}
-        <Route 
-          path="/admin/*" 
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminApp />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/admin/*" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminApp />
+          </ProtectedRoute>
+        }/>
 
         {/* Super Admin Panel */}
-        <Route 
-          path="/super-admin/*" 
-          element={
-            <ProtectedRoute allowedRoles={['superadmin']}>
-              <SuperAdminApp />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/super-admin/*" element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <SuperAdminApp />
+          </ProtectedRoute>
+        }/>
 
         {/* Bus Operator Panel */}
-        <Route 
-          path="/bus-operator/*" 
-          element={
-            <ProtectedRoute allowedRoles={['bus_operator']}>
-              <BusOperatorApp />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="/bus-operator/*" element={
+          <ProtectedRoute allowedRoles={['bus_operator']}>
+            <BusOperatorApp />
+          </ProtectedRoute>
+        }/>
       </Routes>
     </BrowserRouter>
   )

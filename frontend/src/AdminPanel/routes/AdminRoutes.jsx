@@ -6,6 +6,7 @@ import Bookings from '../pages/Bookings';
 import Users from '../pages/Users';
 
 // Booking Control Pages (Shared from SuperAdmin for consistency)
+import AdminHeroImages from '../pages/AdminHeroImages';
 import AllBookings from '../../SuperAdminPanel/pages/bookings/AllBookings';
 import CancelRequests from '../../SuperAdminPanel/pages/bookings/CancelRequests';
 import RefundInitiate from '../../SuperAdminPanel/pages/bookings/RefundInitiate';
@@ -27,6 +28,7 @@ export default function AdminRoutes() {
                 <Route path="" element={<Dashboard />} />
                 <Route path="bookings" element={<Bookings />} />
                 <Route path="users" element={<Users />} />
+                <Route path="hero-images" element={<AdminHeroImages />} />
                 
                 {/* Bus Management Dropdown Routes */}
                 <Route path="buses/all" element={<AllBuses />} />

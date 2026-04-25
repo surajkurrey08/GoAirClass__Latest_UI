@@ -3,6 +3,9 @@ const cors = require("cors");
 const cron = require("node-cron");
 const Coupon = require("./models/Coupon");
 
+const heroImageRoutes = require('./routes/heroImages');
+
+
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const operatorRoutes = require("./routes/operatorRoutes");
@@ -131,6 +134,7 @@ app.use('/api/user-directory', userDirectoryRoutes);
 app.use('/api/operator-mgmt', operatorManagementRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/hero-images', heroImageRoutes);
 app.use('/uploads/banners', require('express').static('uploads/banners'));
 
 app.get("/", (req, res) => {

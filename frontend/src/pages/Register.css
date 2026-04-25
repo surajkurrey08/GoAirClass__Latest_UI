@@ -1,0 +1,248 @@
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.18), transparent 35%),
+    radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.2), transparent 35%),
+    linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+}
+
+.register-card {
+  width: 100%;
+  max-width: 460px;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 30px;
+  padding: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 30px 85px rgba(15, 23, 42, 0.15);
+  backdrop-filter: blur(18px);
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.register-header h1 {
+  font-size: 31px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.register-header p {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.register-steps {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.register-steps-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.register-step {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  color: #94a3b8;
+  font-weight: 800;
+}
+
+.register-step.active {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.1);
+}
+
+.register-step.done {
+  border-color: #22c55e;
+  color: #22c55e;
+  background: #ecfdf5;
+}
+
+.register-line {
+  width: 38px;
+  height: 4px;
+  border-radius: 99px;
+  background: #e2e8f0;
+}
+
+.register-line.active {
+  background: #2563eb;
+}
+
+.register-error {
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  border-left: 4px solid #ef4444;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.register-success {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.register-success-icon {
+  color: #22c55e;
+  margin-bottom: 18px;
+}
+
+.register-success h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.register-success p {
+  margin-top: 8px;
+  color: #64748b;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.register-field label {
+  display: block;
+  margin: 0 0 8px 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.register-input-wrap {
+  position: relative;
+}
+
+.register-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.register-input {
+  width: 100%;
+  height: 56px;
+  padding: 0 18px 0 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #f8fafc;
+  font-size: 16px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.register-input:focus {
+  background: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+}
+
+.register-input.otp {
+  text-align: center;
+  letter-spacing: 10px;
+  font-family: monospace;
+  font-weight: 800;
+}
+
+.register-btn {
+  width: 100%;
+  height: 58px;
+  border: none;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 16px 35px rgba(37, 99, 235, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: 0.25s ease;
+}
+
+.register-btn:hover {
+  transform: translateY(-2px);
+}
+
+.register-btn.green {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 16px 35px rgba(22, 163, 74, 0.3);
+}
+
+.register-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.register-text-btn {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.register-footer {
+  margin-top: 28px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.register-footer a {
+  color: #2563eb;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.register-footer a:hover {
+  text-decoration: underline;
+}
+
+.register-spin {
+  animation: registerSpin 0.8s linear infinite;
+}
+
+@keyframes registerSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
+  .register-card {
+    padding: 26px 22px;
+    border-radius: 24px;
+  }
+
+  .register-header h1 {
+    font-size: 26px;
+  }
+}

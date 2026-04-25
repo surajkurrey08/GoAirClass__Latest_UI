@@ -3,7 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Ticket, Plane, Hotel,
     Bus, TrainFront, Users, BarChart3,
-    LogOut, ChevronLeft, ChevronRight, Settings
+    LogOut, ChevronLeft, ChevronRight, Settings,
+    Image as ImageIcon
 } from 'lucide-react';
 import { useAdmin } from '../../../context/AdminContext.jsx';
 import { toast } from 'react-toastify';
@@ -57,13 +58,11 @@ export default function Sidebar() {
     };
 
     return (
-        <aside
-            className={`
-                fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800
-                transition-all duration-300 z-50
-                ${sidebarOpen ? 'w-72' : 'w-20'}
-            `}
-        >
+        <aside className={`
+            fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800
+            transition-all duration-300 z-50
+            ${sidebarOpen ? 'w-72' : 'w-20'}
+        `}>
             <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                 {sidebarOpen ? (
                     <div className="flex items-center gap-2">
@@ -78,6 +77,7 @@ export default function Sidebar() {
             </div>
 
             <div className="p-4 h-[calc(100%-80px)] overflow-y-auto no-scrollbar">
+
                 <SidebarSection title="Operations" isOpen={sidebarOpen}>
                     <SidebarItem to="" icon={LayoutDashboard} label="Overview" />
                     <SidebarItem to="users" icon={Users} label="Users" />
@@ -86,10 +86,9 @@ export default function Sidebar() {
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
                     <SidebarItem to="bookings?type=flights" icon={Plane} label="Flights" />
                     <SidebarItem to="bookings?type=hotels" icon={Hotel} label="Hotels" />
-                    
-                    <SidebarDropdown 
-                        icon={Bus} 
-                        label="Buses" 
+                    <SidebarDropdown
+                        icon={Bus}
+                        label="Buses"
                         sidebarOpen={sidebarOpen}
                         items={[
                             { to: '/admin/buses/all', label: 'All Buses' },
@@ -106,7 +105,6 @@ export default function Sidebar() {
                             { to: '/admin/bookings/operator-wise', label: 'Operator Wise Bookings' }
                         ]}
                     />
-
                     <SidebarItem to="bookings?type=trains" icon={TrainFront} label="Trains" />
                 </SidebarSection>
 
@@ -117,6 +115,11 @@ export default function Sidebar() {
                 <SidebarSection title="Reports" isOpen={sidebarOpen}>
                     <SidebarItem to="reports" icon={BarChart3} label="Analytics" />
                     <SidebarItem to="settings" icon={Settings} label="Settings" />
+                </SidebarSection>
+
+                {/* ── Content Management ── */}
+                <SidebarSection title="Content" isOpen={sidebarOpen}>
+                    <SidebarItem to="hero-images" icon={ImageIcon} label="Hero Images" />
                 </SidebarSection>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
