@@ -1,4 +1,4 @@
 // src/pages/services/BusesPage.jsx
 import React from 'react'
-import ServicePage from './ServicePage'
-export default function BusesPage() { return <ServicePage type="buses" /> }
+import ComingSoon from './ComingSoon'
+export default function BusesPage() { return <ComingSoon type="buses" /> }

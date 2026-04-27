@@ -4,9 +4,9 @@ import AdminLayout from '../layout/AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import Bookings from '../pages/Bookings';
 import Users from '../pages/Users';
-
-// Booking Control Pages (Shared from SuperAdmin for consistency)
 import AdminHeroImages from '../pages/AdminHeroImages';
+
+// Booking Control Pages
 import AllBookings from '../../SuperAdminPanel/pages/bookings/AllBookings';
 import CancelRequests from '../../SuperAdminPanel/pages/bookings/CancelRequests';
 import RefundInitiate from '../../SuperAdminPanel/pages/bookings/RefundInitiate';
@@ -44,13 +44,9 @@ export default function AdminRoutes() {
                 <Route path="" element={<Dashboard />} />
                 <Route path="bookings" element={<Bookings />} />
                 <Route path="users" element={<Users />} />
-<<<<<<< HEAD
                 <Route path="hero-images" element={<AdminHeroImages />} />
-                
-=======
 
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
-                {/* Bus Management Dropdown Routes */}
+                {/* Bus Management */}
                 <Route path="buses/all" element={<AllBuses />} />
                 <Route path="buses/add" element={<AddBus />} />
                 <Route path="buses/requests" element={<BusRequests />} />
@@ -59,7 +55,7 @@ export default function AdminRoutes() {
                 <Route path="buses/operators" element={<Operators />} />
                 <Route path="buses/types" element={<BusTypes />} />
 
-                {/* Route Network Dropdown Routes */}
+                {/* Route Network */}
                 <Route path="buses/routes/all" element={<AllRoutes />} />
                 <Route path="buses/routes/add" element={<AddRoute />} />
                 <Route path="buses/routes/edit/:id" element={<AddRoute />} />
@@ -71,12 +67,10 @@ export default function AdminRoutes() {
                 <Route path="bookings/refund-initiate" element={<RefundInitiate />} />
                 <Route path="bookings/operator-wise" element={<OperatorBookings />} />
 
-                {/* Marketing & Coupons */}
+                {/* Marketing */}
                 <Route path="marketing/coupons" element={<Coupons />} />
                 <Route path="marketing/coupons/create" element={<CreateCoupon />} />
                 <Route path="marketing/coupons/edit/:id" element={<EditCoupon />} />
-
-                {/* Top Destinations */}
                 <Route path="marketing/destinations" element={<AllDestinations />} />
                 <Route path="marketing/destinations/create" element={<AddDestination />} />
                 <Route path="marketing/destinations/edit/:id" element={<EditDestination />} />
@@ -85,7 +79,6 @@ export default function AdminRoutes() {
                 <Route path="marketing/reviews/add" element={<AddReview />} />
                 <Route path="marketing/reviews/edit/:id" element={<AddReview />} />
 
-                {/* Catch all for admin subroutes */}
                 <Route path="*" element={<Navigate to="" replace />} />
             </Route>
         </Routes>

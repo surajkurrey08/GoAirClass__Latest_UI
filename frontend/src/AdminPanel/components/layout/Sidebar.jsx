@@ -4,11 +4,7 @@ import {
     LayoutDashboard, Ticket, Plane, Hotel,
     Bus, TrainFront, Users, BarChart3,
     LogOut, ChevronLeft, ChevronRight, Settings,
-<<<<<<< HEAD
-    Image as ImageIcon
-=======
-    Tag
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
+    Image as ImageIcon, Tag
 } from 'lucide-react';
 import { useAdmin } from '../../../context/AdminContext.jsx';
 import { toast } from 'react-toastify';
@@ -90,10 +86,6 @@ export default function Sidebar() {
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
                     <SidebarItem to="bookings?type=flights" icon={Plane} label="Flights" />
                     <SidebarItem to="bookings?type=hotels" icon={Hotel} label="Hotels" />
-<<<<<<< HEAD
-=======
-
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
                     <SidebarDropdown
                         icon={Bus}
                         label="Buses"
@@ -143,7 +135,6 @@ export default function Sidebar() {
                     <SidebarItem to="settings" icon={Settings} label="Settings" />
                 </SidebarSection>
 
-                {/* ── Content Management ── */}
                 <SidebarSection title="Content" isOpen={sidebarOpen}>
                     <SidebarItem to="hero-images" icon={ImageIcon} label="Hero Images" />
                 </SidebarSection>

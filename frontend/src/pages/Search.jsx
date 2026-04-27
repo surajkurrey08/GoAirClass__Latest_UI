@@ -2,15 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Star, SlidersHorizontal, ArrowUpDown, AlertCircle, Bus, ChevronRight } from 'lucide-react'
 import Navbar from '../components/Navbar'
-import SearchForm from '../components/SearchForm'
 import Footer from '../components/Footer'
 import { searchResults } from '../data/mockData'
-<<<<<<< HEAD
-import { searchBusSchedules } from '../services/auth'
-import { getHeroImages } from '../services/heroImageService'
-=======
 import { searchBusSchedules } from '../services/busService'
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
+import { getHeroImages } from '../services/heroImageService'
 import './Search.css'
 
 const TYPE_CONFIG = {
@@ -58,51 +53,20 @@ function SearchHero({ type, params, isSmartMode }) {
             💰 Budget: ₹{parseInt(params.get('budget')).toLocaleString()}
           </div>
         )}
-        {/* Search Form Removed */}
       </div>
     </div>
   )
 }
 
-/* ── Smart Mode — flights, trains, buses only with Pune → Delhi routing ── */
+/* ── Smart Mode ── */
 function SmartSearchResults({ params, navigate }) {
   const budget = parseInt(params.get('budget') || '50000')
-  const from = params.get('from') || 'Pune'
-  const to   = params.get('to')   || 'Delhi'
+  const from = params.get('from') || ''
+  const to   = params.get('to')   || ''
 
-  // Filter and map results for Pune → Delhi route
-  const flights = searchResults.flights
-    .filter(f => f.price <= budget)
-    .map(f => ({
-      ...f,
-      from: 'Pune (PNQ)',
-      to: 'Delhi (DEL)',
-      depart: f.depart || '06:00',
-      arrive: f.arrive || '08:30',
-      duration: f.duration || '2h 30m'
-    }))
-  
-  const trains = searchResults.trains
-    .filter(t => t.price <= budget)
-    .map(t => ({
-      ...t,
-      from: 'Pune Junction',
-      to: 'New Delhi',
-      depart: t.depart || '20:00',
-      arrive: t.arrive || '08:00',
-      duration: '12h 00m'
-    }))
-  
-  const buses = searchResults.buses
-    .filter(b => b.price <= budget)
-    .map(b => ({
-      ...b,
-      from: 'Pune',
-      to: 'Delhi',
-      depart: b.depart || '18:00',
-      arrive: b.arrive || '08:00',
-      duration: '14h 00m'
-    }))
+  const flights = searchResults.flights.filter(f => f.price <= budget).map(f => ({ ...f, from: `${from} (Airport)`, to: `${to} (Airport)` }))
+  const trains  = searchResults.trains.filter(t  => t.price <= budget).map(t => ({ ...t, from, to }))
+  const buses   = searchResults.buses.filter(b   => b.price <= budget).map(b => ({ ...b, from, to }))
 
   const sections = [
     { key: 'flights', label: 'Flights', emoji: '✈️', color: '#2563eb', data: flights },
@@ -112,24 +76,21 @@ function SmartSearchResults({ params, navigate }) {
 
   return (
     <div className="smart-results">
-      <div className="route-banner" style={{marginBottom: '24px', padding: '12px', background: '#f0f9ff', borderRadius: '8px', textAlign: 'center'}}>
-        <strong>📍 Showing results for: Pune → Delhi</strong>
-      </div>
+      {from && to && (
+        <div style={{marginBottom:'24px',padding:'12px',background:'#f0f9ff',borderRadius:'8px',textAlign:'center'}}>
+          <strong>📍 Showing results for: {from} → {to}</strong>
+        </div>
+      )}
       {sections.map(sec => (
         <div key={sec.key} className="smart-section">
           <div className="smart-section__header" style={{ borderColor: sec.color }}>
             <div className="smart-section__title">
               <span className="smart-section__emoji">{sec.emoji}</span>
               <h2>{sec.label}</h2>
-              <span className="smart-section__count" style={{ background: sec.color }}>
-                {sec.data.length} found
-              </span>
+              <span className="smart-section__count" style={{ background: sec.color }}>{sec.data.length} found</span>
             </div>
-            <button
-              className="smart-section__view-all"
-              style={{ color: sec.color }}
-              onClick={() => navigate(`/${sec.key}?from=Pune&to=Delhi`)}
-            >
+            <button className="smart-section__view-all" style={{ color: sec.color }}
+              onClick={() => navigate(`/${sec.key}?from=${from}&to=${to}`)}>
               View All <ChevronRight size={16} />
             </button>
           </div>
@@ -159,10 +120,8 @@ function SmartCard({ item, type, navigate, color }) {
     else navigate(`/booking/${item.id}?type=${type.replace(/s$/, '')}`)
   }
 
-  const handleClick = () => navigate(`/${type}?from=Pune&to=Delhi`)
-
   return (
-    <div className="smart-card" onClick={handleClick}>
+    <div className="smart-card" onClick={() => navigate(`/${type}`)}>
       <div className="smart-card__body">
         {type === 'flights' && (
           <>
@@ -170,7 +129,7 @@ function SmartCard({ item, type, navigate, color }) {
               <div className="airline-logo" style={{ background: color }}>{item.airline[0]}</div>
               <div>
                 <div className="flight-name">{item.airline} · {item.code}</div>
-                <div className="smart-card__times">Pune → Delhi · {item.depart} → {item.arrive} · {item.duration}</div>
+                <div className="smart-card__times">{item.from} → {item.to} · {item.depart} → {item.arrive} · {item.duration}</div>
               </div>
             </div>
             <div className="smart-card__meta">
@@ -180,14 +139,13 @@ function SmartCard({ item, type, navigate, color }) {
             </div>
           </>
         )}
-
         {type === 'trains' && (
           <>
             <div className="smart-card__row">
               <span className="sc-icon">🚆</span>
               <div>
                 <div className="flight-name">{item.name} #{item.number}</div>
-                <div className="smart-card__times">Pune → Delhi · {item.depart} → {item.arrive} · {item.duration}</div>
+                <div className="smart-card__times">{item.from} → {item.to} · {item.depart} → {item.arrive} · {item.duration}</div>
               </div>
             </div>
             <div className="smart-card__meta">
@@ -196,14 +154,13 @@ function SmartCard({ item, type, navigate, color }) {
             </div>
           </>
         )}
-
         {type === 'buses' && (
           <>
             <div className="smart-card__row">
               <span className="sc-icon">🚌</span>
               <div>
                 <div className="flight-name">{item.operator}</div>
-                <div className="smart-card__times">Pune → Delhi · {item.depart} → {item.arrive} · {item.duration}</div>
+                <div className="smart-card__times">{item.from} → {item.to} · {item.depart} → {item.arrive} · {item.duration} · {item.type}</div>
               </div>
             </div>
             <div className="smart-card__meta">
@@ -214,7 +171,6 @@ function SmartCard({ item, type, navigate, color }) {
           </>
         )}
       </div>
-
       <div className="smart-card__aside">
         <div className="smart-card__price" style={{ color }}>₹{item.price.toLocaleString()}</div>
         <button className="smart-card__btn" style={{ background: color }} onClick={handleBook}>Book</button>
@@ -227,17 +183,12 @@ function SmartCard({ item, type, navigate, color }) {
 export default function Search() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-<<<<<<< HEAD
 
-  const type = params.get('type') || ''
+  const type        = params.get('type') || ''
   const isSmartMode = !type || type === 'all'
+  const womenOnly   = params.get('women') === 'true'
 
   const [sortBy, setSortBy]         = useState('price')
-=======
-  const type = params.get('type') || 'flights'
-  const womenOnly = params.get('women') === 'true'
-  const [sortBy, setSortBy] = useState('price')
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
   const [priceRange, setPriceRange] = useState([0, 50000])
   const [loading, setLoading]       = useState(!isSmartMode)
   const [results, setResults]       = useState([])
@@ -250,77 +201,48 @@ export default function Search() {
       setError(null)
       try {
         if (type === 'buses') {
-<<<<<<< HEAD
-          const sp = { from: 'Pune', to: 'Delhi', date: params.get('date') || new Date().toISOString().split('T')[0] }
-          const apiData = await searchBusSchedules(sp)
-          const mappedBuses = apiData.map(schedule => {
-=======
           const searchParams = {
             from: params.get('from'),
-            to: params.get('to'),
+            to:   params.get('to'),
             date: params.get('date')
           }
           const apiData = await searchBusSchedules(searchParams)
-
-          // Map API data to UI format
           let mappedBuses = apiData.map(schedule => {
-            // Simple duration calculation helper
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
             const getDuration = (start, end) => {
-              if (!start || !end) return '14h 00m'
+              if (!start || !end) return '6h 30m'
               try {
                 const s = start.split(':').map(Number)
                 const e = end.split(':').map(Number)
                 let diff = (e[0]*60+e[1]) - (s[0]*60+s[1])
                 if (diff < 0) diff += 1440
                 return `${Math.floor(diff/60)}h ${diff%60}m`
-              } catch { return '14h 00m' }
+              } catch { return '6h 30m' }
             }
-<<<<<<< HEAD
-=======
-
-            const hasLadiesSeats = true; // All buses now support dynamic ladies reservation
-
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
             return {
               id: schedule._id,
               operator: schedule.bus?.busName || 'Premium Bus',
               type: schedule.bus?.busType || 'A/C Sleeper',
               depart: schedule.departureTime,
               arrive: schedule.arrivalTime,
-              from: 'Pune',
-              to: 'Delhi',
+              from: schedule.route?.fromCity || params.get('from'),
+              to: schedule.route?.toCity || params.get('to'),
               duration: getDuration(schedule.departureTime, schedule.arrivalTime),
               price: schedule.finalPrice || schedule.ticketPrice,
               seats: schedule.bus?.totalSeats || 36,
               rating: schedule.operator?.rating || 4.5,
               amenities: schedule.bus?.amenities || [],
               coupon: schedule.coupon,
-<<<<<<< HEAD
-=======
               operatorId: schedule.operator?._id || schedule.operator,
               routeId: schedule.route?._id || schedule.route,
               regNo: schedule.bus?.busNumber || 'N/A',
-              hasLadiesSeats
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
+              hasLadiesSeats: true,
             }
           })
-
-          if (womenOnly) {
-            mappedBuses = mappedBuses.filter(bus => bus.hasLadiesSeats)
-          }
-
+          if (womenOnly) mappedBuses = mappedBuses.filter(b => b.hasLadiesSeats)
           setResults(mappedBuses)
         } else {
           await new Promise(r => setTimeout(r, 800))
-          let data = searchResults[type] || searchResults.flights
-          // Force Pune → Delhi route for all results
-          data = data.map(item => ({
-            ...item,
-            from: 'Pune',
-            to: 'Delhi'
-          }))
-          setResults(data)
+          setResults(searchResults[type] || searchResults.flights)
         }
       } catch (err) {
         setError(err.message || 'Failed to fetch results.')
@@ -362,19 +284,6 @@ export default function Search() {
                     <label key={a} className="filter-check"><input type="checkbox" defaultChecked /> {a}</label>
                   ))}
                 </div>
-<<<<<<< HEAD
-=======
-              ) : (
-                results.map(item => (
-                  <ResultCard 
-                    key={item.id} 
-                    item={item} 
-                    type={type} 
-                    navigate={navigate} 
-                    travelDate={params.get('date')}
-                  />
-                ))
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
               )}
               {type === 'hotels' && (
                 <div className="filter-group">
@@ -432,7 +341,9 @@ export default function Search() {
                     <p>Try changing dates or route.</p>
                   </div>
                 ) : (
-                  results.map(item => <ResultCard key={item.id} item={item} type={type} navigate={navigate}/>)
+                  results.map(item => (
+                    <ResultCard key={item.id} item={item} type={type} navigate={navigate} travelDate={params.get('date')} />
+                  ))
                 )}
               </div>
             </div>
@@ -444,12 +355,8 @@ export default function Search() {
   )
 }
 
-<<<<<<< HEAD
-/* ── Result Cards with Pune → Delhi routing ── */
-function ResultCard({ item, type, navigate }) {
-=======
+/* ── Result Cards ── */
 function ResultCard({ item, type, navigate, travelDate }) {
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
   if (type === 'flights') return (
     <div className="result-card" onClick={() => navigate(`/detail/${item.id}?type=flight`)}>
       <div className="result-card__main">
@@ -458,12 +365,12 @@ function ResultCard({ item, type, navigate, travelDate }) {
           <div><div className="flight-name">{item.airline}</div><div className="flight-code">{item.code}</div></div>
         </div>
         <div className="flight-times">
-          <div className="flight-time"><span className="time-value">{item.depart || '06:00'}</span><span className="time-city">Pune</span></div>
+          <div className="flight-time"><span className="time-value">{item.depart}</span><span className="time-city">{(item.from||'').split('(')[0]}</span></div>
           <div className="flight-duration">
             <div className="duration-line"><div/><span>✈</span><div/></div>
-            <span>{item.duration || '2h 30m'} · Direct</span>
+            <span>{item.duration} · {item.stops}</span>
           </div>
-          <div className="flight-time"><span className="time-value">{item.arrive || '08:30'}</span><span className="time-city">Delhi</span></div>
+          <div className="flight-time"><span className="time-value">{item.arrive}</span><span className="time-city">{(item.to||'').split('(')[0]}</span></div>
         </div>
         <div className="result-card__rating"><Star size={14} fill="#F59E0B" color="#F59E0B"/><span>{item.rating}</span></div>
       </div>
@@ -502,9 +409,9 @@ function ResultCard({ item, type, navigate, travelDate }) {
       <div className="result-card__main">
         <div><h3 className="train-name">{item.name}</h3><span className="train-number">#{item.number}</span></div>
         <div className="flight-times">
-          <div className="flight-time"><span className="time-value">{item.depart || '20:00'}</span><span className="time-city">Pune</span></div>
-          <div className="flight-duration"><div className="duration-line"><div/><span>🚆</span><div/></div><span>{item.duration || '12h 00m'}</span></div>
-          <div className="flight-time"><span className="time-value">{item.arrive || '08:00'}</span><span className="time-city">Delhi</span></div>
+          <div className="flight-time"><span className="time-value">{item.depart}</span><span className="time-city">{item.from}</span></div>
+          <div className="flight-duration"><div className="duration-line"><div/><span>🚆</span><div/></div><span>{item.duration}</span></div>
+          <div className="flight-time"><span className="time-value">{item.arrive}</span><span className="time-city">{item.to}</span></div>
         </div>
         <span className="badge badge-green">{item.class}</span>
       </div>
@@ -518,48 +425,28 @@ function ResultCard({ item, type, navigate, travelDate }) {
   )
 
   return (
-<<<<<<< HEAD
-    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}`)}>
+    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}${travelDate ? `?date=${travelDate}` : ''}`)}>
       <div className="bus-card__header">
         <div className="badge-primo">Primo <span>★</span></div>
-        {item.coupon && <div className="badge-discount">{item.coupon.discountValue}{item.coupon.discountType==='percentage'?'%':''} OFF</div>}
-=======
-    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}${travelDate ? `?date=${travelDate}` : ''}`)}>
-      {/* Brand Header */}
-      <div className="bus-card__header">
-        <div className="badge-primo">
-          Primo <span>★</span>
-        </div>
         {item.coupon && (
           <div className="badge-discount">
             {item.coupon.rules?.lastMinute ? 'Last min ' : 'Special '}
             {item.coupon.discountValue}{item.coupon.discountType === 'percentage' ? '%' : ''} OFF
           </div>
         )}
-        {item.hasLadiesSeats && (
-          <div className="badge-ladies">
-            👩 Ladies seats available
-          </div>
-        )}
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
+        {item.hasLadiesSeats && <div className="badge-ladies">👩 Ladies seats available</div>}
       </div>
       <div className="bus-card__body">
         <div className="bus-card__id-row">
-<<<<<<< HEAD
-          <span className="reg-tag">MH12C1234</span>
-=======
-          <span className="reg-tag">
-            {item.regNo}
-          </span>
->>>>>>> 6411c4a64b96a026faab2bc197e10c61960da338
+          <span className="reg-tag">{item.regNo || 'N/A'}</span>
           <span className="status-badge">STARTING</span>
-          <span className="route-stops">Pune → Delhi</span>
+          <span className="route-stops">From: {item.from} → {item.to}</span>
         </div>
         <div className="bus-card__times">
           <div className="bus-time-group">
-            <div className="bus-time-val">{item.depart || '18:00'} — {item.arrive || '08:00'}</div>
+            <div className="bus-time-val">{item.depart} — {item.arrive}</div>
             <div style={{display:'flex',alignItems:'center',gap:'8px',marginTop:'4px'}}>
-              <span className="bus-duration-val">{item.duration || '14h 00m'}</span>
+              <span className="bus-duration-val">{item.duration}</span>
               <span className="bus-seats-val">{item.seats} Seats</span>
             </div>
           </div>
