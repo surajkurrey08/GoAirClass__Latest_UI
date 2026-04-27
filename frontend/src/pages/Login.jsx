@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../services/auth';
 import { Phone, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -11,6 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -48,8 +49,13 @@ export default function Login() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         toast.success('Logged in successfully!');
-        // Redirect based on role
-        if (data.user?.role === 'superadmin') {
+        // Redirect based on state or role
+        const from = location.state?.from || '/';
+        const bookingData = location.state?.bookingData;
+
+        if (location.state?.from) {
+          navigate(from, { state: bookingData });
+        } else if (data.user?.role === 'superadmin') {
           navigate('/super-admin');
         } else if (data.user?.role === 'admin') {
           navigate('/admin');

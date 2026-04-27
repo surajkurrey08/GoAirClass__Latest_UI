@@ -166,7 +166,7 @@ router.post('/create', authMiddleware, async (req, res) => {
                     if (p.gender?.toLowerCase() !== 'female') {
                         return res.status(400).json({
                             success: false,
-                            message: `Seat ${p.seatNumber} is reserved for female passengers.`
+                            message: `Seat ${p.seatNumber} is only for ladies. Please select another seat.`
                         });
                     }
                 }

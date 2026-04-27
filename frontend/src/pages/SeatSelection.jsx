@@ -33,6 +33,26 @@ export default function SeatSelection() {
         const fetchLayout = async () => {
             try {
                 const data = await getBusSeatLayout(scheduleId, travelDate);
+                
+                const isSleeper = data.busType?.toLowerCase().includes('sleeper');
+                const hasCoordinates = data.seatLayout.some(s => s.row !== undefined && s.col !== undefined);
+                if (!hasCoordinates) {
+                    const seatsPerRow = isSleeper ? 3 : 4;
+                    data.seatLayout = data.seatLayout.map((seat, index) => {
+                        const row = Math.floor(index / seatsPerRow) + 1;
+                        const posInRow = index % seatsPerRow;
+                        let col;
+                        if (isSleeper) {
+                            // 2+1 layout: Col 1, 2 (Left) and Col 4 (Right)
+                            col = posInRow < 2 ? posInRow + 1 : 4;
+                        } else {
+                            // 2+2 layout: Col 1, 2 and Col 4, 5
+                            col = posInRow < 2 ? posInRow + 1 : posInRow + 2;
+                        }
+                        return { ...seat, row, col };
+                    });
+                }
+
                 setBusData(data);
                 if (data.boardingPoints?.length > 0) setBoardingPoint(data.boardingPoints[0].location);
                 if (data.droppingPoints?.length > 0) setDroppingPoint(data.droppingPoints[0].location);
@@ -52,7 +72,8 @@ export default function SeatSelection() {
     const toggleSeat = (seatNo, status, seat) => {
         if (status === 'Booked') return;
 
-        const currentGender = user.gender?.toLowerCase() || 'male';
+        const isWomenPreference = searchParams.get('women') === 'true';
+        const currentGender = isWomenPreference ? 'female' : (user.gender?.toLowerCase() || 'male');
 
         // 1. Strict Rule: Ladies reserved seats
         const isLadiesSeat = seat.type?.toLowerCase() === 'ladies' ||
@@ -61,7 +82,7 @@ export default function SeatSelection() {
 
         // 2. Adjacent Rule: Lady is sitting next to this seat
         const isNextToLady = busData.seatLayout.some(s =>
-            s.status === 'Booked' &&
+            s.status?.toLowerCase() === 'booked' &&
             s.bookedGender?.toLowerCase() === 'female' &&
             s.row === seat.row &&
             s.deck === seat.deck &&
@@ -69,7 +90,7 @@ export default function SeatSelection() {
         );
 
         if ((isLadiesSeat || isNextToLady) && currentGender === 'male') {
-            toast.error("This seat is reserved for female passengers");
+            toast.error("Only for ladies. Please select other seat.");
             return;
         }
 
@@ -117,7 +138,17 @@ export default function SeatSelection() {
         navigate(`/booking/${scheduleId}?type=bus`, {
             state: {
                 selectedSeats,
-                selectedSeatDetails: selectedSeats.map(seatNo => busData.seatLayout.find(s => s.seatNo === seatNo)),
+                selectedSeatDetails: selectedSeats.map(seatNo => {
+                    const seat = busData.seatLayout.find(s => s.seatNo === seatNo);
+                    const isNextToLady = busData.seatLayout.some(s =>
+                        s.status === 'Booked' &&
+                        s.bookedGender?.toLowerCase() === 'female' &&
+                        s.row === seat.row &&
+                        s.deck === seat.deck &&
+                        Math.abs(s.col - seat.col) === 1
+                    );
+                    return { ...seat, isNextToLady };
+                }),
                 totalPrice,
                 boardingPoint,
                 droppingPoint,
@@ -563,18 +594,7 @@ function renderIntegratedGrid(busData, toggleSeat, selectedSeats, seats) {
 
     const defaultPrice = busData.ticketPrice || 0;
 
-    // Check if seats have coordinates. If not, assign them dynamically for a 2+1+2 layout
-    const hasCoordinates = seats.some(s => s.row !== undefined && s.col !== undefined);
-
-    if (!hasCoordinates) {
-        // Simple heuristic: assign 4 seats per row (2 left, 2 right)
-        seats = seats.map((seat, index) => {
-            const row = Math.floor(index / 4) + 1;
-            const posInRow = index % 4;
-            const col = posInRow < 2 ? posInRow + 1 : posInRow + 2; // Col 1,2 and 4,5 (Col 3 is aisle)
-            return { ...seat, row, col };
-        });
-    }
+    // Coordinates are now normalized in useEffect
 
     const maxRow = Math.max(...seats.map(s => s.row || 0), 1);
     const rows = Array.from({ length: maxRow }, (_, i) => i + 1);
@@ -597,7 +617,7 @@ function renderIntegratedGrid(busData, toggleSeat, selectedSeats, seats) {
                                         seat={seat}
                                         isSelected={selectedSeats.includes(seat.seatNo)}
                                         isNextToLady={busData.seatLayout.some(s =>
-                                            s.status === 'Booked' &&
+                                            s.status?.toLowerCase() === 'booked' &&
                                             s.bookedGender?.toLowerCase() === 'female' &&
                                             s.row === seat.row &&
                                             s.deck === seat.deck &&
@@ -626,7 +646,7 @@ function renderIntegratedGrid(busData, toggleSeat, selectedSeats, seats) {
                                         seat={seat}
                                         isSelected={selectedSeats.includes(seat.seatNo)}
                                         isNextToLady={busData.seatLayout.some(s =>
-                                            s.status === 'Booked' &&
+                                            s.status?.toLowerCase() === 'booked' &&
                                             s.bookedGender?.toLowerCase() === 'female' &&
                                             s.row === seat.row &&
                                             s.deck === seat.deck &&

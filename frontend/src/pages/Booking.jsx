@@ -6,6 +6,7 @@ import Footer from '../components/Footer'
 import { createPaymentOrder, createFinalBooking } from '../services/paymentService'
 import { getAvailableCoupons, applyCoupon } from '../services/couponService'
 import { toast } from 'react-toastify'
+import Swal from 'sweetalert2'
 import './Booking.css'
 
 const steps = ['Traveller Details', 'Review & Pay']
@@ -62,11 +63,15 @@ export default function Booking() {
     const [passengers, setPassengers] = useState(
         selectedSeats.map(seatNo => {
             const seatDef = selectedSeatDetails.find(s => s.seatNo === seatNo);
-            const isLadies = seatDef?.type === 'ladies' || seatDef?.type === 'ladies-sleeper' || seatDef?.isLadies === true;
+            const isLadies = seatDef?.type === 'ladies' || 
+                             seatDef?.type === 'ladies-sleeper' || 
+                             seatDef?.isLadies === true ||
+                             seatDef?.isNextToLady === true;
+            const isWomenPreference = new URLSearchParams(window.location.search).get('women') === 'true';
             return {
                 name: '',
                 age: '',
-                gender: isLadies ? 'Female' : 'Male',
+                gender: (isLadies || isWomenPreference) ? 'Female' : 'Male',
                 seatNumber: seatNo,
                 isLadies
             };
@@ -138,7 +143,7 @@ export default function Booking() {
                 return false
             }
             if (p.isLadies && p.gender?.toLowerCase() !== 'female') {
-                toast.error(`Seat ${p.seatNumber} is reserved for ladies. Please select Female gender.`)
+                toast.error(`Seat ${p.seatNumber} is only for ladies. Please select Female gender.`);
                 return false
             }
         }
@@ -428,7 +433,40 @@ export default function Booking() {
 
                         <div className="booking-nav">
                             {step > 0 && <button className="btn btn-outline" onClick={() => setStep(step - 1)} disabled={loading}>← Back</button>}
-                            <button className={`px-10 py-4 bg-red-500 text-white rounded-2xl font-black transition-all flex items-center gap-3 ${loading ? 'opacity-50' : 'hover:bg-red-600 shadow-xl shadow-red-500/20'}`} style={{ marginLeft: 'auto' }} onClick={() => step === 1 ? handleRazorpayPayment() : setStep(1)} disabled={loading}>
+                            <button 
+                                className={`px-10 py-4 bg-red-500 text-white rounded-2xl font-black transition-all flex items-center gap-3 ${loading ? 'opacity-50' : 'hover:bg-red-600 shadow-xl shadow-red-500/20'}`} 
+                                style={{ marginLeft: 'auto' }} 
+                                onClick={() => {
+                                    if (step === 0) {
+                                        // Check if user is logged in
+                                        const token = localStorage.getItem('token');
+                                        if (!token) {
+                                            Swal.fire({
+                                                title: 'Login Required',
+                                                text: 'Please login or register to continue booking.',
+                                                icon: 'warning',
+                                                showCancelButton: true,
+                                                confirmButtonText: 'Login',
+                                                cancelButtonText: 'Register',
+                                                confirmButtonColor: '#ef4444', // Red-500
+                                                cancelButtonColor: '#3b82f6', // Blue-500
+                                                reverseButtons: true
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    navigate('/login', { state: { from: location.pathname, bookingData: location.state } });
+                                                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                                    navigate('/register', { state: { from: location.pathname, bookingData: location.state } });
+                                                }
+                                            });
+                                            return;
+                                        }
+                                        if (validateForms()) setStep(1);
+                                    } else {
+                                        handleRazorpayPayment();
+                                    }
+                                }} 
+                                disabled={loading}
+                            >
                                 {loading ? 'Processing...' : step === 1 ? `Pay ₹${finalTotal.toLocaleString()}` : 'Continue'} <ChevronRight size={16} />
                             </button>
                         </div>

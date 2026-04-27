@@ -2,6 +2,7 @@ const express = require('express');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const router = express.Router();
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 // Initialize Razorpay with keys from .env
 const razorpay = new Razorpay({
@@ -14,7 +15,7 @@ const razorpay = new Razorpay({
  * Creates a Razorpay order. Frontend calls this before opening the checkout.
  * Body: { amount, busId, seats, boardingPoint, droppingPoint }
  */
-router.post('/create-order', async (req, res) => {
+router.post('/create-order', authMiddleware, async (req, res) => {
     try {
         const { amount, notes } = req.body;
 

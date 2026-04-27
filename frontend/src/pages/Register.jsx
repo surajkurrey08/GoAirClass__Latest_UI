@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendRegistrationOtp, verifyRegistrationOtp } from '../services/auth';
 import { User, Phone, Loader2, ArrowRight, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -11,6 +11,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,7 +59,9 @@ export default function Register() {
         localStorage.setItem('user', JSON.stringify(data.user));
         setSuccess(true);
         toast.success('Registration successful!');
-        setTimeout(() => navigate('/'), 2000);
+        const from = location.state?.from || '/';
+        const bookingData = location.state?.bookingData;
+        setTimeout(() => navigate(from, { state: bookingData }), 2000);
       } else {
         toast.error('Token not received. Contact support.');
         setError('Token not received. Contact support.');

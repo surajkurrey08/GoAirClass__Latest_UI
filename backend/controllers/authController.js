@@ -37,16 +37,13 @@ const getOtp = async (req, res) => {
         }
 
         if (!user) {
-            user = new User({
-                fullName: "Guest User",
-                mobileNumber,
-                role: "user"
-            });
+            return res.status(404).json({ success: false, message: "User not registered. Please sign up first." });
         }
 
-        // Overwrite previous OTP and update expiry
+        // Overwrite previous OTP, reset attempts and update expiry
         user.otp = otp;
         user.otpExpiry = otpExpiry;
+        user.otpAttempts = 0; 
         await user.save();
 
         // Debugging logs
@@ -97,31 +94,40 @@ const verifyOtp = async (req, res) => {
             return res.status(403).json({ success: false, message: "Your account has been suspended. Please contact support." });
         }
 
-        // 1. Check if OTP exists
+        // 2. Check if OTP exists
         if (!user.otp || !user.otpExpiry) {
             return res.status(400).json({ success: false, message: "No OTP found. Please request a new OTP." });
         }
 
-        // 2. Add console logs for debugging OTP mismatch
+        // 3. Check for max attempts
+        if (user.otpAttempts >= 3) {
+            return res.status(400).json({ success: false, message: "Maximum OTP attempts exceeded. Please request a new OTP." });
+        }
+
+        // 4. Add console logs for debugging OTP mismatch
         console.log(`[DEBUG] Verifying OTP for ${mobileNumber}. Provided: ${otp}, Stored: ${user.otp}`);
 
-        // 3. Check if OTP is expired
+        // 5. Check if OTP is expired
         if (new Date() > user.otpExpiry) {
             // Clear expired OTP
             user.otp = null;
             user.otpExpiry = null;
+            user.otpAttempts = 0;
             await user.save();
             return res.status(400).json({ success: false, message: "OTP expired" });
         }
 
-        // 4. Check OTP match
+        // 6. Check OTP match
         if (user.otp !== otp) {
-            return res.status(400).json({ success: false, message: "Invalid OTP" });
+            user.otpAttempts += 1;
+            await user.save();
+            return res.status(400).json({ success: false, message: `Invalid OTP. Attempts left: ${3 - user.otpAttempts}` });
         }
 
-        // 5. OTP is correct - Clear it after successful verification
+        // 7. OTP is correct - Clear it after successful verification
         user.otp = null;
         user.otpExpiry = null;
+        user.otpAttempts = 0;
 
         // Check if this is the super admin from .env
         const isSuperAdmin = mobileNumber === process.env.ADMIN_MOBILE;

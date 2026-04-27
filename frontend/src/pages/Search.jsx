@@ -207,6 +207,7 @@ export default function Search() {
                     type={type} 
                     navigate={navigate} 
                     travelDate={params.get('date')}
+                    params={params}
                   />
                 ))
               )}
@@ -219,7 +220,7 @@ export default function Search() {
   )
 }
 
-function ResultCard({ item, type, navigate, travelDate }) {
+function ResultCard({ item, type, navigate, travelDate, params }) {
   if (type === 'flights') return (
     <div className="result-card" onClick={() => navigate(`/detail/${item.id}?type=flight`)}>
       <div className="result-card__main">
@@ -321,7 +322,10 @@ function ResultCard({ item, type, navigate, travelDate }) {
   )
 
   return (
-    <div className="bus-card" onClick={() => navigate(`/bus-selection/${item.id}${travelDate ? `?date=${travelDate}` : ''}`)}>
+    <div className="bus-card" onClick={() => {
+      const womenParam = params.get('women') === 'true' ? '&women=true' : '';
+      navigate(`/bus-selection/${item.id}${travelDate ? `?date=${travelDate}` : ''}${womenParam}`);
+    }}>
       {/* Brand Header */}
       <div className="bus-card__header">
         <div className="badge-primo">
