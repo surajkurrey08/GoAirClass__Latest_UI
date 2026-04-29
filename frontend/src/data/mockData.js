@@ -17,9 +17,11 @@ export const popularRoutes = [
 ]
 
 export const offers = [
-  { id: 1, title: 'Book Train Tickets', subtitle: 'Save Time and Money!', discount: '5% OFF', tag: 'On Train Booking', color: '#1e3a5f', image: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=400&q=80', badge: 'HOT' },
-  { id: 2, title: '100 Lucky Customers', subtitle: 'Every Month', discount: '100% Cashback', tag: 'On Bus Booking', color: '#fff', isLight: true, badge: 'WIN' },
-  { id: 3, title: 'Metro Card Recharge', subtitle: 'Flat Cashback', discount: '₹10 Cashback', tag: 'On Metro Card', color: '#2563EB', image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&q=80', badge: 'NEW' },
+  { id: 1, title: 'Book Your Journey', subtitle: 'Experience comfort and luxury', discount: '15% OFF', code: 'BX3NP2NN', image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=80', badge: 'LIVE OFFER' },
+  { id: 2, title: 'Book Your Journey', subtitle: 'Experience comfort and luxury', discount: '40% OFF', code: 'V6B0NGD4', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&q=80', badge: 'LIVE OFFER' },
+  { id: 3, title: 'Book Your Journey', subtitle: 'Experience comfort and luxury', discount: '10% OFF', code: 'G6G6BN9D', image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&q=80', badge: 'LIVE OFFER' },
+  { id: 4, title: 'Book Your Journey', subtitle: 'Experience comfort and luxury', discount: '20% OFF', code: 'Y306DJWH', image: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=600&q=80', badge: 'LIVE OFFER' },
+  { id: 5, title: 'Book Your Journey', subtitle: 'Experience comfort and luxury', discount: '39% OFF', code: '1V6M2TLT', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&q=80', badge: 'LIVE OFFER' },
 ]
 
 export const features = [

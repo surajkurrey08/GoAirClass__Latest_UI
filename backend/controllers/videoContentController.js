@@ -36,7 +36,7 @@ exports.saveVideoContent = async (req, res) => {
     console.log('Saving video content...', req.body);
     if (req.file) console.log('File received:', req.file.filename);
     const { title, subtitle, points, buttonText } = req.body;
-    
+
     // Handle points array (if sent as stringified JSON or comma-separated)
     let pointsArray = points;
     if (typeof points === 'string') {

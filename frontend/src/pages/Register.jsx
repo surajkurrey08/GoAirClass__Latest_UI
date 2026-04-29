@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendRegistrationOtp, verifyRegistrationOtp } from '../services/auth';
 import { User, Phone, Loader2, ArrowRight, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
+import "./Register.css";
 
 export default function Register() {
   const [formData, setFormData] = useState({ name: '', mobileNumber: '', otp: '' });

@@ -7,7 +7,7 @@ exports.createDestination = async (req, res) => {
         console.log("Create Destination Request Body:", req.body);
         console.log("Create Destination File:", req.file);
         const { name, distance, duration, description, isPopular, status } = req.body;
-        
+
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'Image is required' });
         }
@@ -50,7 +50,7 @@ exports.updateDestination = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = { ...req.body };
-        
+
         // Handle boolean conversions from FormData
         if (updates.isPopular !== undefined) updates.isPopular = updates.isPopular === 'true' || updates.isPopular === true;
         if (updates.status !== undefined) updates.status = updates.status === 'true' || updates.status === true;
@@ -75,7 +75,7 @@ exports.deleteDestination = async (req, res) => {
     try {
         const { id } = req.params;
         const destination = await Destination.findById(id);
-        
+
         if (destination && destination.image) {
             const imagePath = path.join(__dirname, '../', destination.image);
             if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);

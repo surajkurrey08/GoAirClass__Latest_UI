@@ -3,6 +3,9 @@ const cors = require("cors");
 const cron = require("node-cron");
 const Coupon = require("./models/Coupon");
 
+const heroImageRoutes = require('./routes/heroImages');
+
+
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const operatorRoutes = require("./routes/operatorRoutes");
@@ -58,6 +61,7 @@ const flightSeatRoutes = require('./routes/flight/seat.routes');
 const flightPaymentRoutes = require('./routes/flight/payment.routes');
 const flightTicketRoutes = require('./routes/flight/ticket.routes');
 const faresRoutes = require('./routes/flight/fares.routes');
+const flightMealRoutes = require('./routes/flight/meal.routes');
 
 
 const videoContentRoutes = require('./routes/videoContentRoutes');
@@ -97,6 +101,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/cities", cityRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/flights", require("./routes/flight/flightAdmin.routes"));
 app.use("/api/admin/bus-requests", busRequestRoutes);
 app.use("/api/admin/train", superAdminTrainRoutes);
 app.use("/api/trains", trainRoutes);
@@ -140,9 +145,14 @@ app.use('/api/banner', bannerRoutes);
 app.use('/api/fares', faresRoutes);
 app.use('/api/user-directory', userDirectoryRoutes);
 app.use('/api/operator-mgmt', operatorManagementRoutes);
+app.use('/api/meals', flightMealRoutes);
+app.use('/api/seats-master', require('./routes/flight/seatMaster.routes'));
+app.use('/api/baggage-mapping', require('./routes/flight/baggageMapping.routes'));
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/hero-images', heroImageRoutes);
 app.use('/uploads/banners', require('express').static('uploads/banners'));
+app.use('/uploads/meals', require('express').static('uploads/meals'));
 
 app.get("/", (req, res) => {
     res.send("API Working...");

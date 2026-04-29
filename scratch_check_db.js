@@ -1,40 +1,46 @@
+
 const mongoose = require('mongoose');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, 'backend', '.env') });
 
-const Operator = require('./backend/models/Operator');
-const User = require('./backend/models/User');
+const FlightInventory = require('./backend/models/flight/flightInventory.model');
 
-async function checkDatabase() {
+async function checkFlights() {
     try {
-        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/goairclass');
-        console.log('Connected to DB');
+        console.log('Connecting to MongoDB...');
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Connected.');
 
-        const admins = await User.find({ role: 'admin' });
-        console.log('\n--- Admins ---');
-        admins.forEach(a => console.log(`Admin: ${a.name} | ID: ${a._id}`));
+        const count = await FlightInventory.countDocuments();
+        console.log(`Total FlightInventory documents: ${count}`);
 
-        const operators = await Operator.find({ isDeleted: false });
-        console.log('\n--- Operators ---');
-        operators.forEach(o => console.log(`Operator: ${o.companyName} | Assigned AdminID: ${o.adminId}`));
+        const allFlights = await FlightInventory.find({}).limit(5);
+        console.log('Sample Flights:', JSON.stringify(allFlights, null, 2));
 
-        if (operators.length > 0 && admins.length > 0) {
-            console.log('\nChecking for unassigned operators to fix data...');
-            const unassigned = operators.filter(o => !o.adminId);
-            if (unassigned.length > 0) {
-                console.log(`Found ${unassigned.length} unassigned operators. Assigning to first admin for testing...`);
-                // for (let op of unassigned) {
-                //     op.adminId = admins[0]._id;
-                //     await op.save();
-                //     console.log(`Assigned ${op.companyName} to ${admins[0].name}`);
-                // }
-            }
+        const query = {
+            from: "DEL",
+            to: "BOM",
+            status: true
+        };
+        
+        // Let's try to match exactly what the user is searching for
+        // User date: 28/04/2026
+        const searchDate = new Date('2026-04-28T00:00:00.000Z');
+        const nextDate = new Date('2026-04-28T23:59:59.999Z');
+        query.departureDate = { $gte: searchDate, $lte: nextDate };
+        
+        console.log('Running query:', JSON.stringify(query, null, 2));
+        const matchedFlights = await FlightInventory.find(query);
+        console.log(`Matched Flights count: ${matchedFlights.length}`);
+        if (matchedFlights.length > 0) {
+            console.log('Matched Flights:', JSON.stringify(matchedFlights, null, 2));
         }
 
     } catch (err) {
-        console.error(err);
+        console.error('Error:', err);
     } finally {
         await mongoose.disconnect();
     }
 }
 
-checkDatabase();
+checkFlights();

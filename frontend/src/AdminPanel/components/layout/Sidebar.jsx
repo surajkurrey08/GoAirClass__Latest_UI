@@ -4,7 +4,7 @@ import {
     LayoutDashboard, Ticket, Plane, Hotel,
     Bus, TrainFront, Users, BarChart3,
     LogOut, ChevronLeft, ChevronRight, Settings,
-    Tag
+    Image as ImageIcon, Tag
 } from 'lucide-react';
 import { useAdmin } from '../../../context/AdminContext.jsx';
 import { toast } from 'react-toastify';
@@ -58,13 +58,11 @@ export default function Sidebar() {
     };
 
     return (
-        <aside
-            className={`
-                fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800
-                transition-all duration-300 z-50
-                ${sidebarOpen ? 'w-72' : 'w-20'}
-            `}
-        >
+        <aside className={`
+            fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800
+            transition-all duration-300 z-50
+            ${sidebarOpen ? 'w-72' : 'w-20'}
+        `}>
             <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                 {sidebarOpen ? (
                     <div className="flex items-center gap-2">
@@ -79,15 +77,30 @@ export default function Sidebar() {
             </div>
 
             <div className="p-4 h-[calc(100%-80px)] overflow-y-auto no-scrollbar">
+
                 <SidebarSection title="Operations" isOpen={sidebarOpen}>
                     <SidebarItem to="" icon={LayoutDashboard} label="Overview" />
                     <SidebarItem to="users" icon={Users} label="Users" />
                 </SidebarSection>
 
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
-                    <SidebarItem to="bookings?type=flights" icon={Plane} label="Flights" />
+                    <SidebarDropdown
+                        icon={Plane}
+                        label="Flights"
+                        sidebarOpen={sidebarOpen}
+                        items={[
+                            { to: '/admin/flights', label: 'Dashboard' },
+                            { to: '/admin/flights/bookings', label: 'Bookings' },
+                            { to: '/admin/flights/refunds', label: 'Refund Panel' },
+                            { to: '/admin/flights/tickets', label: 'Support Tickets' },
+                            { to: '/admin/flights/reports', label: 'Reports' },
+                            { isHeader: true, label: 'Ancillaries' },
+                            { to: '/admin/flights/ancillaries/meals', label: 'Meal Mapping' },
+                            { to: '/admin/flights/ancillaries/seats', label: 'Seat Mapping' },
+                            { to: '/admin/flights/ancillaries/baggage', label: 'Baggage Mapping' }
+                        ]}
+                    />
                     <SidebarItem to="bookings?type=hotels" icon={Hotel} label="Hotels" />
-
                     <SidebarDropdown
                         icon={Bus}
                         label="Buses"
@@ -111,7 +124,6 @@ export default function Sidebar() {
                             { to: '/admin/bookings/operator-wise', label: 'Operator Wise Bookings' }
                         ]}
                     />
-
                     <SidebarItem to="bookings?type=trains" icon={TrainFront} label="Trains" />
                 </SidebarSection>
 
@@ -136,6 +148,10 @@ export default function Sidebar() {
                 <SidebarSection title="Reports" isOpen={sidebarOpen}>
                     <SidebarItem to="reports" icon={BarChart3} label="Analytics" />
                     <SidebarItem to="settings" icon={Settings} label="Settings" />
+                </SidebarSection>
+
+                <SidebarSection title="Content" isOpen={sidebarOpen}>
+                    <SidebarItem to="hero-images" icon={ImageIcon} label="Hero Images" />
                 </SidebarSection>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">

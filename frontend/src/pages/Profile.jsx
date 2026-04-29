@@ -5,11 +5,13 @@ import {
   ArrowLeft, CreditCard, Ticket, Settings,
   ChevronRight, Star, Wallet, MapPin, ShieldCheck, Bus, Calendar,
   CheckCircle2, Clock, Search, Filter, Gift, ArrowRight, Download,
-  Info as InfoIcon, Camera, LayoutDashboard, X, AlertCircle
+  Info as InfoIcon, Camera, LayoutDashboard, X, AlertCircle, Plane
 } from 'lucide-react';
+import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import { submitAdminRequest, uploadProfileImage } from '../services/auth';
 import { getUserBookings, cancelTicket } from '../services/busService';
+import { getUserFlightBookings } from '../services/flightApi';
 import { useRef } from 'react';
 
 export default function Profile() {
@@ -57,8 +59,22 @@ export default function Profile() {
   const fetchBookings = async () => {
     setBookingLoading(true);
     try {
-      const data = await getUserBookings();
-      setBookings(data);
+      const [busBookings, flightRes] = await Promise.all([
+        getUserBookings(),
+        getUserFlightBookings()
+      ]);
+      
+      const normalizedBus = busBookings.map(b => ({ ...b, type: 'bus' }));
+      const normalizedFlights = (flightRes.bookings || []).map(b => ({ ...b, type: 'flight' }));
+      
+      // Sort all bookings by date
+      const allBookings = [...normalizedBus, ...normalizedFlights].sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.travelDate);
+        const dateB = new Date(b.createdAt || b.travelDate);
+        return dateB - dateA;
+      });
+      
+      setBookings(allBookings);
     } catch (err) {
       toast.error(err.message || 'Failed to load bookings');
     } finally {
@@ -236,7 +252,7 @@ export default function Profile() {
           <div className="flex gap-4">
             <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-2xl min-w-[140px] text-center">
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Trips</div>
-              <div className="text-2xl font-black text-white">12</div>
+              <div className="text-2xl font-black text-white">{bookings.length}</div>
             </div>
             <div className="bg-white/5 backdrop-blur-md border border-white/10 p-5 rounded-2xl min-w-[140px] text-center">
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Savings</div>
@@ -314,10 +330,10 @@ export default function Profile() {
                 {/* PREMIUM FILTER TABS */}
                 <div className="flex flex-wrap items-center gap-3 p-2 bg-slate-900/5 rounded-[2rem] border border-slate-200/50 backdrop-blur-sm">
                   {[
-                    { id: 'all', label: 'All Journeys', count: 12, icon: Bus },
-                    { id: 'upcoming', label: 'Upcoming', count: 2, icon: Calendar },
-                    { id: 'completed', label: 'Completed', count: 8, icon: ShieldCheck },
-                    { id: 'cancelled', label: 'Cancelled', count: 2, icon: Phone }
+                    { id: 'all', label: 'All Journeys', icon: Ticket, count: bookings.length },
+                    { id: 'upcoming', label: 'Upcoming', icon: Calendar, count: bookings.filter(b => b.status === 'Confirmed' || b.bookingStatus === 'Confirmed' || !b.status).length },
+                    { id: 'completed', label: 'Completed', icon: ShieldCheck, count: bookings.filter(b => b.status === 'Completed').length },
+                    { id: 'cancelled', label: 'Cancelled', icon: Phone, count: bookings.filter(b => b.status === 'Cancelled' || b.bookingStatus === 'Cancelled').length }
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -359,28 +375,34 @@ export default function Profile() {
                       return b.status?.toLowerCase() === activeBookingTab.toLowerCase();
                     }).map((booking, idx) => (
                       <div key={idx} className="bg-white rounded-[1.8rem] shadow-2xl shadow-indigo-100/40 border border-indigo-50 overflow-hidden group hover:border-indigo-100 transition-colors">
-                        {/* 1. HEADER - SLEEK DARK */}
-                        <div className="px-6 py-3.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 flex justify-between items-center relative overflow-hidden">
+                        {/* 1. HEADER - dynamic icon/color */}
+                        <div className={`px-6 py-3.5 bg-gradient-to-r ${booking.type === 'flight' ? 'from-slate-900 via-blue-950 to-slate-900' : 'from-slate-900 via-indigo-950 to-slate-900'} flex justify-between items-center relative overflow-hidden`}>
                           <div className="absolute top-0 right-0 w-32 h-full bg-white/5 skew-x-[-20deg] translate-x-16" />
                           <div className="flex items-center gap-4 relative z-10">
-                            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-600/30">
-                              <Bus size={20} />
+                            <div className={`w-10 h-10 ${booking.type === 'flight' ? 'bg-blue-600' : 'bg-red-600'} rounded-xl flex items-center justify-center text-white shadow-lg`}>
+                              {booking.type === 'flight' ? <Plane size={20} /> : <Bus size={20} />}
                             </div>
                             <div>
-                              <h3 className="text-lg font-black text-white tracking-tight leading-none">{booking.bus?.name || 'Travel Express'}</h3>
-                              <div className="text-[9px] font-bold text-indigo-300 uppercase tracking-widest mt-1">PNR: <span className="text-white font-black">{booking.pnrNumber || 'N/A'}</span></div>
+                              <h3 className="text-lg font-black text-white tracking-tight leading-none">
+                                {booking.type === 'flight' ? booking.flightDetails?.airline : (booking.bus?.name || 'Travel Express')}
+                              </h3>
+                              <div className="text-[9px] font-bold text-indigo-300 uppercase tracking-widest mt-1">
+                                {booking.type === 'flight' ? 'BOOKING ID: ' : 'PNR: '}
+                                <span className="text-white font-black">{booking.bookingId || booking.pnrNumber || 'N/A'}</span>
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 relative z-10">
                             <div className={`px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border backdrop-blur-md ${
                               booking.status === 'Cancelled' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             }`}>
-                              {booking.status || 'Confirmed'}
+                              {booking.status || booking.bookingStatus || 'Confirmed'}
                             </div>
-                            <div className="px-3 py-1.5 bg-white/5 rounded-lg flex items-center gap-2 text-[9px] font-black text-white uppercase tracking-widest border border-white/10">
-                              <ShieldCheck size={12} className="text-emerald-400" />
-                              <span className="hidden sm:inline">Verified</span>
-                            </div>
+                            {booking.type === 'flight' && booking.pnr && (
+                              <div className="px-3 py-1.5 bg-white/5 rounded-lg flex items-center gap-2 text-[9px] font-black text-white uppercase tracking-widest border border-white/10">
+                                <span>PNR: {booking.pnr}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -390,21 +412,25 @@ export default function Profile() {
                             {/* 2. JOURNEY TIMELINE */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative">
                               <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-slate-50 border border-slate-200 rounded-full z-10 items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                                <ArrowRight size={18} className="text-red-600" />
+                                {booking.type === 'flight' ? <ArrowRight size={18} className="text-blue-600" /> : <ArrowRight size={18} className="text-red-600" />}
                               </div>
                               <div className="space-y-1">
-                                <div className="text-[9px] font-black text-red-500 uppercase tracking-widest">DEPARTURE</div>
-                                <h4 className="text-2xl font-black text-slate-900 capitalize">{booking.from || booking.boardingPoint || 'N/A'}</h4>
+                                <div className={`text-[9px] font-black ${booking.type === 'flight' ? 'text-blue-500' : 'text-red-500'} uppercase tracking-widest`}>DEPARTURE</div>
+                                <h4 className="text-2xl font-black text-slate-900 capitalize">
+                                  {booking.type === 'flight' ? (booking.flightDetails?.departureCity || 'N/A') : (booking.from || booking.boardingPoint || 'N/A')}
+                                </h4>
                                 <div className="flex items-center gap-3 mt-1.5 text-xs font-bold text-slate-500">
-                                  <span className="flex items-center gap-1.5"><Calendar size={14} className="text-indigo-500" /> {booking.travelDate}</span>
-                                  <span className="flex items-center gap-1.5"><Clock size={14} className="text-indigo-500" /> {booking.departureTime || '10:30 PM'}</span>
+                                  <span className="flex items-center gap-1.5"><Calendar size={14} className="text-indigo-500" /> {booking.type === 'flight' ? dayjs(booking.flightDetails?.departureTime).format('DD MMM YYYY') : booking.travelDate}</span>
+                                  <span className="flex items-center gap-1.5"><Clock size={14} className="text-indigo-500" /> {booking.type === 'flight' ? dayjs(booking.flightDetails?.departureTime).format('hh:mm A') : (booking.departureTime || '10:30 PM')}</span>
                                 </div>
                               </div>
                               <div className="text-right md:text-left md:pl-16 space-y-1">
                                 <div className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">ARRIVAL</div>
-                                <h4 className="text-2xl font-black text-slate-900 capitalize">{booking.to || booking.droppingPoint || 'N/A'}</h4>
+                                <h4 className="text-2xl font-black text-slate-900 capitalize">
+                                  {booking.type === 'flight' ? (booking.flightDetails?.arrivalCity || 'N/A') : (booking.to || booking.droppingPoint || 'N/A')}
+                                </h4>
                                 <div className="text-[10px] font-black text-slate-400 italic uppercase tracking-wider mt-1.5">
-                                  EXPECTED {booking.arrivalTime || '04:45 AM'}
+                                  {booking.type === 'flight' ? `TIME: ${dayjs(booking.flightDetails?.arrivalTime || booking.updatedAt).format('hh:mm A')}` : `EXPECTED ${booking.arrivalTime || '04:45 AM'}`}
                                 </div>
                               </div>
                             </div>
@@ -414,37 +440,53 @@ export default function Profile() {
                               <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 hover:bg-white hover:shadow-lg hover:shadow-slate-100 transition-all">
                                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-red-600 shadow-sm border border-slate-100"><User size={20} /></div>
                                 <div>
-                                  <div className="text-[13px] font-black text-slate-900 capitalize leading-none mb-1.5">{booking.passengerName || 'Rutuja'}</div>
+                                  <div className="text-[13px] font-black text-slate-900 capitalize leading-none mb-1.5">
+                                    {booking.type === 'flight' 
+                                      ? `${booking.passengers?.[0]?.firstName} ${booking.passengers?.[0]?.lastName}` 
+                                      : (booking.passengerName || 'Passenger')}
+                                  </div>
                                   <div className="text-[10px] font-bold text-slate-500 flex items-center gap-2">
-                                    <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-black uppercase">Seat {booking.seatNumber || 'S1'}</span>
-                                    <span>24, Female</span>
+                                    <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-black uppercase">
+                                      {booking.type === 'flight' ? `Seat ${booking.passengers?.[0]?.seatNumber}` : `Seat ${booking.seatNumber || 'S1'}`}
+                                    </span>
+                                    <span>{booking.type === 'flight' ? booking.passengers?.length + ' Traveller(s)' : '1 Traveller'}</span>
                                   </div>
                                 </div>
                               </div>
 
-                              {/* 4. BUS CARD */}
+                              {/* 4. VEHICLE CARD */}
                               <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 hover:bg-white hover:shadow-lg hover:shadow-slate-100 transition-all">
-                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100"><Bus size={20} /></div>
+                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                                  {booking.type === 'flight' ? <Plane size={20} /> : <Bus size={20} />}
+                                </div>
                                 <div>
-                                  <div className="text-[13px] font-black text-slate-900 uppercase leading-none mb-1.5">{booking.busNumber || 'MH12 AB1234'}</div>
-                                  <div className="text-[10px] font-bold text-slate-500">{booking.busType || 'AC Sleeper'} • Premium</div>
+                                  <div className="text-[13px] font-black text-slate-900 uppercase leading-none mb-1.5">
+                                    {booking.type === 'flight' ? booking.flightDetails?.flightNumber : (booking.busNumber || 'MH12 AB1234')}
+                                  </div>
+                                  <div className="text-[10px] font-bold text-slate-500">
+                                    {booking.type === 'flight' ? booking.flightDetails?.aircraft : (booking.busType || 'AC Sleeper')} • Premium
+                                  </div>
                                 </div>
                               </div>
                             </div>
 
-                            {/* 5. BOARDING/DROPPING POINTS */}
+                            {/* 5. LOCATIONS */}
                             <div className="grid grid-cols-2 gap-8 pt-2">
                               <div className="space-y-1.5">
                                 <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                  <MapPin size={10} className="text-red-500" /> BOARDING POINT
+                                  <MapPin size={10} className="text-red-500" /> {booking.type === 'flight' ? 'DEPARTURE AIRPORT' : 'BOARDING POINT'}
                                 </div>
-                                <div className="text-xs font-bold text-slate-800 leading-tight uppercase pl-4">{booking.boardingPoint || 'Pune Station'}</div>
+                                <div className="text-xs font-bold text-slate-800 leading-tight uppercase pl-4">
+                                  {booking.type === 'flight' ? booking.flightDetails?.departureAirport : (booking.boardingPoint || 'Pune Station')}
+                                </div>
                               </div>
                               <div className="space-y-1.5 text-right">
                                 <div className="flex items-center justify-end gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                  DROPPING POINT <MapPin size={10} className="text-indigo-500" />
+                                  {booking.type === 'flight' ? 'ARRIVAL AIRPORT' : 'DROPPING POINT'} <MapPin size={10} className="text-indigo-500" />
                                 </div>
-                                <div className="text-xs font-bold text-slate-800 leading-tight uppercase pr-4">{booking.droppingPoint || 'Solapur'}</div>
+                                <div className="text-xs font-bold text-slate-800 leading-tight uppercase pr-4">
+                                  {booking.type === 'flight' ? booking.flightDetails?.arrivalAirport : (booking.droppingPoint || 'Solapur')}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -455,11 +497,13 @@ export default function Profile() {
                               <div className="flex justify-between items-start">
                                 <div>
                                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">TOTAL PAID</div>
-                                  <div className="text-4xl font-black text-red-600 tracking-tighter">₹{booking.totalFare || 1260}</div>
+                                  <div className={`text-4xl font-black ${booking.type === 'flight' ? 'text-blue-600' : 'text-red-600'} tracking-tighter`}>
+                                    ₹{booking.type === 'flight' ? booking.fareDetails?.totalAmount : (booking.totalFare || 1260)}
+                                  </div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-[8px] font-black uppercase tracking-widest mb-1 inline-block">PAID VIA UPI</div>
-                                  <div className="text-[9px] font-bold text-slate-400 block uppercase">Razorpay Verified</div>
+                                  <div className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-[8px] font-black uppercase tracking-widest mb-1 inline-block">PAID VIA {booking.paymentMethod || 'UPI'}</div>
+                                  <div className="text-[9px] font-bold text-slate-400 block uppercase">Verified</div>
                                 </div>
                               </div>
 
@@ -479,7 +523,15 @@ export default function Profile() {
                                 <button title="Email Ticket" className="h-11 bg-blue-600 text-white rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-blue-100/50">
                                   <Mail size={20} />
                                 </button>
-                                <button title="Download PDF" className="h-11 bg-red-600 text-white rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-red-100/50">
+                                <button 
+                                  title="Download PDF" 
+                                  className={`h-11 ${booking.type === 'flight' ? 'bg-blue-800' : 'bg-red-600'} text-white rounded-xl flex items-center justify-center hover:scale-110 transition-all shadow-lg`}
+                                  onClick={() => {
+                                    if (booking.type === 'flight' && booking.pnr) {
+                                      window.open(`${import.meta.env.VITE_API_URL}/api/tickets/generate/${booking.pnr}`, '_blank');
+                                    }
+                                  }}
+                                >
                                   <Download size={20} />
                                 </button>
                               </div>

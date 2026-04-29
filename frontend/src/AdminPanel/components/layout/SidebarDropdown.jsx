@@ -8,9 +8,16 @@ const SidebarDropdown = ({ icon: Icon, label, items, isOpen, sidebarOpen }) => {
 
     // Keep dropdown expanded if a child route is active
     useEffect(() => {
-        const isChildActive = items.some(item => location.pathname === item.to);
+        const currentPath = location.pathname + location.search;
+        const isChildActive = items.some(item => {
+            if (!item.to) return false;
+            if (item.to.includes('?')) {
+                return currentPath === item.to || currentPath.startsWith(item.to + '&');
+            }
+            return location.pathname === item.to;
+        });
         if (isChildActive) setIsExpanded(true);
-    }, [location.pathname, items]);
+    }, [location.pathname, location.search, items]);
 
     if (!sidebarOpen) {
         return (

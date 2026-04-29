@@ -1,25 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    createFlightBooking, 
-    getAllBookings, 
-    getBookingById, 
-    updateBookingStatus, 
-    getUserBookings,
-    getBookingByPNR,
-    updateBookingStatusByPNR,
-    cancelFlightBooking
-} = require('../../controllers/flight/booking.controller');
-const { authMiddleware, optionalAuth } = require('../../middleware/authMiddleware');
+const bookingController = require('../../controllers/flight/booking.controller');
+const { optionalAuth, authMiddleware } = require('../../middleware/authMiddleware');
 
-router.post('/create', optionalAuth, createFlightBooking);  // guest-friendly but captures user if logged in
-
-router.get('/user', authMiddleware, getUserBookings);
-router.post('/cancel', cancelFlightBooking);
-router.get('/pnr/:pnr', getBookingByPNR);
-router.patch('/status/:pnr', updateBookingStatusByPNR);
-router.get('/:bookingId', getBookingById);
-router.get('/', getAllBookings);
-router.put('/:id/status', updateBookingStatus);
+router.post('/create-session', optionalAuth, bookingController.createBookingSession);
+router.post('/lock-price', optionalAuth, bookingController.lockPrice);
+router.get('/session/:sessionId', bookingController.getSessionDetails);
+router.post('/create', optionalAuth, bookingController.createBooking);
+router.get('/:bookingId', bookingController.getBookingDetails);
+router.get('/pnr/:pnr', bookingController.getBookingByPNR);
+router.get('/user/all', authMiddleware, bookingController.getUserBookings);
 
 module.exports = router;

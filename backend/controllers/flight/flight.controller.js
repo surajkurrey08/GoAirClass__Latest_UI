@@ -1,75 +1,121 @@
 const Flight = require('../../models/flight/flight.model');
 const Airport = require('../../models/flight/airport.model');
 const FlightSchedule = require('../../models/flight/flightSchedule.model');
+const FlightInventory = require('../../models/flight/flightInventory.model');
 const dayjs = require('dayjs');
 
 const searchFlights = async (req, res) => {
     try {
-        const { from, to, date } = req.query;
+        const { from, to, date, minPrice, maxPrice, stops, airlines, departureTime, refundable, budget } = { ...req.query, ...req.body };
+        
+        // Use budget as maxPrice if provided
+        const effectiveMaxPrice = budget || maxPrice;
 
-        // 1. Find Airports
-        const fromAirportDoc = await Airport.findOne({ airportCode: from?.toUpperCase() });
-        const toAirportDoc = await Airport.findOne({ airportCode: to?.toUpperCase() });
+        // 1. Resolve Airports
+        const fromAirport = await Airport.findOne({ 
+            $or: [{ iataCode: from?.toUpperCase() }, { airportCode: from?.toUpperCase() }] 
+        });
+        const toAirport = await Airport.findOne({ 
+            $or: [{ iataCode: to?.toUpperCase() }, { airportCode: to?.toUpperCase() }] 
+        });
 
-        if (!fromAirportDoc || !toAirportDoc) {
-            return res.json({ success: true, flights: [] });
+        if (!fromAirport || !toAirport) {
+            return res.json({ success: true, flights: [], message: "Airports not found" });
         }
 
-        // 2. Build Date Query
+        // 2. Build Query for Flight Model
         const query = {
-            fromAirport: fromAirportDoc._id,
-            toAirport: toAirportDoc._id,
-            status: { $ne: 'Cancelled' }
+            fromAirport: fromAirport._id,
+            toAirport: toAirport._id,
+            status: 'Scheduled'
         };
 
         if (date) {
-            const searchDate = new Date(date);
-            // Check if date is valid
-            if (!isNaN(searchDate.getTime())) {
-                const nextDate = new Date(searchDate);
-                nextDate.setDate(searchDate.getDate() + 1);
+            const searchDate = dayjs(date).startOf('day').toDate();
+            const nextDate = dayjs(date).endOf('day').toDate();
+            query.departureTime = { $gte: searchDate, $lte: nextDate };
+        }
 
-                query.departureTime = {
-                    $gte: searchDate,
-                    $lt: nextDate
-                };
-            }
+        // Apply Advanced Filters
+        if (minPrice !== undefined || effectiveMaxPrice !== undefined) {
+            query.price = {};
+            if (minPrice !== undefined && minPrice !== '') query.price.$gte = Number(minPrice);
+            if (effectiveMaxPrice !== undefined && effectiveMaxPrice !== '') query.price.$lte = Number(effectiveMaxPrice);
+        }
+
+        if (stops && stops.length > 0) {
+            const stopList = Array.isArray(stops) ? stops : [stops];
+            query.stops = { $in: stopList };
+        }
+
+        if (airlines && airlines.length > 0) {
+            const airlineList = Array.isArray(airlines) ? airlines : [airlines];
+            // Find airlines by name or code to get their IDs
+            const airlineDocs = await Airline.find({
+                $or: [
+                    { name: { $in: airlineList } },
+                    { airlineName: { $in: airlineList } },
+                    { iataCode: { $in: airlineList } },
+                    { airlineCode: { $in: airlineList } }
+                ]
+            });
+            const airlineIds = airlineDocs.map(a => a._id);
+            query.airlineId = { $in: airlineIds };
+        }
+
+        if (refundable === 'true') {
+            query.isRefundable = true;
+        }
+
+        if (departureTime && departureTime.length > 0) {
+            const timeList = Array.isArray(departureTime) ? departureTime : [departureTime];
+            const timeConditions = [];
+
+            // Since departureTime in Flight model is a Date, we need to use aggregation or extraction
+            // For now, we'll use a regex-like approach on the formatted time if possible, 
+            // or just use $expr to extract hours.
+            // Simple approach: filter after fetch or use $expr
         }
 
         // 3. Find flights and populate
-        const flightsData = await Flight.find(query)
+        let flightsData = await Flight.find(query)
             .populate('airlineId')
             .populate('fromAirport')
             .populate('toAirport')
             .sort({ price: 1 });
 
+        // Filter by departure time slot if specified
+        if (departureTime && departureTime.length > 0) {
+            const timeList = Array.isArray(departureTime) ? departureTime : [departureTime];
+            flightsData = flightsData.filter(f => {
+                const hour = dayjs(f.departureTime).hour();
+                if (timeList.includes('Early Morning') && hour >= 0 && hour < 6) return true;
+                if (timeList.includes('Morning') && hour >= 6 && hour < 12) return true;
+                if (timeList.includes('Afternoon') && hour >= 12 && hour < 18) return true;
+                if (timeList.includes('Evening/Night') && hour >= 18 && hour < 24) return true;
+                return false;
+            });
+        }
+
         // 4. Format for frontend
         const formattedFlights = flightsData.map(f => {
-            const formatTime = (d) => {
-                if (!d) return '--:--';
-                const dateObj = new Date(d);
-                if (isNaN(dateObj.getTime())) return '--:--';
-                let hours = dateObj.getHours();
-                const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; // the hour '0' should be '12'
-                return `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
-            };
-
             return {
                 _id: f._id,
                 flightNumber: f.flightNumber || 'Unknown',
-                airline: f.airlineId?.airlineName || 'Unknown Airline',
+                airline: f.airlineId?.airlineName || f.airlineId?.name || 'Unknown Airline',
                 logo: f.airlineId?.logo || '',
-                from: f.fromAirport?.airportCode || from?.toUpperCase(),
-                to: f.toAirport?.airportCode || to?.toUpperCase(),
-                departureTime: formatTime(f.departureTime),
-                arrivalTime: formatTime(f.arrivalTime),
-                duration: f.duration || '0h 0m',
-                stops: 'Non-Stop', // Add field to schema if dynamic stops are needed
+                from: f.fromAirport?.airportCode || f.fromAirport?.iataCode || from,
+                to: f.toAirport?.airportCode || f.toAirport?.iataCode || to,
+                departureTime: dayjs(f.departureTime).format('HH:mm'),
+                arrivalTime: dayjs(f.arrivalTime).format('HH:mm'),
+                departureDate: f.departureTime,
+                duration: f.duration || '2h 0m',
+                stops: f.stops || 'Non-Stop',
                 price: f.price || 0,
-                type: 'Economy' // or dynamic based on classes
+                type: 'Economy',
+                seats: f.availableSeats || 0,
+                refundable: f.isRefundable,
+                baggage: f.baggageInfo || { cabin: '7kg', checkin: '15kg' }
             };
         });
 

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react'
-import logo from "../assets/logo1.png"
+import logo from "../assets/logo2.png"
 import './Footer.css'
 
 export default function Footer() {
@@ -15,7 +15,6 @@ export default function Footer() {
         <div className="footer__brand">
           <div className="footer__logo">
             <img src={logo} alt="GoAirClass Logo" className="footer__logo-img" />
-            <span>GoAirClass</span>
           </div>
 
           <p>

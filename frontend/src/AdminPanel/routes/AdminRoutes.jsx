@@ -4,8 +4,9 @@ import AdminLayout from '../layout/AdminLayout';
 import Dashboard from '../pages/Dashboard';
 import Bookings from '../pages/Bookings';
 import Users from '../pages/Users';
+import AdminHeroImages from '../pages/AdminHeroImages';
 
-// Booking Control Pages (Shared from SuperAdmin for consistency)
+// Booking Control Pages
 import AllBookings from '../../SuperAdminPanel/pages/bookings/AllBookings';
 import CancelRequests from '../../SuperAdminPanel/pages/bookings/CancelRequests';
 import RefundInitiate from '../../SuperAdminPanel/pages/bookings/RefundInitiate';
@@ -36,6 +37,16 @@ import VideoContent from '../pages/marketing/VideoContent';
 import AllReviews from '../pages/marketing/reviews/AllReviews';
 import AddReview from '../pages/marketing/reviews/AddReview';
 
+// Flight Management Pages
+import FlightDashboard from '../../SuperAdminPanel/pages/flights/FlightDashboard';
+import FlightBookingManagement from '../../SuperAdminPanel/pages/flights/BookingManagement';
+import FlightRefunds from '../../SuperAdminPanel/pages/flights/CancellationRefunds';
+import FlightTickets from '../../SuperAdminPanel/pages/flights/SupportTickets';
+import FlightReports from '../../SuperAdminPanel/pages/flights/FlightReports';
+import MealMapping from '../pages/flights/ancillaries/MealMapping';
+import SeatMapping from '../pages/flights/ancillaries/SeatMapping';
+import BaggageMapping from '../pages/flights/ancillaries/BaggageMapping';
+
 export default function AdminRoutes() {
     return (
         <Routes>
@@ -43,8 +54,19 @@ export default function AdminRoutes() {
                 <Route path="" element={<Dashboard />} />
                 <Route path="bookings" element={<Bookings />} />
                 <Route path="users" element={<Users />} />
+                <Route path="hero-images" element={<AdminHeroImages />} />
 
-                {/* Bus Management Dropdown Routes */}
+                {/* Flight Management */}
+                <Route path="flights" element={<FlightDashboard />} />
+                <Route path="flights/bookings" element={<FlightBookingManagement />} />
+                <Route path="flights/refunds" element={<FlightRefunds />} />
+                <Route path="flights/tickets" element={<FlightTickets />} />
+                <Route path="flights/reports" element={<FlightReports />} />
+                <Route path="flights/ancillaries/meals" element={<MealMapping />} />
+                <Route path="flights/ancillaries/seats" element={<SeatMapping />} />
+                <Route path="flights/ancillaries/baggage" element={<BaggageMapping />} />
+
+                {/* Bus Management */}
                 <Route path="buses/all" element={<AllBuses />} />
                 <Route path="buses/add" element={<AddBus />} />
                 <Route path="buses/requests" element={<BusRequests />} />
@@ -53,7 +75,7 @@ export default function AdminRoutes() {
                 <Route path="buses/operators" element={<Operators />} />
                 <Route path="buses/types" element={<BusTypes />} />
 
-                {/* Route Network Dropdown Routes */}
+                {/* Route Network */}
                 <Route path="buses/routes/all" element={<AllRoutes />} />
                 <Route path="buses/routes/add" element={<AddRoute />} />
                 <Route path="buses/routes/edit/:id" element={<AddRoute />} />
@@ -65,12 +87,10 @@ export default function AdminRoutes() {
                 <Route path="bookings/refund-initiate" element={<RefundInitiate />} />
                 <Route path="bookings/operator-wise" element={<OperatorBookings />} />
 
-                {/* Marketing & Coupons */}
+                {/* Marketing */}
                 <Route path="marketing/coupons" element={<Coupons />} />
                 <Route path="marketing/coupons/create" element={<CreateCoupon />} />
                 <Route path="marketing/coupons/edit/:id" element={<EditCoupon />} />
-
-                {/* Top Destinations */}
                 <Route path="marketing/destinations" element={<AllDestinations />} />
                 <Route path="marketing/destinations/create" element={<AddDestination />} />
                 <Route path="marketing/destinations/edit/:id" element={<EditDestination />} />
@@ -79,7 +99,6 @@ export default function AdminRoutes() {
                 <Route path="marketing/reviews/add" element={<AddReview />} />
                 <Route path="marketing/reviews/edit/:id" element={<AddReview />} />
 
-                {/* Catch all for admin subroutes */}
                 <Route path="*" element={<Navigate to="" replace />} />
             </Route>
         </Routes>

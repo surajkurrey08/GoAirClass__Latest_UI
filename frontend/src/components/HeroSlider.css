@@ -1,0 +1,127 @@
+/* src/components/HeroSlider.css */
+
+.hs-root {
+  position: relative;
+  width: 100%;
+  min-height: 90vh;  /* 100vh → 80vh */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0f1a2e;
+}
+
+.hs-skeleton {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0f1a2e;
+  overflow: hidden;
+}
+
+.hs-skeleton__shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ── Slide track ── */
+.hs-track {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── Individual slide ── */
+.hs-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+  will-change: opacity;
+}
+
+.hs-slide--active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.hs-slide__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  display: block;
+}
+
+.hs-slide__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 18, 38, 0.10) 0%,
+    rgba(10, 18, 38, 0.18) 45%,
+    rgba(10, 18, 38, 0.78) 72%,
+    rgba(10, 18, 38, 0.96) 100%
+  );
+}
+
+/* ── Content slot ── */
+.hs-content {
+  position: relative;
+  z-index: 3;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Dots — content ke andar, search bar se upar ── */
+.hs-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0;
+  z-index: 10;
+}
+
+.hs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.hs-dot--active {
+  width: 24px;
+  border-radius: 4px;
+  background: #fff;
+  border-color: #fff;
+}
+
+.hs-dot:hover:not(.hs-dot--active) {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 768px) {
+  .hs-dots {
+    padding: 10px 0;
+  }
+}

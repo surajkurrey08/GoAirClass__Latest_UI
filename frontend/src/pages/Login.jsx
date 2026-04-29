@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../services/auth';
 import { Phone, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
+import "./Login.css";
 
 export default function Login() {
   const [mobileNumber, setMobileNumber] = useState('');

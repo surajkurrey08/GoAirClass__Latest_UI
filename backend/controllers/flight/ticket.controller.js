@@ -48,7 +48,10 @@ const generateTicketPDF = async (req, res) => {
         doc.fillColor('black').moveDown(2);
 
         booking.passengers.forEach((p, index) => {
-            doc.fontSize(10).text(`${index + 1}. ${p.name} (${p.gender}) - Seat: ${p.seatNumber} (${p.seatType})`);
+            const passengerName = `${p.firstName} ${p.lastName}`.toUpperCase();
+            doc.fontSize(10).text(`${index + 1}. ${passengerName} (${p.gender})`);
+            doc.fontSize(9).fillColor('#444').text(`   Seat: ${p.seatNumber} (${p.seatType || 'Standard'}) | Meal: ${p.meal || 'Veg'} | Baggage: ${p.baggage || '15kg'}`, 70);
+            doc.fillColor('black').moveDown(0.5);
         });
 
         doc.moveDown();

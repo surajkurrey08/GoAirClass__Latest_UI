@@ -1,0 +1,229 @@
+
+.payment-page-v2 {
+    background: #f4f7fa;
+    min-height: 100vh;
+    padding-bottom: 50px;
+    font-family: 'Inter', sans-serif;
+}
+
+.payment-container {
+    max-width: 1100px;
+    margin: 30px auto;
+    display: flex;
+    gap: 24px;
+}
+
+/* Sidebar Styling */
+.payment-sidebar {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.sidebar-card h3 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.amount-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.amount-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.total-price {
+    font-size: 24px;
+    font-weight: 900;
+    color: #1e293b;
+}
+
+.savings-tag {
+    background: #f0fdf4;
+    color: #16a34a;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+/* Flight Info Mini */
+.mini-flight-card {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 16px;
+    margin-top: 16px;
+}
+
+.flight-route-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.trust-badges {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.safe-text {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.badge-icons {
+    display: flex;
+    gap: 15px;
+    opacity: 0.6;
+    filter: grayscale(1);
+}
+
+/* Main Payment Area */
+.payment-main-area {
+    flex: 1;
+    background: #fff;
+    border-radius: 16px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    min-height: 500px;
+}
+
+.payment-tabs-sidebar {
+    width: 240px;
+    background: #f8fafc;
+    border-right: 1px solid #f1f5f9;
+}
+
+.pay-tab {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.pay-tab:hover {
+    background: #fff;
+}
+
+.pay-tab.active {
+    background: #fff;
+    color: #2563eb;
+    border-right: 3px solid #2563eb;
+}
+
+.pay-tab .icon {
+    width: 20px;
+    color: #94a3b8;
+}
+
+.pay-tab.active .icon {
+    color: #2563eb;
+}
+
+.payment-tab-content {
+    flex: 1;
+    padding: 40px;
+}
+
+/* UPI Content */
+.upi-pay-box {
+    text-align: center;
+}
+
+.qr-placeholder {
+    width: 200px;
+    height: 200px;
+    background: #f8fafc;
+    margin: 0 auto 30px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #e2e8f0;
+}
+
+.qr-placeholder span {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 10px;
+}
+
+.generate-qr-btn {
+    background: #f97316;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.upi-apps-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.upi-app-icon {
+    width: 32px;
+    height: 32px;
+    opacity: 0.5;
+}
+
+/* Common Proceed Button */
+.final-pay-btn {
+    background: #f97316;
+    color: #fff;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 30px;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.final-pay-btn:hover {
+    background: #ea580c;
+}

@@ -1,63 +1,85 @@
-const SeatInventory = require('../../models/flight/seatInventory.model');
 
+const SeatInventory = require('../../models/flight/seatInventory.model');
+const Flight = require('../../models/flight/flight.model');
+
+/**
+ * Get seats for a specific flight
+ * Generates seats if they don't exist based on A320 layout
+ */
 const getFlightSeats = async (req, res) => {
     try {
-        const { flightId } = req.params;
+        const { flightId } = req.query;
+
+        if (!flightId) {
+            return res.status(400).json({ success: false, message: 'Flight ID is required' });
+        }
+
+        const flight = await Flight.findById(flightId);
+        if (!flight) {
+            return res.status(404).json({ success: false, message: 'Flight not found' });
+        }
+
         let seats = await SeatInventory.find({ flightId });
 
-        // If no seats exist for this flight yet, generate default map (Rows 1-30, A-F)
+        // If no seats found, generate them based on A320 3-3 layout
         if (seats.length === 0) {
+            const totalSeats = flight.totalSeats || 180;
+            const rows = Math.ceil(totalSeats / 6);
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+            
             const newSeats = [];
-            for (let row = 1; row <= 30; row++) {
-                ['A', 'B', 'C', 'D', 'E', 'F'].forEach(col => {
-                    let type = 'Standard';
-                    let price = 390;
-                    if (row <= 3) {
-                        type = 'Premium';
-                        price = 950;
-                    } else if (row >= 4 && row <= 6) {
-                        type = 'Extra Legroom';
-                        price = 650;
-                    } else if (row > 25) {
-                        type = 'Free';
-                        price = 0;
-                    }
+            const businessRows = 3;
+
+            for (let r = 1; r <= rows; r++) {
+                for (let l of letters) {
+                    const seatNumber = `${r}${l}`;
+                    
+                    // Determine type
+                    let type = 'Middle';
+                    if (l === 'A' || l === 'F') type = 'Window';
+                    else if (l === 'C' || l === 'D') type = 'Aisle';
+
+                    // Determine class
+                    const isBusiness = r <= businessRows;
+                    
+                    // Pricing logic
+                    let price = 200; // Economy Middle
+                    if (isBusiness) price = 800;
+                    else if (type === 'Window') price = 400;
+                    else if (type === 'Aisle') price = 350;
+
                     newSeats.push({
-                        flightId,
-                        seatNumber: `${row}${col}`,
+                        flightId: flight._id,
+                        seatNumber,
                         type,
-                        price
+                        class: isBusiness ? 'Business' : 'Economy',
+                        price,
+                        isLocked: false,
+                        isBooked: false
                     });
-                });
+                }
             }
             seats = await SeatInventory.insertMany(newSeats);
         }
 
-        res.json({ success: true, seats });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(200).json({ success: true, seats });
+    } catch (error) {
+        console.error("Get Flight Seats Error:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 };
 
 const lockSeat = async (req, res) => {
     try {
         const { flightId, seatNumber, userId } = req.body;
-        console.log(`[SeatLock] Attempting to lock seat ${seatNumber} for flight ${flightId} by user ${userId}`);
-
         const seat = await SeatInventory.findOne({ flightId, seatNumber });
 
-        if (!seat) {
-            console.error(`[SeatLock] Seat ${seatNumber} not found for flight ${flightId}`);
-            return res.status(404).json({ success: false, message: 'Seat not found' });
-        }
-
-        if (seat.isBooked) {
-            return res.status(400).json({ success: false, message: 'Seat already booked' });
-        }
-
-        // If seat is locked by someone else and hasn't expired (5 mins)
+        if (!seat) return res.status(404).json({ success: false, message: 'Seat not found' });
+        if (seat.isBooked) return res.status(400).json({ success: false, message: 'Seat already booked' });
+        
+        // Lock for 5 minutes
         if (seat.isLocked && seat.lockedBy !== userId && seat.lockedAt > new Date(Date.now() - 300000)) {
-            return res.status(400).json({ success: false, message: 'Seat is currently locked by another user' });
+            return res.status(400).json({ success: false, message: 'Seat is currently locked' });
         }
 
         seat.isLocked = true;
@@ -65,10 +87,8 @@ const lockSeat = async (req, res) => {
         seat.lockedBy = userId;
         await seat.save();
 
-        console.log(`[SeatLock] Successfully locked seat ${seatNumber}`);
-        res.json({ success: true, message: 'Seat locked for 5 minutes' });
+        res.json({ success: true, message: 'Seat locked' });
     } catch (err) {
-        console.error(`[SeatLock] Error:`, err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 };
@@ -76,8 +96,6 @@ const lockSeat = async (req, res) => {
 const releaseSeat = async (req, res) => {
     try {
         const { flightId, seatNumber, userId } = req.body;
-        console.log(`[SeatRelease] Releasing seat ${seatNumber} for flight ${flightId} by user ${userId}`);
-
         const seat = await SeatInventory.findOne({ flightId, seatNumber, lockedBy: userId });
 
         if (seat) {
@@ -85,12 +103,9 @@ const releaseSeat = async (req, res) => {
             seat.lockedAt = null;
             seat.lockedBy = null;
             await seat.save();
-            console.log(`[SeatRelease] Successfully released seat ${seatNumber}`);
         }
-
         res.json({ success: true, message: 'Seat released' });
     } catch (err) {
-        console.error(`[SeatRelease] Error:`, err.message);
         res.status(500).json({ success: false, error: err.message });
     }
 };

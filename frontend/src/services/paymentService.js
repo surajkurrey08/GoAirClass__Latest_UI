@@ -6,7 +6,7 @@ import API from './axios';
 
 export const createPaymentOrder = async (orderData) => {
     try {
-        const response = await API.post('/payments/create-order', orderData);
+        const response = await API.post('/flight-payments/create-order', orderData);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to create payment order');
@@ -15,7 +15,7 @@ export const createPaymentOrder = async (orderData) => {
 
 export const verifyPayment = async (paymentData) => {
     try {
-        const response = await API.post('/payments/verify', paymentData);
+        const response = await API.post('/flight-payments/verify', paymentData);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Payment verification failed');
@@ -24,15 +24,18 @@ export const verifyPayment = async (paymentData) => {
 
 export const createFinalBooking = async (bookingData) => {
     try {
-        const token = localStorage.getItem('token');
-        const response = await API.post('/bookings/create', bookingData, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = await API.post('/flight-bookings/create', bookingData);
         return response.data;
     } catch (error) {
-        const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Failed to finalize booking';
-        throw new Error(errorMsg);
+        throw new Error(error.response?.data?.message || 'Failed to finalize booking');
+    }
+};
+
+export const getBookingDetails = async (bookingId) => {
+    try {
+        const response = await API.get(`/flight-bookings/${bookingId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch booking details');
     }
 };

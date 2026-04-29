@@ -6,7 +6,7 @@ import {
     ChevronRight, Plane, Hotel, Bus, TrainFront,
     MessageSquare, FileText, Gift, ChevronDown, Plus,
     List, CheckCircle, Ban, XCircle, UserPlus, Settings2,
-    Route as RouteIcon, MapPin, Navigation, Star, Tag
+    Route as RouteIcon, MapPin, Navigation, Star, Tag, Percent, Layers
 } from 'lucide-react';
 import { useAdmin } from '../../../context/AdminContext.jsx';
 import { useLocation } from 'react-router-dom';
@@ -40,7 +40,7 @@ const SidebarItem = ({ to, icon: Icon, label, badge, isSubItem = false }) => {
 
 const SidebarDropdown = ({ label, icon: Icon, children, sidebarOpen, active }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
-    
+
     // Auto-expand if a child is active
     React.useEffect(() => {
         if (active) setIsExpanded(true);
@@ -71,9 +71,9 @@ const SidebarDropdown = ({ label, icon: Icon, children, sidebarOpen, active }) =
                     <Icon size={20} className="shrink-0" />
                     <span className="font-semibold text-sm tracking-wide">{label}</span>
                 </div>
-                <ChevronDown 
-                    size={16} 
-                    className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
             <div className={`
@@ -148,13 +148,54 @@ export default function Sidebar() {
                 </SidebarSection>
 
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
-                    <SidebarItem to="flights" icon={Plane} label="Flights" />
-                    <SidebarItem to="hotels" icon={Hotel} label="Hotels" />
-                    
                     <SidebarDropdown 
-                        label="Buses" 
-                        icon={Bus} 
+                        label="Flights" 
+                        icon={Plane} 
                         sidebarOpen={sidebarOpen} 
+                        active={location.pathname.includes('/flights')}
+                    >
+                        {/* Operations */}
+                        <SidebarItem to="flights" icon={LayoutDashboard} label="Flight Dashboard" isSubItem />
+                        <SidebarItem to="flights/bookings" icon={List} label="Bookings" isSubItem />
+                        <SidebarItem to="flights/cancellations" icon={XCircle} label="Refund Panel" isSubItem />
+                        <SidebarItem to="flights/tickets" icon={MessageSquare} label="Support Tickets" isSubItem />
+                        <SidebarItem to="flights/reports" icon={BarChart3} label="Reports" isSubItem />
+
+                        {/* Management & Config */}
+                        <div className="pt-2 pb-1 px-4 ml-4">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 dark:border-slate-800/50 pt-3">
+                                <Settings2 size={12} />
+                                <span>Configuration</span>
+                            </div>
+                        </div>
+                        <SidebarItem to="flights/api-config" icon={Settings2} label="API Config" isSubItem />
+                        <SidebarItem to="flights/airlines" icon={Plane} label="Airlines" isSubItem />
+                        <SidebarItem to="flights/inventory" icon={Layers} label="Flight Inventory" isSubItem />
+                        <SidebarItem to="flights/routes" icon={Navigation} label="Routes" isSubItem />
+                        <SidebarItem to="flights/airports" icon={MapPin} label="Airports" isSubItem />
+                        <SidebarItem to="flights/pricing" icon={Tag} label="Pricing Engine" isSubItem />
+                        <SidebarItem to="flights/commissions" icon={Percent} label="Commissions" isSubItem />
+                        <SidebarItem to="flights/offers" icon={Gift} label="Offers" isSubItem />
+                        
+                        {/* Ancillaries Section */}
+                        <SidebarDropdown 
+                            label="Ancillaries" 
+                            icon={Layers} 
+                            sidebarOpen={sidebarOpen} 
+                            active={location.pathname.includes('/ancillaries')}
+                        >
+                            <SidebarItem to="flights/ancillaries/meals" icon={CheckCircle} label="Meal Master" isSubItem />
+                            <SidebarItem to="flights/ancillaries/add-meals" icon={Plus} label="Add New Meal" isSubItem />
+                            <SidebarItem to="flights/ancillaries/seats" icon={Settings2} label="Seat Configuration" isSubItem />
+                            <SidebarItem to="flights/ancillaries/baggage" icon={FileText} label="Baggage Master" isSubItem />
+                        </SidebarDropdown>
+                    </SidebarDropdown>
+                    <SidebarItem to="hotels" icon={Hotel} label="Hotels" />
+
+                    <SidebarDropdown
+                        label="Buses"
+                        icon={Bus}
+                        sidebarOpen={sidebarOpen}
                         active={location.pathname.includes('/buses')}
                     >
                         <SidebarItem to="buses/all" icon={List} label="All Buses" isSubItem />
@@ -165,7 +206,7 @@ export default function Sidebar() {
                         <SidebarItem to="buses/rejected" icon={XCircle} label="Rejected" isSubItem />
                         <SidebarItem to="buses/operators" icon={UserPlus} label="Operators" isSubItem />
                         <SidebarItem to="buses/types" icon={Settings2} label="Bus Types" isSubItem />
-                        
+
                         {/* Route Network Section */}
                         <div className="pt-2 pb-1 px-4 ml-4">
                             <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 dark:border-slate-800/50 pt-3">
