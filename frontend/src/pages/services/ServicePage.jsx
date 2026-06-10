@@ -186,10 +186,22 @@ export default function ServicePage({ type }) {
   // Filter + sort
   const baseData = (type === 'flights' && hasSearched) ? realResults : (searchResults[type] || [])
   const allItems = baseData.filter(item => item.price <= maxPrice)
+  const parseDuration = (dur) => {
+    if (!dur) return Infinity
+    const h = parseInt(dur.match(/(\d+)h/)?.[1] || 0)
+    const m = parseInt(dur.match(/(\d+)m/)?.[1] || 0)
+    return h * 60 + m
+  }
+
   const sorted = [...allItems].sort((a, b) => {
     if (sortBy === 'price') return a.price - b.price
     if (sortBy === 'price_desc') return b.price - a.price
-    if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0)
+    if (sortBy === 'rating' || sortBy === 'best') {
+      const ratingDiff = (b.rating || 0) - (a.rating || 0)
+      if (ratingDiff !== 0) return ratingDiff
+      return a.price - b.price // tie-break with price
+    }
+    if (sortBy === 'duration') return parseDuration(a.duration) - parseDuration(b.duration)
     return 0
   })
 
@@ -343,9 +355,24 @@ export default function ServicePage({ type }) {
 
               {type === 'flights' && hasSearched && (
                 <div className="smart-filters">
-                  <button className="smart-chip active">Cheapest</button>
-                  <button className="smart-chip">Fastest</button>
-                  <button className="smart-chip">Best</button>
+                  <button 
+                    className={`smart-chip ${sortBy === 'price' ? 'active' : ''}`}
+                    onClick={() => setSortBy('price')}
+                  >
+                    Cheapest
+                  </button>
+                  <button 
+                    className={`smart-chip ${sortBy === 'duration' ? 'active' : ''}`}
+                    onClick={() => setSortBy('duration')}
+                  >
+                    Fastest
+                  </button>
+                  <button 
+                    className={`smart-chip ${sortBy === 'best' ? 'active' : ''}`}
+                    onClick={() => setSortBy('best')}
+                  >
+                    Best
+                  </button>
                 </div>
               )}
 

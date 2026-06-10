@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar'
 import HeroSlider from '../components/HeroSlider'
 import OfferSlider from '../components/OfferSlider'
 import Footer from '../components/Footer'
+import AirlineMarquee from '../components/AirlineMarquee'
 import { destinations, offers, features, testimonials } from '../data/mockData'
 import { fetchPopularRoutes } from '../services/busService'
 import { fetchPublicCoupons } from '../services/couponService'
@@ -130,7 +131,7 @@ export default function Home() {
       <Navbar />
 
       {/* ══════ HERO ══════ */}
-      <section className="gac-hero">
+      <section className="gac-hero" id="hero-top">
         <HeroSlider>
           <div className="gac-hero__search-panel">
             <div className="gac-search-row">
@@ -206,7 +207,7 @@ export default function Home() {
           </div>
         </HeroSlider>
 
-        <div className="gac-hero__features">
+        <div className="gac-hero__features" id="hero-features">
           {HERO_FEATURES.map((f, i) => (
             <div className="gac-hero__feat" key={i}>
               <span className="gac-hero__feat-icon">{f.icon}</span>
@@ -218,6 +219,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ══════ AIRLINE MARQUEE ══════ */}
+      <AirlineMarquee />
 
       {/* ══════ POPULAR ROUTES ══════ */}
       <section className="section" id="routes">
@@ -384,7 +388,7 @@ export default function Home() {
               <h2>Ready for Your Next Adventure?</h2>
               <p>Join 8 million+ travelers and book your dream trip today.</p>
               <div className="cta-section__actions">
-                <button className="btn btn-white" onClick={() => navigate('/search')}>
+                <button className="btn btn-white" onClick={() => document.getElementById('hero-top')?.scrollIntoView({ behavior: 'smooth' })}>
                   Book Now <ArrowRight size={16} />
                 </button>
                 <button className="btn btn-outline" style={{ borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }}>

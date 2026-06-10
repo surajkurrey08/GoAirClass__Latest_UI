@@ -86,7 +86,7 @@ export default function Navbar() {
 
           {/* ACTIONS */}
           <div className="gac-navbar__actions">
-            {localStorage.getItem('role') !== 'bus_operator' && (
+            {location.pathname === '/buses' && localStorage.getItem('role') !== 'bus_operator' && (
               <button
                 onClick={() => setIsOperatorModalOpen(true)}
                 className="gac-operator-btn"

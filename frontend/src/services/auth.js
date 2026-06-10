@@ -16,28 +16,27 @@ export const registerUser = async (name, mobileNumber) => {
 };
 
 /**
- * Send OTP to a mobile number
- * @param {string} mobileNumber 
+ * Send OTP to an email address
+ * @param {string} email 
  */
-export const sendOtp = async (mobileNumber) => {
+export const sendOtp = async (email) => {
   try {
-    const response = await API.post('/auth/send-otp', { mobileNumber });
+    const response = await API.post('/auth/login/send-otp', { email });
     return response.data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to send OTP. Please check the mobile number.';
+    const errorMessage = error.response?.data?.message || 'Failed to send OTP. Please check the email address.';
     throw new Error(errorMessage);
   }
 };
 
 /**
- * Verify OTP for a mobile number
- * @param {string} mobileNumber 
+ * Verify OTP for an email address
+ * @param {string} email 
  * @param {string} otp 
  */
-export const verifyOtp = async (mobileNumber, otp) => {
+export const verifyOtp = async (email, otp) => {
   try {
-    const response = await API.post('/auth/verify-otp', { mobileNumber, otp });
-    // Expecting response to contain the JWT token e.g., { token: '...' }
+    const response = await API.post('/auth/login/verify-otp', { email, otp });
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Invalid OTP. Please try again.';
@@ -46,14 +45,14 @@ export const verifyOtp = async (mobileNumber, otp) => {
 };
 
 /**
- * Send OTP for registration
+ * Send OTP for registration to email
  * @param {string} fullName 
  * @param {string} mobileNumber 
- * @param {string} captchaToken - Optional/Mock for development
+ * @param {string} email 
  */
-export const sendRegistrationOtp = async (fullName, mobileNumber, captchaToken = 'mock-token') => {
+export const sendRegistrationOtp = async (fullName, mobileNumber, email) => {
   try {
-    const response = await API.post('/auth/send-registration-otp', { fullName, mobileNumber, captchaToken });
+    const response = await API.post('/auth/register/send-otp', { fullName, mobileNumber, email });
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Failed to send registration OTP.';
@@ -63,12 +62,14 @@ export const sendRegistrationOtp = async (fullName, mobileNumber, captchaToken =
 
 /**
  * Verify OTP for registration
+ * @param {string} fullName 
  * @param {string} mobileNumber 
+ * @param {string} email 
  * @param {string} otp 
  */
-export const verifyRegistrationOtp = async (mobileNumber, otp) => {
+export const verifyRegistrationOtp = async (fullName, mobileNumber, email, otp) => {
   try {
-    const response = await API.post('/auth/verify-registration-otp', { mobileNumber, otp });
+    const response = await API.post('/auth/register/verify-otp', { fullName, mobileNumber, email, otp });
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Registration verification failed.';

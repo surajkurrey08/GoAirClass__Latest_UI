@@ -5,13 +5,70 @@ const nodemailer = require('nodemailer');
  */
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
+    port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false, // true for 465, false for other ports
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: (process.env.SMTP_USER || '').trim(),
+        pass: (process.env.SMTP_PASS || '').trim(),
     },
 });
+
+/**
+ * Send OTP Email
+ * @param {string} to - Recipient email
+ * @param {string} otp - 6 digit OTP
+ */
+const sendOtpEmail = async (to, otp) => {
+    try {
+        const userEmail = (process.env.SMTP_USER || '').trim();
+        const userPass = (process.env.SMTP_PASS || '').trim();
+
+        if (!userEmail || !userPass) {
+            console.log("\n--- [DEV MODE] EMAIL OTP WOULD BE SENT ---");
+            console.log(`To: ${to}`);
+            console.log(`Subject: Your OTP Code`);
+            console.log(`Body: Hello,\n\nYour verification OTP is: ${otp}\n\nThis OTP is valid for 5 minutes.\n\nDo not share this OTP with anyone.`);
+            console.log("-------------------------------------------\n");
+            return true;
+        }
+
+        const mailOptions = {
+            from: `"GoAirClass" <${userEmail}>`,
+            to: to,
+            subject: 'Your OTP Code',
+            text: `Hello,
+
+Your verification OTP is: ${otp}
+
+This OTP is valid for 5 minutes.
+
+Do not share this OTP with anyone.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #2563eb; text-align: center;">GoAirClass Verification</h2>
+                    <p style="font-size: 16px; color: #444;">Hello,</p>
+                    <p style="font-size: 16px; color: #444;">Your verification OTP is:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <span style="font-size: 32px; font-weight: bold; color: #2563eb; letter-spacing: 5px; padding: 10px 20px; background-color: #f3f4f6; border-radius: 8px;">${otp}</span>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">This OTP is valid for 5 minutes.</p>
+                    <p style="font-size: 14px; color: #e11d48; font-weight: bold;">Do not share this OTP with anyone.</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                    <p style="font-size: 12px; color: #aaa; text-align: center;">
+                        © 2026 GoAirClass. All rights reserved.
+                    </p>
+                </div>
+            `,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('OTP Email sent: ' + info.response);
+        return true;
+    } catch (error) {
+        console.error('Error sending OTP email:', error);
+        return false;
+    }
+};
 
 /**
  * Send Set Password Email
@@ -22,8 +79,10 @@ const transporter = nodemailer.createTransport({
  */
 const sendSetPasswordEmail = async (to, name, role, link) => {
     try {
-        // If credentials are missing, we log to console for development
-        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        const userEmail = (process.env.SMTP_USER || '').trim();
+        const userPass = (process.env.SMTP_PASS || '').trim();
+
+        if (!userEmail || !userPass) {
             console.log("\n--- [DEV MODE] EMAIL WOULD BE SENT ---");
             console.log(`To: ${to}`);
             console.log(`Subject: Set Your Password - GoAirClass`);
@@ -33,7 +92,7 @@ const sendSetPasswordEmail = async (to, name, role, link) => {
         }
 
         const mailOptions = {
-            from: `"GoAirClass Admin" <${process.env.SMTP_USER}>`,
+            from: `"GoAirClass Admin" <${userEmail}>`,
             to: to, // Dynamic email from form
             subject: 'Set Your Password - GoAirClass Operator Onboarding',
             html: `
@@ -70,4 +129,4 @@ const sendSetPasswordEmail = async (to, name, role, link) => {
     }
 };
 
-module.exports = { sendSetPasswordEmail };
+module.exports = { sendSetPasswordEmail, sendOtpEmail };

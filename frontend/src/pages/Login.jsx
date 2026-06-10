@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../services/auth';
-import { Phone, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 import "./Login.css";
 
 export default function Login() {
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1); // 1: Mobile, 2: OTP
+  const [step, setStep] = useState(1); // 1: Email, 2: OTP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -16,13 +16,15 @@ export default function Login() {
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (mobileNumber.length !== 10) return setError('Enter a valid 10-digit mobile number');
+    if (!email.trim()) return setError('Email address is required');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return setError('Enter a valid email address');
 
     setLoading(true);
     setError('');
 
     try {
-      const data = await sendOtp(mobileNumber);
+      const data = await sendOtp(email);
       if (data.otp) {
         toast.info(`Development OTP: ${data.otp}`, { autoClose: false });
       }
@@ -38,13 +40,13 @@ export default function Login() {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (otp.length < 4) return setError('Enter a valid OTP');
+    if (otp.length < 6) return setError('Enter a valid 6-digit OTP');
 
     setLoading(true);
     setError('');
 
     try {
-      const data = await verifyOtp(mobileNumber, otp);
+      const data = await verifyOtp(email, otp);
       // Store token
       if (data.token) {
         localStorage.setItem('token', data.token);
@@ -83,8 +85,8 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
             <p className="text-gray-500">
               {step === 1
-                ? 'Sign in with your mobile number'
-                : `Enter OTP sent to ${mobileNumber}`
+                ? 'Sign in with your email address'
+                : `Enter OTP sent to ${email}`
               }
             </p>
           </div>
@@ -110,19 +112,18 @@ export default function Login() {
           {step === 1 ? (
             <form onSubmit={handleSendOtp} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 ml-1">Mobile Number</label>
+                <label className="text-sm font-medium text-gray-700 ml-1">Email Address</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all">
-                    <Phone className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500" />
+                    <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500" />
                   </div>
                   <input
-                    type="tel"
+                    type="email"
                     required
-                    maxLength="10"
-                    placeholder="9876543210"
-                    value={mobileNumber}
+                    placeholder="john@example.com"
+                    value={email}
                     onChange={(e) => {
-                      setMobileNumber(e.target.value);
+                      setEmail(e.target.value);
                       setError('');
                     }}
                     className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -157,7 +158,7 @@ export default function Login() {
                     type="text"
                     required
                     maxLength="6"
-                    placeholder="1234"
+                    placeholder="123456"
                     value={otp}
                     onChange={(e) => {
                       setOtp(e.target.value);
@@ -185,7 +186,7 @@ export default function Login() {
                 onClick={() => setStep(1)}
                 className="w-full text-center text-gray-500 text-sm hover:text-blue-600 transition-colors"
               >
-                Change mobile number
+                Change email address
               </button>
             </form>
           )}

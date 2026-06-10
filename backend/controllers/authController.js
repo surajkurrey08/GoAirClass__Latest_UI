@@ -8,6 +8,8 @@ const HotelOperator = require('../models/hotel/HotelOperator');
 const OperatorRequest = require('../models/OperatorRequest');
 const { verifyCaptcha } = require('../utils/captchaService');
 const { sendOTP } = require('../utils/smsService');
+const Otp = require('../models/Otp');
+const { sendOtpEmail } = require('../utils/emailService');
 
 // Generate a random 6-digit OTP
 const generate6DigitOtp = () => {
@@ -633,6 +635,278 @@ const deleteAdmin = async (req, res) => {
     }
 };
 
+/**
+ * sendRegisterEmailOtp
+ * POST /api/auth/register/send-otp
+ */
+const sendRegisterEmailOtp = async (req, res) => {
+    try {
+        const { fullName, mobileNumber, email } = req.body;
+
+        if (!fullName || !mobileNumber || !email) {
+            return res.status(400).json({ success: false, message: "Full Name, Mobile Number, and Email Address are required" });
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: "Invalid email format" });
+        }
+
+        // Mobile validation
+        if (!/^\d{10}$/.test(mobileNumber)) {
+            return res.status(400).json({ success: false, message: "Valid 10-digit mobile number is required" });
+        }
+
+        // Check if email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email already registered. Please login." });
+        }
+
+        // Rate limit: 1 OTP request per minute
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+        const recentOtp = await Otp.findOne({ email, purpose: 'register', createdAt: { $gte: oneMinuteAgo } });
+        if (recentOtp) {
+            return res.status(429).json({ success: false, message: "Please wait 1 minute before requesting another OTP." });
+        }
+
+        const otp = generate6DigitOtp();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        // Delete any old registration OTPs for this email to enforce "latest OTP only"
+        await Otp.deleteMany({ email, purpose: 'register' });
+
+        // Save new OTP
+        await Otp.create({
+            email,
+            otp,
+            purpose: 'register',
+            expiresAt
+        });
+
+        // Send OTP via email
+        const mailSent = await sendOtpEmail(email, otp);
+        if (!mailSent) {
+            return res.status(500).json({ success: false, message: "Failed to send verification email. Please try again." });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "OTP sent to your email successfully",
+            ...(process.env.NODE_ENV === 'development' && { otp })
+        });
+    } catch (error) {
+        console.error("sendRegisterEmailOtp error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+/**
+ * verifyRegisterEmailOtp
+ * POST /api/auth/register/verify-otp
+ */
+const verifyRegisterEmailOtp = async (req, res) => {
+    try {
+        const { fullName, mobileNumber, email, otp } = req.body;
+
+        if (!fullName || !mobileNumber || !email || !otp) {
+            return res.status(400).json({ success: false, message: "Full Name, Mobile Number, Email Address, and OTP are required" });
+        }
+
+        const otpRecord = await Otp.findOne({ email, purpose: 'register' }).sort({ createdAt: -1 });
+
+        if (!otpRecord) {
+            return res.status(400).json({ success: false, message: "No OTP found. Please request a new OTP." });
+        }
+
+        if (new Date() > otpRecord.expiresAt) {
+            await Otp.deleteMany({ email, purpose: 'register' });
+            return res.status(400).json({ success: false, message: "OTP expired. Please request a new one." });
+        }
+
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
+        }
+
+        // OTP verified - Create user
+        let user = await User.findOne({ mobileNumber });
+        if (user) {
+            // Mobile number is unique, so let's check if they already have an email or if there is a conflict.
+            if (user.email && user.email !== email) {
+                return res.status(400).json({ success: false, message: "This mobile number is already registered with another email." });
+            }
+            user.email = email;
+            user.fullName = fullName;
+            user.isEmailVerified = true;
+            await user.save();
+        } else {
+            user = await User.create({
+                fullName,
+                mobileNumber,
+                email,
+                isEmailVerified: true,
+                role: 'user'
+            });
+        }
+
+        // Delete used OTP
+        await Otp.deleteMany({ email, purpose: 'register' });
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET || 'fallback_secret',
+            { expiresIn: "30d" }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Registration successful",
+            token,
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                mobileNumber: user.mobileNumber,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error("verifyRegisterEmailOtp error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+/**
+ * sendLoginEmailOtp
+ * POST /api/auth/login/send-otp
+ */
+const sendLoginEmailOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email Address is required" });
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: "Invalid email format" });
+        }
+
+        // Check if user exists by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Please register first. This email is not registered." });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ success: false, message: "Your account has been suspended. Please contact support." });
+        }
+
+        // Rate limit: 1 OTP request per minute
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+        const recentOtp = await Otp.findOne({ email, purpose: 'login', createdAt: { $gte: oneMinuteAgo } });
+        if (recentOtp) {
+            return res.status(429).json({ success: false, message: "Please wait 1 minute before requesting another OTP." });
+        }
+
+        const otp = generate6DigitOtp();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        // Delete old login OTPs to enforce "latest OTP only"
+        await Otp.deleteMany({ email, purpose: 'login' });
+
+        // Save new OTP
+        await Otp.create({
+            email,
+            otp,
+            purpose: 'login',
+            expiresAt
+        });
+
+        // Send OTP via email
+        const mailSent = await sendOtpEmail(email, otp);
+        if (!mailSent) {
+            return res.status(500).json({ success: false, message: "Failed to send OTP email. Please try again." });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "OTP sent to your email successfully",
+            ...(process.env.NODE_ENV === 'development' && { otp })
+        });
+    } catch (error) {
+        console.error("sendLoginEmailOtp error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+/**
+ * verifyLoginEmailOtp
+ * POST /api/auth/login/verify-otp
+ */
+const verifyLoginEmailOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: "Email and OTP are required" });
+        }
+
+        const otpRecord = await Otp.findOne({ email, purpose: 'login' }).sort({ createdAt: -1 });
+
+        if (!otpRecord) {
+            return res.status(400).json({ success: false, message: "No OTP found. Please request a new OTP." });
+        }
+
+        if (new Date() > otpRecord.expiresAt) {
+            await Otp.deleteMany({ email, purpose: 'login' });
+            return res.status(400).json({ success: false, message: "OTP expired. Please request a new one." });
+        }
+
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
+        }
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ success: false, message: "Your account has been suspended. Please contact support." });
+        }
+
+        // Delete used OTP
+        await Otp.deleteMany({ email, purpose: 'login' });
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET || 'fallback_secret',
+            { expiresIn: "30d" }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Logged in successfully",
+            token,
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                mobileNumber: user.mobileNumber,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        console.error("verifyLoginEmailOtp error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
 module.exports = {
     getOtp,
     resendOtp,
@@ -641,6 +915,10 @@ module.exports = {
     verifyLoginOtp,
     sendRegistrationOtp,
     verifyRegistrationOtp,
+    sendRegisterEmailOtp,
+    verifyRegisterEmailOtp,
+    sendLoginEmailOtp,
+    verifyLoginEmailOtp,
     getDashboardStats,
     submitAdminRequest,
     getAdminRequests,

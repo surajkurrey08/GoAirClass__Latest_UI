@@ -8,6 +8,10 @@ const {
     verifyLoginOtp, 
     sendRegistrationOtp, 
     verifyRegistrationOtp, 
+    sendRegisterEmailOtp,
+    verifyRegisterEmailOtp,
+    sendLoginEmailOtp,
+    verifyLoginEmailOtp,
     getDashboardStats, 
     submitAdminRequest, 
     getAdminRequests, 
@@ -38,6 +42,12 @@ router.post('/verify-login-otp', verifyLoginOtp);
 // --- New: Full Mobile + OTP Registration Flow ---
 router.post('/send-registration-otp', sendRegistrationOtp);
 router.post('/verify-registration-otp', verifyRegistrationOtp);
+
+// --- New: Email OTP Registration & Login Flow ---
+router.post('/register/send-otp', sendRegisterEmailOtp);
+router.post('/register/verify-otp', verifyRegisterEmailOtp);
+router.post('/login/send-otp', sendLoginEmailOtp);
+router.post('/login/verify-otp', verifyLoginEmailOtp);
 
 // Protected Admin Routes
 router.get('/dashboard-stats', authMiddleware, checkRole(['admin', 'superadmin']), getDashboardStats);

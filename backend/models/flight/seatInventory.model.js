@@ -5,8 +5,13 @@ const seatInventorySchema = new mongoose.Schema({
     seatNumber: { type: String, required: true },
     type: {
         type: String,
-        enum: ['Free', 'Standard', 'Premium', 'Extra Legroom'],
+        enum: ['Free', 'Standard', 'Premium', 'Extra Legroom', 'Window', 'Middle', 'Aisle'],
         default: 'Standard'
+    },
+    class: {
+        type: String,
+        enum: ['Economy', 'Business', 'First Class'],
+        default: 'Economy'
     },
     price: { type: Number, default: 0 },
     isLocked: { type: Boolean, default: false },

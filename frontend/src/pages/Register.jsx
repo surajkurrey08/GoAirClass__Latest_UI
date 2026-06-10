@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendRegistrationOtp, verifyRegistrationOtp } from '../services/auth';
-import { User, Phone, Loader2, ArrowRight, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
+import { User, Phone, Loader2, ArrowRight, CheckCircle2, Lock, ShieldCheck, Mail } from 'lucide-react';
 import { toast } from 'react-toastify';
 import "./Register.css";
 
 export default function Register() {
-  const [formData, setFormData] = useState({ name: '', mobileNumber: '', otp: '' });
+  const [formData, setFormData] = useState({ name: '', mobileNumber: '', email: '', otp: '' });
   const [step, setStep] = useState(1); // 1: Info, 2: OTP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,6 +25,11 @@ export default function Register() {
 
     // Validations
     if (!formData.name.trim()) return setError('Name is required');
+    
+    if (!formData.email.trim()) return setError('Email address is required');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) return setError('Invalid email address format');
+
     if (!formData.mobileNumber.trim()) return setError('Mobile number is required');
     if (formData.mobileNumber.length !== 10) return setError('Mobile number must be 10 digits');
 
@@ -32,7 +37,7 @@ export default function Register() {
     setError('');
 
     try {
-      const data = await sendRegistrationOtp(formData.name, formData.mobileNumber);
+      const data = await sendRegistrationOtp(formData.name, formData.mobileNumber, formData.email);
       if (data.otp) {
         toast.info(`Development OTP: ${data.otp}`, { autoClose: false });
       }
@@ -48,13 +53,13 @@ export default function Register() {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (formData.otp.length < 4) return setError('Enter a valid OTP');
+    if (formData.otp.length < 6) return setError('Enter a valid 6-digit OTP');
 
     setLoading(true);
     setError('');
 
     try {
-      const data = await verifyRegistrationOtp(formData.mobileNumber, formData.otp);
+      const data = await verifyRegistrationOtp(formData.name, formData.mobileNumber, formData.email, formData.otp);
       if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -82,7 +87,7 @@ export default function Register() {
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
             <p className="text-gray-500">
-              {step === 1 ? 'Join us for a seamless booking experience' : `Enter OTP sent to ${formData.mobileNumber}`}
+              {step === 1 ? 'Join us for a seamless booking experience' : `Enter OTP sent to ${formData.email}`}
             </p>
           </div>
 
@@ -126,6 +131,24 @@ export default function Register() {
                         required
                         placeholder="John Doe"
                         value={formData.name}
+                        onChange={handleChange}
+                        className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 ml-1">Email Address</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
+                        <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500" />
+                      </div>
+                      <input
+                        name="email"
+                        type="email"
+                        required
+                        placeholder="john@example.com"
+                        value={formData.email}
                         onChange={handleChange}
                         className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                       />
@@ -204,7 +227,7 @@ export default function Register() {
                     onClick={() => setStep(1)}
                     className="w-full text-center text-gray-500 text-sm hover:text-blue-600 transition-colors"
                   >
-                    Change name or mobile number
+                    Change name, email or mobile number
                   </button>
                 </form>
               )}

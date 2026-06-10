@@ -56,6 +56,12 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         trim: true,
+        unique: true,
+        sparse: true,
+    },
+    isEmailVerified: {
+        type: Boolean,
+        default: false,
     },
     gender: {
         type: String,
