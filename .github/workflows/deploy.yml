@@ -128,10 +128,19 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
-            cd /opt/goairclass
 
-            # Pull latest compose file
+            # Clone repo if not present, otherwise pull latest
+            if [ ! -d /opt/goairclass ]; then
+              git clone https://github.com/${{ github.repository }}.git /opt/goairclass
+            fi
+            cd /opt/goairclass
             git pull origin main
+
+            # Copy .env if it doesn't exist yet (first deploy)
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              echo "WARNING: .env created from example — fill in real secrets before next deploy!"
+            fi
 
             # Login to GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -139,7 +148,7 @@ jobs:
             # Pull latest images
             docker compose pull backend frontend
 
-            # Rolling restart (zero-downtime)
+            # Rolling restart
             docker compose up -d --no-build --remove-orphans
 
             # Cleanup old images
