@@ -1,7 +1,8 @@
 node_modules
+npm-debug.log
 .env
 .env.*
-npm-debug.log
+dist/
 Dockerfile
 .dockerignore
-uploads/
+nginx-spa.conf
