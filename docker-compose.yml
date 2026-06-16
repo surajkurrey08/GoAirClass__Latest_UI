@@ -23,6 +23,7 @@ services:
 
   # ── Backend (Express) ─────────────────────────────────────────────────────────
   backend:
+    image: ghcr.io/onlinegologistics/goairclass_v3-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -42,6 +43,7 @@ services:
 
   # ── Frontend (React + Nginx) ──────────────────────────────────────────────────
   frontend:
+    image: ghcr.io/onlinegologistics/goairclass_v3-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
