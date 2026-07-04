@@ -228,16 +228,18 @@ jobs:
             docker compose pull backend frontend admin_frontend
 
             # ── One-time SSL bootstrap for admin.goairclass.com ──────────────
-            # If the cert doesn't exist yet, bring nginx up with the HTTP-only
-            # bootstrap config, issue the cert, then fall through to the real
-            # config below. Safe to run on every deploy — it's a no-op once
-            # the cert exists.
-            CERT_MOUNT=$(docker volume inspect goairclass_certbot_certs -f '{{ .Mountpoint }}' 2>/dev/null || true)
-            if [ -z "$CERT_MOUNT" ] || [ ! -d "$CERT_MOUNT/live/admin.goairclass.com" ]; then
+            # If the cert doesn't exist yet, swap nginx to the HTTP-only
+            # bootstrap config just long enough to issue it, then restore the
+            # real config below. Only touches the nginx container — mongo/
+            # backend/frontend keep running untouched. Safe to run on every
+            # deploy — it's a no-op once the cert exists.
+            CERT_EXISTS=$(docker compose run --rm --entrypoint sh certbot -c \
+              "[ -d /etc/letsencrypt/live/admin.goairclass.com ] && echo yes || echo no" 2>/dev/null | tail -1)
+            if [ "$CERT_EXISTS" != "yes" ]; then
               echo "admin.goairclass.com cert not found — bootstrapping..."
               cp nginx/nginx.conf nginx/nginx.conf.bak
               cp nginx/nginx-bootstrap.conf nginx/nginx.conf
-              docker compose up -d --no-build --remove-orphans mongo backend frontend admin_frontend nginx
+              docker compose up -d --no-build nginx
               sleep 5
               docker compose run --rm certbot certonly \
                 --webroot -w /var/www/certbot \
