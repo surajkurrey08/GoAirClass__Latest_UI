@@ -239,7 +239,7 @@ jobs:
               echo "admin.goairclass.com cert not found — bootstrapping..."
               cp nginx/nginx.conf nginx/nginx.conf.bak
               cp nginx/nginx-bootstrap.conf nginx/nginx.conf
-              docker compose up -d --no-build nginx
+              docker compose up -d --no-build --no-deps nginx
               sleep 5
               docker compose run --rm certbot certonly \
                 --webroot -w /var/www/certbot \
