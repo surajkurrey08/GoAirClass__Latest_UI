@@ -230,10 +230,11 @@ jobs:
 
             # ── One-time SSL bootstrap for admin.goairclass.com ──────────────
             # Whatever state nginx is currently in (running fine, crash-looping,
-            # stopped, or not created yet), --force-recreate always gets it into
-            # a known-good, freshly-started state with whatever config file is
-            # on disk right now. This never spawns extra containers and never
-            # fights an existing container for ports — it replaces it outright.
+            # stopped, or not created yet), explicitly stop+remove it before
+            # starting a fresh one with whatever config is on disk right now.
+            # This gives Docker time to fully release the port 80/443 bindings
+            # before the replacement claims them — --force-recreate alone races
+            # that cleanup and intermittently fails with "port already allocated".
             CERT_EXISTS=no
             docker compose exec -T nginx test -d /etc/letsencrypt/live/admin.goairclass.com 2>/dev/null && CERT_EXISTS=yes || true
 
@@ -241,7 +242,10 @@ jobs:
               echo "admin.goairclass.com cert not found — bootstrapping..."
               cp nginx/nginx.conf nginx/nginx.conf.bak
               cp nginx/nginx-bootstrap.conf nginx/nginx.conf
-              docker compose up -d --no-build --no-deps --force-recreate nginx
+              docker compose stop nginx 2>/dev/null || true
+              docker compose rm -f nginx 2>/dev/null || true
+              sleep 3
+              docker compose up -d --no-build --no-deps nginx
               sleep 5
               timeout 120 docker compose run --rm certbot certonly \
                 --webroot -w /var/www/certbot \
@@ -249,14 +253,22 @@ jobs:
                 --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email --non-interactive \
                 || echo "WARNING: admin.goairclass.com cert issuance failed or timed out — check DNS/firewall. Site will retry next deploy."
               mv nginx/nginx.conf.bak nginx/nginx.conf
-              docker compose up -d --no-build --no-deps --force-recreate nginx
+              docker compose stop nginx 2>/dev/null || true
+              docker compose rm -f nginx 2>/dev/null || true
+              sleep 3
+              docker compose up -d --no-build --no-deps nginx
             fi
 
-            # Rolling restart with the real (SSL) config — force-recreate nginx
-            # specifically so it never gets stuck serving a stale config from a
-            # previous run.
-            docker compose up -d --no-build --remove-orphans
-            docker compose up -d --no-build --no-deps --force-recreate nginx
+            # Rolling restart with the real (SSL) config — nginx is stopped and
+            # removed first (not --force-recreate) so Docker fully releases the
+            # port bindings before the new container claims them. Recreating in
+            # place was racing the old container's network cleanup and failing
+            # with "port is already allocated".
+            docker compose up -d --no-build --remove-orphans --no-recreate
+            docker compose stop nginx 2>/dev/null || true
+            docker compose rm -f nginx 2>/dev/null || true
+            sleep 3
+            docker compose up -d --no-build --no-deps nginx
 
             # Cleanup old images
             docker image prune -f
