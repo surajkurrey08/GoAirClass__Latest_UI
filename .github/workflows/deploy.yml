@@ -229,26 +229,19 @@ jobs:
             docker compose pull backend frontend admin_frontend
 
             # ── One-time SSL bootstrap for admin.goairclass.com ──────────────
-            # Check for the cert using the already-running nginx container
-            # (no extra container spawned) instead of `docker compose run`,
-            # which was getting OOM-killed on this VPS.
+            # Whatever state nginx is currently in (running fine, crash-looping,
+            # stopped, or not created yet), --force-recreate always gets it into
+            # a known-good, freshly-started state with whatever config file is
+            # on disk right now. This never spawns extra containers and never
+            # fights an existing container for ports — it replaces it outright.
             CERT_EXISTS=no
-            if [ "$(docker inspect -f '{{.State.Running}}' goairclass_nginx 2>/dev/null)" = "true" ]; then
-              docker compose exec -T nginx test -d /etc/letsencrypt/live/admin.goairclass.com 2>/dev/null && CERT_EXISTS=yes
-            fi
+            docker compose exec -T nginx test -d /etc/letsencrypt/live/admin.goairclass.com 2>/dev/null && CERT_EXISTS=yes || true
 
             if [ "$CERT_EXISTS" != "yes" ]; then
               echo "admin.goairclass.com cert not found — bootstrapping..."
               cp nginx/nginx.conf nginx/nginx.conf.bak
               cp nginx/nginx-bootstrap.conf nginx/nginx.conf
-              # nginx.conf is bind-mounted, so an already-running container just
-              # needs a reload/restart to pick up the swapped file — never a
-              # recreate (that would fight the running container for port 80/443).
-              if [ "$(docker inspect -f '{{.State.Running}}' goairclass_nginx 2>/dev/null)" = "true" ]; then
-                docker compose exec nginx nginx -s reload
-              else
-                docker compose up -d --no-build --no-deps nginx
-              fi
+              docker compose up -d --no-build --no-deps --force-recreate nginx
               sleep 5
               timeout 120 docker compose run --rm certbot certonly \
                 --webroot -w /var/www/certbot \
@@ -256,14 +249,14 @@ jobs:
                 --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email --non-interactive \
                 || echo "WARNING: admin.goairclass.com cert issuance failed or timed out — check DNS/firewall. Site will retry next deploy."
               mv nginx/nginx.conf.bak nginx/nginx.conf
-              # Reload back to the real config the same safe way
-              if [ "$(docker inspect -f '{{.State.Running}}' goairclass_nginx 2>/dev/null)" = "true" ]; then
-                docker compose exec nginx nginx -s reload
-              fi
+              docker compose up -d --no-build --no-deps --force-recreate nginx
             fi
 
-            # Rolling restart with the real (SSL) config
+            # Rolling restart with the real (SSL) config — force-recreate nginx
+            # specifically so it never gets stuck serving a stale config from a
+            # previous run.
             docker compose up -d --no-build --remove-orphans
+            docker compose up -d --no-build --no-deps --force-recreate nginx
 
             # Cleanup old images
             docker image prune -f
