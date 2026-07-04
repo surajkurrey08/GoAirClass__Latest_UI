@@ -211,6 +211,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           envs: CERTBOT_EMAIL
+          command_timeout: 20m
           script: |
             set -e
 
@@ -248,11 +249,11 @@ jobs:
                 docker compose up -d --no-build --no-deps nginx
               fi
               sleep 5
-              docker compose run --rm certbot certonly \
+              timeout 120 docker compose run --rm certbot certonly \
                 --webroot -w /var/www/certbot \
                 -d admin.goairclass.com \
-                --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email \
-                || echo "WARNING: admin.goairclass.com cert issuance failed — check DNS. Site will retry next deploy."
+                --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email --non-interactive \
+                || echo "WARNING: admin.goairclass.com cert issuance failed or timed out — check DNS/firewall. Site will retry next deploy."
               mv nginx/nginx.conf.bak nginx/nginx.conf
               # Reload back to the real config the same safe way
               if [ "$(docker inspect -f '{{.State.Running}}' goairclass_nginx 2>/dev/null)" = "true" ]; then
