@@ -131,15 +131,6 @@ const verifyOtp = async (req, res) => {
         user.otpExpiry = null;
         user.otpAttempts = 0;
 
-        // Check if this is the super admin from .env
-        const isSuperAdmin = mobileNumber === process.env.ADMIN_MOBILE;
-        if (isSuperAdmin && user.role !== "superadmin") {
-            user.role = "superadmin";
-            if (user.fullName === "Guest User") {
-                user.fullName = process.env.ADMIN_NAME || "Super Admin";
-            }
-        }
-
         await user.save();
 
         const token = jwt.sign(
@@ -778,6 +769,124 @@ const verifyRegisterEmailOtp = async (req, res) => {
 };
 
 /**
+ * adminLoginStep1
+ * POST /api/auth/admin/login
+ * Verifies email + password for admin/superadmin accounts, then emails an OTP.
+ */
+const adminLoginStep1 = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password are required" });
+        }
+
+        const user = await User.findOne({ email, role: { $in: ['admin', 'superadmin'] } });
+        if (!user || !user.adminPassword) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ success: false, message: "Your admin access has been suspended. Please contact the Super Admin." });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.adminPassword);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        // Rate limit: 1 OTP request per minute
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+        const recentOtp = await Otp.findOne({ email, purpose: 'admin-login', createdAt: { $gte: oneMinuteAgo } });
+        if (recentOtp) {
+            return res.status(429).json({ success: false, message: "Please wait 1 minute before requesting another OTP." });
+        }
+
+        const otp = generate6DigitOtp();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        await Otp.deleteMany({ email, purpose: 'admin-login' });
+        await Otp.create({ email, otp, purpose: 'admin-login', expiresAt });
+
+        const mailSent = await sendOtpEmail(email, otp);
+        if (!mailSent) {
+            return res.status(500).json({ success: false, message: "Failed to send OTP email. Please try again." });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "OTP sent to your email successfully",
+            ...(process.env.NODE_ENV === 'development' && { otp })
+        });
+    } catch (error) {
+        console.error("adminLoginStep1 error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+/**
+ * adminLoginVerifyOtp
+ * POST /api/auth/admin/verify-otp
+ * Verifies the OTP sent in adminLoginStep1, then issues a JWT.
+ */
+const adminLoginVerifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ success: false, message: "Email and OTP are required" });
+        }
+
+        const otpRecord = await Otp.findOne({ email, purpose: 'admin-login' }).sort({ createdAt: -1 });
+        if (!otpRecord) {
+            return res.status(400).json({ success: false, message: "No OTP found. Please request a new OTP." });
+        }
+
+        if (new Date() > otpRecord.expiresAt) {
+            await Otp.deleteMany({ email, purpose: 'admin-login' });
+            return res.status(400).json({ success: false, message: "OTP expired. Please request a new one." });
+        }
+
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
+        }
+
+        const user = await User.findOne({ email, role: { $in: ['admin', 'superadmin'] } });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ success: false, message: "Your admin access has been suspended. Please contact the Super Admin." });
+        }
+
+        await Otp.deleteMany({ email, purpose: 'admin-login' });
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET || 'fallback_secret',
+            { expiresIn: "12h" }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Logged in successfully",
+            token,
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                role: user.role,
+                permissions: user.permissions
+            }
+        });
+    } catch (error) {
+        console.error("adminLoginVerifyOtp error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+/**
  * sendLoginEmailOtp
  * POST /api/auth/login/send-otp
  */
@@ -926,6 +1035,8 @@ module.exports = {
     updateAdminRequestStatus,
     setAdminPassword,
     adminLogin,
+    adminLoginStep1,
+    adminLoginVerifyOtp,
     getAllAdmins,
     deleteAdmin,
     verifyActivationToken

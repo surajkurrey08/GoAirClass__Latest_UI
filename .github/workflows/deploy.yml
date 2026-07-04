@@ -25,6 +25,7 @@ jobs:
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
+            admin-frontend/package-lock.json
 
       - name: Install backend deps
         run: npm ci
@@ -37,6 +38,14 @@ jobs:
       - name: Frontend build check
         run: npm run build
         working-directory: frontend
+
+      - name: Install admin frontend deps
+        run: npm ci
+        working-directory: admin-frontend
+
+      - name: Admin frontend build check
+        run: npm run build
+        working-directory: admin-frontend
 
   # ── 2. Build & Push Docker Images ─────────────────────────────────────────
   build:
@@ -53,6 +62,7 @@ jobs:
     outputs:
       backend_image: ${{ steps.meta_backend.outputs.tags }}
       frontend_image: ${{ steps.meta_frontend.outputs.tags }}
+      admin_frontend_image: ${{ steps.meta_admin_frontend.outputs.tags }}
 
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +118,28 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Admin frontend image (admin.goairclass.com)
+      - name: Docker meta — admin frontend
+        id: meta_admin_frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-admin-frontend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build & push admin frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./admin-frontend
+          push: true
+          tags: ${{ steps.meta_admin_frontend.outputs.tags }}
+          labels: ${{ steps.meta_admin_frontend.outputs.labels }}
+          # Empty VITE_API_URL → same-origin /api (nginx proxies it on the admin domain)
+          build-args: VITE_API_URL=
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   # ── 3. Deploy to VPS ──────────────────────────────────────────────────────
   deploy:
     name: Deploy to VPS
@@ -119,6 +151,58 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # .env is regenerated from GitHub Secrets on every deploy, so adding a new
+      # secret here is the ONLY step needed going forward — no VPS access required.
+      - name: Write .env from GitHub Secrets
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          envs: MONGO_ROOT_USER,MONGO_ROOT_PASS,MONGO_URI,JWT_SECRET,RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,FRONTEND_URL,CRM_API_URL,CRM_API_KEY
+          script: |
+            set -e
+            mkdir -p /opt/goairclass
+            cat > /opt/goairclass/.env <<EOF
+            NODE_ENV=production
+            PORT=5000
+
+            MONGO_ROOT_USER=$MONGO_ROOT_USER
+            MONGO_ROOT_PASS=$MONGO_ROOT_PASS
+            MONGO_URI=$MONGO_URI
+
+            JWT_SECRET=$JWT_SECRET
+
+            RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID
+            RAZORPAY_KEY_SECRET=$RAZORPAY_KEY_SECRET
+
+            SMTP_HOST=$SMTP_HOST
+            SMTP_PORT=$SMTP_PORT
+            SMTP_USER=$SMTP_USER
+            SMTP_PASS=$SMTP_PASS
+
+            FRONTEND_URL=$FRONTEND_URL
+
+            CRM_API_URL=$CRM_API_URL
+            CRM_API_KEY=$CRM_API_KEY
+            EOF
+            chmod 600 /opt/goairclass/.env
+        env:
+          MONGO_ROOT_USER: ${{ secrets.MONGO_ROOT_USER }}
+          MONGO_ROOT_PASS: ${{ secrets.MONGO_ROOT_PASS }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+          RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          CRM_API_URL: ${{ secrets.CRM_API_URL }}
+          CRM_API_KEY: ${{ secrets.CRM_API_KEY }}
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -126,6 +210,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
+          envs: CERTBOT_EMAIL
           script: |
             set -e
 
@@ -136,20 +221,36 @@ jobs:
             cd /opt/goairclass
             git pull origin main
 
-            # Copy .env if it doesn't exist yet (first deploy)
-            if [ ! -f .env ]; then
-              cp .env.example .env
-              echo "WARNING: .env created from example — fill in real secrets before next deploy!"
-            fi
-
             # Login to GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Pull latest images
-            docker compose pull backend frontend
+            docker compose pull backend frontend admin_frontend
 
-            # Rolling restart
+            # ── One-time SSL bootstrap for admin.goairclass.com ──────────────
+            # If the cert doesn't exist yet, bring nginx up with the HTTP-only
+            # bootstrap config, issue the cert, then fall through to the real
+            # config below. Safe to run on every deploy — it's a no-op once
+            # the cert exists.
+            CERT_MOUNT=$(docker volume inspect goairclass_certbot_certs -f '{{ .Mountpoint }}' 2>/dev/null || true)
+            if [ -z "$CERT_MOUNT" ] || [ ! -d "$CERT_MOUNT/live/admin.goairclass.com" ]; then
+              echo "admin.goairclass.com cert not found — bootstrapping..."
+              cp nginx/nginx.conf nginx/nginx.conf.bak
+              cp nginx/nginx-bootstrap.conf nginx/nginx.conf
+              docker compose up -d --no-build --remove-orphans mongo backend frontend admin_frontend nginx
+              sleep 5
+              docker compose run --rm certbot certonly \
+                --webroot -w /var/www/certbot \
+                -d admin.goairclass.com \
+                --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email \
+                || echo "WARNING: admin.goairclass.com cert issuance failed — check DNS. Site will retry next deploy."
+              mv nginx/nginx.conf.bak nginx/nginx.conf
+            fi
+
+            # Rolling restart with the real (SSL) config
             docker compose up -d --no-build --remove-orphans
 
             # Cleanup old images
             docker image prune -f
+        env:
+          CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}

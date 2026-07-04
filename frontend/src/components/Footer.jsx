@@ -55,6 +55,7 @@ export default function Footer() {
         {/* SUPPORT */}
         <div className="footer__col">
           <h4>Support</h4>
+          <Link to="/inquiry">Contact / Inquiry</Link>
           <a href="#">Help Center</a>
           <a href="#">Cancellation Policy</a>
           <a href="#">Privacy Policy</a>

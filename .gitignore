@@ -1,7 +1,12 @@
 backend/.env
 frontend/.env
+admin-frontend/.env
 .env
 
 backend/node_modules/
 frontend/node_modules/
+admin-frontend/node_modules/
 node_modules/
+
+frontend/dist/
+admin-frontend/dist/

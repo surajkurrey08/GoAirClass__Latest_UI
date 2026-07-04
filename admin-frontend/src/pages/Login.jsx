@@ -1,35 +1,36 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { sendOtp, verifyOtp } from '../services/auth';
-import { Mail, Lock, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { adminLoginStep1, adminVerifyOtp } from '../services/auth';
+import { Mail, Lock, KeyRound, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 import "./Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP
+  const [step, setStep] = useState(1); // 1: Email + Password, 2: OTP
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const handleSendOtp = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!email.trim()) return setError('Email address is required');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) return setError('Enter a valid email address');
+    if (!password) return setError('Password is required');
 
     setLoading(true);
     setError('');
 
     try {
-      const data = await sendOtp(email);
+      const data = await adminLoginStep1(email, password);
       if (data.otp) {
         toast.info(`Development OTP: ${data.otp}`, { autoClose: false });
       }
       setStep(2);
-      toast.success('OTP sent successfully!');
+      toast.success('OTP sent to your email!');
     } catch (err) {
       toast.error(err.message);
       setError(err.message);
@@ -46,31 +47,21 @@ export default function Login() {
     setError('');
 
     try {
-      const data = await verifyOtp(email, otp);
-      // Store token
-      if (data.token) {
-        // Admin & superadmin log in on the dedicated admin portal
-        if (data.user?.role === 'superadmin' || data.user?.role === 'admin') {
-          toast.info('Admins log in at the admin portal. Redirecting…');
-          window.location.href = 'https://admin.goairclass.com/login';
-          return;
-        }
-
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        toast.success('Logged in successfully!');
-        // Redirect based on state or role
-        const from = location.state?.from || '/';
-        const bookingData = location.state?.bookingData;
-
-        if (location.state?.from) {
-          navigate(from, { state: bookingData });
-        } else {
-          navigate('/');
-        }
-      } else {
+      const data = await adminVerifyOtp(email, otp);
+      if (!data.token) {
         toast.error('Token not received. Contact support.');
         setError('Token not received. Contact support.');
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      toast.success('Logged in successfully!');
+
+      if (data.user.role === 'superadmin') {
+        navigate('/super-admin');
+      } else {
+        navigate('/admin');
       }
     } catch (err) {
       toast.error(err.message);
@@ -81,14 +72,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-indigo-100 p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-white/20 backdrop-blur-sm">
         <div className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+            <img src="/logo.jpeg" alt="GoAirClass" className="w-14 h-14 rounded-2xl mx-auto mb-4 object-cover" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Portal</h1>
             <p className="text-gray-500">
               {step === 1
-                ? 'Sign in with your email address'
+                ? 'Sign in with your admin credentials'
                 : `Enter OTP sent to ${email}`
               }
             </p>
@@ -113,7 +105,7 @@ export default function Login() {
           )}
 
           {step === 1 ? (
-            <form onSubmit={handleSendOtp} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 ml-1">Email Address</label>
                 <div className="relative group">
@@ -123,10 +115,30 @@ export default function Login() {
                   <input
                     type="email"
                     required
-                    placeholder="john@example.com"
+                    placeholder="admin@goairclass.com"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
+                      setError('');
+                    }}
+                    className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 ml-1">Password</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all">
+                    <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
                       setError('');
                     }}
                     className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -143,7 +155,7 @@ export default function Login() {
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    Send OTP
+                    Continue
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -155,7 +167,7 @@ export default function Login() {
                 <label className="text-sm font-medium text-gray-700 ml-1">OTP</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-all">
-                    <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500" />
+                    <KeyRound className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500" />
                   </div>
                   <input
                     type="text"
@@ -186,19 +198,19 @@ export default function Login() {
 
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => { setStep(1); setOtp(''); setError(''); }}
                 className="w-full text-center text-gray-500 text-sm hover:text-blue-600 transition-colors"
               >
-                Change email address
+                Back to login
               </button>
             </form>
           )}
 
-          <p className="text-center text-gray-600 text-sm mt-8">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 font-semibold hover:underline">
-              Create one
-            </Link>
+          <p className="text-center text-gray-400 text-xs mt-8">
+            Authorized personnel only. Customer login is at{' '}
+            <a href="https://goairclass.com/login" className="text-blue-600 font-semibold hover:underline">
+              goairclass.com
+            </a>
           </p>
         </div>
       </div>

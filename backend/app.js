@@ -66,6 +66,7 @@ const flightMealRoutes = require('./routes/flight/meal.routes');
 
 const videoContentRoutes = require('./routes/videoContentRoutes');
 const testimonialRoutes = require('./routes/testimonialRoutes');
+const inquiryRoutes = require('./routes/inquiryRoutes');
 
 const app = express();
 
@@ -73,6 +74,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/content', videoContentRoutes);
 app.use('/api/testimonials', testimonialRoutes);
+app.use('/api/inquiries', inquiryRoutes);
 
 // Request logger - MUST be above other routes
 app.use((req, res, next) => {

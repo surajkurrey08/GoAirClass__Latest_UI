@@ -10,8 +10,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Profile from './pages/Profile'
 import SetPassword from './pages/SetPassword'
-import AdminApp from './AdminPanel/AdminApp'
-import SuperAdminApp from './SuperAdminPanel/AdminApp'
+import Inquiry from './pages/Inquiry'
 import BusOperatorApp from './BusOperatorPanel/BusOperatorApp'
 import SeatSelection from './pages/SeatSelection'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -26,6 +25,14 @@ import TrainsPage  from './pages/services/TrainsPage'
 import BusesPage   from './pages/services/BusesPage'
 import FlightReviewPage from './pages/flights/FlightReviewPage'
 import FlightPaymentPage from './pages/flights/FlightPaymentPage'
+
+// Admin panels moved to admin.goairclass.com — redirect old links there
+function ExternalRedirect({ to }) {
+  React.useEffect(() => {
+    window.location.replace(to)
+  }, [to])
+  return null
+}
 
 export default function App() {
   return (
@@ -52,20 +59,11 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/set-password" element={<SetPassword />} />
+        <Route path="/inquiry" element={<Inquiry />} />
 
-        {/* Admin Panel */}
-        <Route path="/admin/*" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminApp />
-          </ProtectedRoute>
-        }/>
-
-        {/* Super Admin Panel */}
-        <Route path="/super-admin/*" element={
-          <ProtectedRoute allowedRoles={['superadmin']}>
-            <SuperAdminApp />
-          </ProtectedRoute>
-        }/>
+        {/* Admin & Super Admin panels now live on the dedicated admin app */}
+        <Route path="/admin/*" element={<ExternalRedirect to="https://admin.goairclass.com" />} />
+        <Route path="/super-admin/*" element={<ExternalRedirect to="https://admin.goairclass.com" />} />
 
         {/* Bus Operator Panel */}
         <Route path="/bus-operator/*" element={

@@ -36,8 +36,7 @@ export default function Navbar() {
     const role = localStorage.getItem('role')
     if (token) {
       if (role === 'bus_operator') navigate('/bus-operator/dashboard')
-      else if (role === 'admin') navigate('/admin/dashboard')
-      else if (role === 'superadmin') navigate('/super-admin/dashboard')
+      else if (role === 'admin' || role === 'superadmin') window.location.href = 'https://admin.goairclass.com'
       else navigate('/profile')
     } else {
       navigate('/login')
@@ -81,7 +80,7 @@ export default function Navbar() {
             <a href="#destinations" className="gac-navbar__link">Destinations</a>
             <a href="#" className="gac-navbar__link premium-link">Premium Class</a>
             <a href="#offers" className="gac-navbar__link">Offers</a>
-            <a href="#about" className="gac-navbar__link">Contact</a>
+            <Link to="/inquiry" className="gac-navbar__link">Contact</Link>
           </div>
 
           {/* ACTIONS */}

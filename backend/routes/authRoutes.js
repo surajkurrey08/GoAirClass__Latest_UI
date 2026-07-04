@@ -17,8 +17,10 @@ const {
     getAdminRequests, 
     getAdminNotifications, 
     updateAdminRequestStatus, 
-    adminLogin, 
-    getAllAdmins, 
+    adminLogin,
+    adminLoginStep1,
+    adminLoginVerifyOtp,
+    getAllAdmins,
     setAdminPassword, 
     deleteAdmin,
     verifyActivationToken 
@@ -30,6 +32,10 @@ router.post('/get-otp', getOtp);
 router.post('/resend-otp', resendOtp);
 router.post('/verify-otp', verifyOtp);
 router.post('/admin-login', adminLogin);
+
+// --- New: Admin/SuperAdmin Email + Password + OTP Login ---
+router.post('/admin/login', adminLoginStep1);
+router.post('/admin/verify-otp', adminLoginVerifyOtp);
 router.get('/verify-activation/:token', verifyActivationToken);
 router.post('/set-admin-password', setAdminPassword); // Finalizing onboarding
 

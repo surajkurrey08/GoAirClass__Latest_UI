@@ -1,4 +1,5 @@
 version: "3.9"
+name: goairclass
 
 services:
   # ── MongoDB ──────────────────────────────────────────────────────────────────
@@ -56,6 +57,21 @@ services:
     depends_on:
       - backend
 
+  # ── Admin Frontend (React + Nginx) — admin.goairclass.com ────────────────────
+  admin_frontend:
+    image: ghcr.io/onlinegologistics/goairclass_v3-admin-frontend:latest
+    build:
+      context: ./admin-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+    container_name: goairclass_admin_frontend
+    restart: unless-stopped
+    networks:
+      - app_network
+    depends_on:
+      - backend
+
   # ── Nginx (Reverse Proxy + SSL Termination) ───────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
@@ -73,6 +89,7 @@ services:
     depends_on:
       - backend
       - frontend
+      - admin_frontend
 
   # ── Certbot (SSL certificate renewal) ────────────────────────────────────────
   certbot:
