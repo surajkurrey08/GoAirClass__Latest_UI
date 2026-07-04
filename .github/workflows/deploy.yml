@@ -239,7 +239,14 @@ jobs:
               echo "admin.goairclass.com cert not found — bootstrapping..."
               cp nginx/nginx.conf nginx/nginx.conf.bak
               cp nginx/nginx-bootstrap.conf nginx/nginx.conf
-              docker compose up -d --no-build --no-deps nginx
+              # nginx.conf is bind-mounted, so an already-running container just
+              # needs a reload/restart to pick up the swapped file — never a
+              # recreate (that would fight the running container for port 80/443).
+              if [ "$(docker inspect -f '{{.State.Running}}' goairclass_nginx 2>/dev/null)" = "true" ]; then
+                docker compose exec nginx nginx -s reload
+              else
+                docker compose up -d --no-build --no-deps nginx
+              fi
               sleep 5
               docker compose run --rm certbot certonly \
                 --webroot -w /var/www/certbot \
@@ -247,6 +254,10 @@ jobs:
                 --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email \
                 || echo "WARNING: admin.goairclass.com cert issuance failed — check DNS. Site will retry next deploy."
               mv nginx/nginx.conf.bak nginx/nginx.conf
+              # Reload back to the real config the same safe way
+              if [ "$(docker inspect -f '{{.State.Running}}' goairclass_nginx 2>/dev/null)" = "true" ]; then
+                docker compose exec nginx nginx -s reload
+              fi
             fi
 
             # Rolling restart with the real (SSL) config
