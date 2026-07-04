@@ -153,6 +153,24 @@ jobs:
 
       # .env is regenerated from GitHub Secrets on every deploy, so adding a new
       # secret here is the ONLY step needed going forward — no VPS access required.
+      - name: Ensure VPS firewall allows web traffic
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            if command -v ufw >/dev/null 2>&1; then
+              ufw allow OpenSSH >/dev/null 2>&1 || true
+              ufw allow 80/tcp >/dev/null 2>&1 || true
+              ufw allow 443/tcp >/dev/null 2>&1 || true
+              ufw --force enable
+            else
+              echo "ufw not available; skipping firewall configuration"
+            fi
+
       - name: Write .env from GitHub Secrets
         uses: appleboy/ssh-action@v1
         with:

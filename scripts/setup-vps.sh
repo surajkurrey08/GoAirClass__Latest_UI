@@ -5,11 +5,11 @@
 set -euo pipefail
 
 APP_DIR="/opt/goairclass"
-REPO_URL="https://github.com/YOUR_USERNAME/GoAirClass_V3.git"  # <-- change this
+REPO_URL="https://github.com/onlinegologistics/GoAirClass_V3.git"
 
-echo "==> Installing Docker..."
+echo "==> Installing Docker and firewall tools..."
 apt-get update -qq
-apt-get install -y -qq ca-certificates curl gnupg lsb-release
+apt-get install -y -qq ca-certificates curl gnupg lsb-release ufw
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
   | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -22,6 +22,12 @@ apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugi
 
 echo "==> Starting Docker..."
 systemctl enable --now docker
+
+echo "==> Configuring firewall..."
+ufw allow OpenSSH >/dev/null 2>&1 || true
+ufw allow 80/tcp >/dev/null 2>&1 || true
+ufw allow 443/tcp >/dev/null 2>&1 || true
+ufw --force enable
 
 echo "==> Cloning repo..."
 mkdir -p "$APP_DIR"
