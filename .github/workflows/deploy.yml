@@ -233,62 +233,148 @@ jobs:
           script: |
             set -e
 
-            # Clone repo if not present, otherwise pull latest
-            if [ ! -d /opt/goairclass ]; then
-              git clone https://github.com/${{ github.repository }}.git /opt/goairclass
+            PROJECT=goairclass
+            APP_DIR=/opt/goairclass
+
+            # ── Sync repo ────────────────────────────────────────────────────
+            # Hard-reset instead of pull, so leftovers from an interrupted
+            # deploy (e.g. a half-finished nginx.conf swap) can never break
+            # future deploys with merge conflicts. .env is untracked → safe.
+            if [ ! -d "$APP_DIR/.git" ]; then
+              git clone https://github.com/${{ github.repository }}.git "$APP_DIR"
             fi
-            cd /opt/goairclass
-            git pull origin main
+            cd "$APP_DIR"
+            git fetch origin main
+            git reset --hard origin/main
 
-            # Login to GHCR
+            # Login to GHCR and pull latest images
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # Pull latest images
             docker compose pull backend frontend admin_frontend
 
-            # ── One-time SSL bootstrap for admin.goairclass.com ──────────────
-            # Something on this VPS keeps holding on to ports 80/443 even after
-            # `docker compose stop/rm` on the nginx service — almost certainly a
-            # stray/orphaned container left over from earlier failed deploy
-            # attempts, not necessarily named goairclass_nginx. So: find and
-            # force-remove *any* container publishing 80 or 443, unconditionally,
-            # before ever starting nginx. This is the only thing guaranteed to
-            # free the ports regardless of what's holding them.
-            free_web_ports() {
-              ids=$(docker ps -q --filter "publish=80" ; docker ps -q --filter "publish=443")
-              if [ -n "$ids" ]; then
-                echo "Force-removing containers holding port 80/443: $ids"
-                docker rm -f $ids 2>/dev/null || true
+            # ── Self-heal: remove containers that hold our names but belong
+            # to a different compose project (compose run from another clone
+            # of the repo) or were started by hand with `docker run`. Compose
+            # cannot see them, so `up` dies with "container name already in
+            # use" until they are gone. For stateful services the foreign
+            # container may hold the LIVE data in a differently-named volume —
+            # migrate that data into the canonical volume before removing the
+            # container. The foreign volume itself is never deleted, and the
+            # canonical volume is tar-backed-up to $APP_DIR/backups before
+            # being overwritten.
+            vol_of() {
+              docker inspect -f "{{ range .Mounts }}{{ if eq .Destination \"$2\" }}{{ .Name }}{{ end }}{{ end }}" "$1" 2>/dev/null || true
+            }
+            migrate_volume() {
+              src="$1"; dst="$2"
+              if [ -z "$src" ] || [ "$src" = "$dst" ]; then return 0; fi
+              echo "Migrating data volume '$src' -> '$dst'"
+              docker volume create "$dst" >/dev/null
+              mkdir -p "$APP_DIR/backups"
+              docker run --rm -v "$dst":/v:ro -v "$APP_DIR/backups":/b alpine:3 \
+                tar czf "/b/$dst-$(date +%Y%m%d-%H%M%S).tgz" -C /v . || true
+              docker run --rm -v "$src":/from:ro -v "$dst":/to alpine:3 \
+                sh -c 'find /to -mindepth 1 -delete && cp -a /from/. /to/'
+            }
+            for name in goairclass_mongo goairclass_backend goairclass_frontend goairclass_admin_frontend goairclass_nginx goairclass_certbot; do
+              cid=$(docker ps -aq --filter "name=^/?${name}$" | head -n1)
+              [ -z "$cid" ] && continue
+              owner=$(docker inspect -f '{{ index .Config.Labels "com.docker.compose.project" }}' "$cid" 2>/dev/null || true)
+              [ "$owner" = "$PROJECT" ] && continue
+              running=$(docker inspect -f '{{ .State.Running }}' "$cid" 2>/dev/null || true)
+              echo "Conflicting container $name ($cid) from project '${owner:-<none>}' (running: $running) — removing"
+              case "$name" in
+                goairclass_mongo)   data_path=/data/db;     canon="${PROJECT}_mongo_data"   ;;
+                goairclass_backend) data_path=/app/uploads; canon="${PROJECT}_uploads_data" ;;
+                *)                  data_path="" ;;
+              esac
+              if [ -n "$data_path" ]; then
+                src=$(vol_of "$cid" "$data_path")
+                if [ "$running" = "true" ] || ! docker volume inspect "$canon" >/dev/null 2>&1; then
+                  docker stop "$cid" >/dev/null 2>&1 || true
+                  migrate_volume "$src" "$canon"
+                fi
               fi
-              sleep 2
+              docker rm -f "$cid" >/dev/null
+            done
+
+            # ── nginx helpers ────────────────────────────────────────────────
+            free_web_ports() {
+              # Only remove port-holders that are NOT ours; compose manages
+              # its own nginx cleanly once strays are gone.
+              ids=$( { docker ps -q --filter "publish=80"; docker ps -q --filter "publish=443"; } | sort -u)
+              for id in $ids; do
+                owner=$(docker inspect -f '{{ index .Config.Labels "com.docker.compose.project" }}' "$id" 2>/dev/null || true)
+                if [ "$owner" != "$PROJECT" ]; then
+                  echo "Force-removing stray container holding port 80/443: $id"
+                  docker rm -f "$id" >/dev/null 2>&1 || true
+                fi
+              done
+            }
+            restart_nginx() {
+              # nginx.conf is bind-mounted as a single file; git replaces the
+              # inode on update, so a running container keeps seeing the OLD
+              # content. Recreating the container is the only reliable way to
+              # apply config changes.
+              free_web_ports
+              docker compose rm -sf nginx >/dev/null 2>&1 || true
+              docker compose up -d --no-build --no-deps nginx
+            }
+            admin_cert_exists() {
+              docker run --rm -v "${PROJECT}_certbot_certs":/le:ro alpine:3 \
+                test -d /le/live/admin.goairclass.com >/dev/null 2>&1
             }
 
-            CERT_EXISTS=no
-            docker compose exec -T nginx test -d /etc/letsencrypt/live/admin.goairclass.com 2>/dev/null && CERT_EXISTS=yes || true
-
-            if [ "$CERT_EXISTS" != "yes" ]; then
-              echo "admin.goairclass.com cert not found — bootstrapping..."
-              cp nginx/nginx.conf nginx/nginx.conf.bak
+            # ── One-time SSL bootstrap for admin.goairclass.com ──────────────
+            # Check the cert on the shared volume directly, so the check works
+            # whether or not nginx happens to be running right now. If the
+            # cert is missing, serve plain HTTP (bootstrap config) instead of
+            # letting nginx crash-loop on missing cert files.
+            BOOTSTRAP=no
+            if ! admin_cert_exists; then
+              BOOTSTRAP=yes
+              echo "admin.goairclass.com cert not found — bootstrapping over plain HTTP..."
               cp nginx/nginx-bootstrap.conf nginx/nginx.conf
-              free_web_ports
-              docker compose up -d --no-build --no-deps nginx
+            fi
+
+            # ── Deploy: recreate anything whose image or config changed ──────
+            free_web_ports
+            docker compose up -d --no-build --remove-orphans
+            restart_nginx
+
+            if [ "$BOOTSTRAP" = "yes" ]; then
               sleep 5
-              timeout 120 docker compose run --rm certbot certonly \
+              # --entrypoint overrides the service's renew-loop entrypoint,
+              # which would otherwise ignore the certonly args and hang forever
+              timeout 180 docker compose run --rm --entrypoint certbot certbot certonly \
                 --webroot -w /var/www/certbot \
                 -d admin.goairclass.com \
                 --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email --non-interactive \
-                || echo "WARNING: admin.goairclass.com cert issuance failed or timed out — check DNS/firewall. Site will retry next deploy."
-              mv nginx/nginx.conf.bak nginx/nginx.conf
-              free_web_ports
-              docker compose up -d --no-build --no-deps nginx
+                || echo "WARNING: admin.goairclass.com cert issuance failed — check that admin.goairclass.com DNS points to this VPS. Will retry next deploy."
+              if admin_cert_exists; then
+                git checkout -- nginx/nginx.conf
+                restart_nginx
+              else
+                echo "WARNING: still no admin cert — leaving HTTP-only bootstrap config active"
+              fi
             fi
-
-            # Rolling restart with the real (SSL) config
-            docker compose up -d --no-build --remove-orphans --no-recreate
-            free_web_ports
-            docker compose up -d --no-build --no-deps nginx
 
             # Cleanup old images
             docker image prune -f
+
+            # ── Verify ───────────────────────────────────────────────────────
+            docker compose ps
+            sleep 5
+            if curl -fsS -o /dev/null --max-time 15 http://127.0.0.1/; then
+              echo "OK: port 80 responding"
+            else
+              echo "FAIL: site not responding on port 80 — recent logs:"
+              docker compose logs --tail=50 nginx backend || true
+              exit 1
+            fi
+            if curl -fsS -o /dev/null --max-time 15 --resolve goairclass.com:443:127.0.0.1 https://goairclass.com/; then
+              echo "OK: https://goairclass.com responding"
+            else
+              echo "WARNING: HTTPS check failed (expected only while certs are still being bootstrapped)"
+            fi
         env:
           CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
