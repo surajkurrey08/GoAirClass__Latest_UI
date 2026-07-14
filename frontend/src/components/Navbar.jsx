@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, User, Bell, ChevronDown, Briefcase } from 'lucide-react'
-import logo from "../assets/logo_new.jpg"
+import logo from "../assets/logo_new4.png"
 import OperatorLoginModal from './OperatorLoginModal'
 import './Navbar.css'
 

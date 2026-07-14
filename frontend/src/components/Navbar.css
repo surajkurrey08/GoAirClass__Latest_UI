@@ -20,8 +20,8 @@
 .gac-navbar__inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 32px;
-  height: 66px;
+  padding: 0 32px 0 8px;
+  height: 64px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -37,10 +37,11 @@
 }
 
 .gac-navbar__logo-img {
-  height: 100px;
-  /* 36px → 52px */
+  height: 80px;
   width: auto;
   object-fit: contain;
+  mix-blend-mode: multiply;
+  margin-left: -30px;
 }
 
 .gac-navbar__logo-text {
