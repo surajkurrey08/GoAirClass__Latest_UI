@@ -76,7 +76,7 @@ export default function Login() {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-white/20 backdrop-blur-sm">
         <div className="p-8">
           <div className="text-center mb-8">
-            <img src="/logo.jpeg" alt="GoAirClass" className="w-14 h-14 rounded-2xl mx-auto mb-4 object-cover" />
+            <img src="/logo_new.jpg" alt="GoAirClass" className="w-14 h-14 rounded-2xl mx-auto mb-4 object-cover" />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Portal</h1>
             <p className="text-gray-500">
               {step === 1

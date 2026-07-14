@@ -183,7 +183,7 @@ export default function Booking() {
                 currency: "INR",
                 name: "GoAirClass",
                 description: `Bus Booking - ${busData.busName || 'Premium Fleet'}`,
-                image: "/logo1.png",
+                image: "/logo_new.jpg",
                 order_id: orderRes.orderId,
                 handler: async function (response) {
                     // 3. Handle Success - Create Booking
