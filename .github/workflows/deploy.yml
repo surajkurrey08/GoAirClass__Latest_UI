@@ -361,6 +361,21 @@ jobs:
             # Cleanup old images
             docker image prune -f
 
+            # ── Diagnostics ──────────────────────────────────────────────────
+            mkdir -p /var/lib/docker/volumes/goairclass_uploads_data/_data || true
+            echo "=== DIAGNOSTICS ===" > /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+            echo "--- docker ps ---" >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+            docker ps >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt 2>&1
+            echo "--- nginx.conf ---" >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+            cat nginx/nginx.conf >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt 2>&1
+            echo "--- host nginx version ---" >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+            nginx -v >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt 2>&1 || true
+            echo "--- host nginx config ---" >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+            cat /etc/nginx/nginx.conf >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt 2>&1 || true
+            cat /etc/nginx/sites-enabled/* >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt 2>&1 || true
+            echo "==================" >> /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+            chmod 644 /var/lib/docker/volumes/goairclass_uploads_data/_data/diagnostics.txt
+
             # ── Verify ───────────────────────────────────────────────────────
             docker compose ps
             sleep 5
