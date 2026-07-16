@@ -7,16 +7,16 @@ const ADMIN_ACCOUNTS = [
     {
         role: "superadmin",
         fullName: "Suraj Kurrey",
-        email: "surajkurrey956@gmail.com",
-        password: "Suraj@2001",
+        email: "rdhayatidak@gmail.com",
+        password: "Rutuja@2004",
         mobileNumber: "9999900001", // placeholder — required unique field, unused for admin login
     },
     {
         role: "admin",
         fullName: "Adil",
-        email: "adilp37055@gmail.com",
-        password: "Adil@2009",
-        mobileNumber: "9999900002", // placeholder — required unique field, unused for admin login
+        email: "itsmedhayatidak@gmail.com",
+        password: "Dhayatidak@2004",
+        mobileNumber: "999990005    ", // placeholder — required unique field, unused for admin login
     },
 ];
 
