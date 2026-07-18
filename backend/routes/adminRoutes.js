@@ -11,7 +11,7 @@ const adminDashboardController = require('../controllers/adminDashboardControlle
 const adminBusController = require('../controllers/adminBusController');
 const routeController = require('../controllers/routeController');
 const adminBookingController = require('../controllers/adminBookingController');
-const { getHotelDashboardStats } = require('../controllers/hotel/hotelController');
+// const { getHotelDashboardStats } = require('../controllers/hotel/hotelController');
 
 // ─── ADMIN BUS MANAGEMENT ────────────────────────────────────────────────────
 router.get('/buses', authMiddleware, adminBusController.getAllBuses);
@@ -50,7 +50,7 @@ router.get('/bookings/operator/:operatorId', authMiddleware, adminBookingControl
 router.post('/bookings/fraud-alerts/:id/action', authMiddleware, adminBookingController.handleFraudAction);
 
 // GET /api/admin/hotel/dashboard
-router.get('/hotel/dashboard', authMiddleware, getHotelDashboardStats);
+// router.get('/hotel/dashboard', authMiddleware, getHotelDashboardStats);
 
 // ─── Helper: build scoped query filters based on admin role ───────────────────
 // superadmin → no filter (sees all)

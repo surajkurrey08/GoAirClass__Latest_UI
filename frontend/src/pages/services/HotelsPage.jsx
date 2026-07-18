@@ -9,6 +9,8 @@ import hotelBannerImg2 from '../../assets/hotel baner img 2.png'
 import hotelBannerImg3 from '../../assets/hotel baner img 3.png'
 import gsap from 'gsap'
 import './HotelsPage.css'
+import API from '../../services/axios'
+
 
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -135,11 +137,75 @@ export default function HotelsPage() {
     }, [])
 
     // Search Form State
+    const [destination, setDestination] = useState('')
     const [checkIn, setCheckIn] = useState('')
     const [checkOut, setCheckOut] = useState('')
-    const [adults, setAdults] = useState('1 Adult')
-    const [children, setChildren] = useState('Children')
-    const [rooms, setRooms] = useState('1 Room')
+    const [roomsCount, setRoomsCount] = useState(1)
+    const [adultsCount, setAdultsCount] = useState(2)
+    const [childrenCount, setChildrenCount] = useState(0)
+    const [showGuestsDropdown, setShowGuestsDropdown] = useState(false)
+
+    // Autocomplete states
+    const [suggestions, setSuggestions] = useState([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+
+    // Refs for click outside
+    const destinationRef = React.useRef(null)
+    const guestsRef = React.useRef(null)
+
+    // Close dropdowns on clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (destinationRef.current && !destinationRef.current.contains(e.target)) {
+                setShowSuggestions(false)
+            }
+            if (guestsRef.current && !guestsRef.current.contains(e.target)) {
+                setShowGuestsDropdown(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    const handleDestinationChange = async (e) => {
+        const value = e.target.value
+        setDestination(value)
+
+        if (value.trim().length > 1) {
+            setLoadingSuggestions(true)
+            setShowSuggestions(true)
+            try {
+                const response = await API.get(`/hotels/locations?query=${encodeURIComponent(value)}`)
+                if (response.data && response.data.success) {
+                    setSuggestions(response.data.locations || [])
+                } else {
+                    setSuggestions([])
+                }
+            } catch (err) {
+                console.error("Error fetching locations:", err)
+                setSuggestions([])
+            } finally {
+                setLoadingSuggestions(false)
+            }
+        } else {
+            setSuggestions([])
+            setShowSuggestions(false)
+        }
+    }
+
+    const getSuggestionText = (item) => {
+        if (!item) return ''
+        if (typeof item === 'string') return item
+        if (item.name) return item.name
+        if (item.displayName) return item.displayName
+        if (item.cityName) return item.cityName
+        if (item.label) return item.label
+        return JSON.stringify(item)
+    }
+
+    // Derived summary string
+    const guestsSummary = `${roomsCount} Room${roomsCount > 1 ? 's' : ''}, ${adultsCount} Adult${adultsCount > 1 ? 's' : ''}${childrenCount > 0 ? `, ${childrenCount} Child${childrenCount > 1 ? 'ren' : ''}` : ''}`
 
     // Booking Modal State
     const [selectedHotel, setSelectedHotel] = useState(null)
@@ -150,7 +216,7 @@ export default function HotelsPage() {
 
     const handleSearch = (e) => {
         e.preventDefault()
-        alert(`Searching hotels:\nCheck-In: ${checkIn || 'Not specified'}\nCheck-Out: ${checkOut || 'Not specified'}\nGuests: ${adults}, ${children}\nRooms: ${rooms}`)
+        alert(`Searching hotels:\nDestination: ${destination || 'Not specified'}\nCheck-In: ${checkIn || 'Not specified'}\nCheck-Out: ${checkOut || 'Not specified'}\nRooms: ${roomsCount}\nGuests: ${adultsCount} Adults, ${childrenCount} Children`)
     }
 
     const handleBookNow = (hotel) => {
@@ -252,10 +318,52 @@ export default function HotelsPage() {
                 {/* Floating Search Bar */}
                 <div className="search-bar-wrapper">
                     <form onSubmit={handleSearch} className="search-bar-container">
+                        {/* Where are you going? */}
+                        <div 
+                            className="search-field-box destination-select-box"
+                            ref={destinationRef}
+                        >
+                            <label>Where are you going?</label>
+                            <div className="search-input-wrapper">
+                                <MapPin size={18} className="field-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search city, hotel or area"
+                                    value={destination}
+                                    onChange={handleDestinationChange}
+                                    onFocus={() => destination.trim().length > 1 && setShowSuggestions(true)}
+                                    required
+                                />
+                            </div>
+
+                            {showSuggestions && (suggestions.length > 0 || loadingSuggestions) && (
+                                <div className="suggestions-dropdown-card">
+                                    {loadingSuggestions ? (
+                                        <div className="suggestion-loading">Loading suggestions...</div>
+                                    ) : (
+                                        suggestions.map((item, idx) => (
+                                            <div 
+                                                key={idx} 
+                                                className="suggestion-item"
+                                                onClick={() => {
+                                                    setDestination(getSuggestionText(item))
+                                                    setShowSuggestions(false)
+                                                }}
+                                            >
+                                                <MapPin size={14} className="suggestion-icon" />
+                                                <span>{getSuggestionText(item)}</span>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Check-In */}
                         <div className="search-field-box">
                             <label>Check in</label>
                             <div className="search-input-wrapper">
+                                <Calendar size={18} className="field-icon" />
                                 <input
                                     type="date"
                                     value={checkIn}
@@ -269,6 +377,7 @@ export default function HotelsPage() {
                         <div className="search-field-box">
                             <label>Check out</label>
                             <div className="search-input-wrapper">
+                                <Calendar size={18} className="field-icon" />
                                 <input
                                     type="date"
                                     value={checkOut}
@@ -278,48 +387,58 @@ export default function HotelsPage() {
                             </div>
                         </div>
 
-                        {/* Adults */}
-                        <div className="search-field-box">
-                            <label>Adults</label>
+                        {/* Rooms & Guests */}
+                        <div 
+                            className="search-field-box guests-select-box"
+                            onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
+                            ref={guestsRef}
+                        >
+                            <label>Rooms & Guests</label>
                             <div className="search-input-wrapper">
-                                <select value={adults} onChange={(e) => setAdults(e.target.value)}>
-                                    <option value="1 Adult">1 Adult</option>
-                                    <option value="2 Adults">2 Adults</option>
-                                    <option value="3 Adults">3 Adults</option>
-                                    <option value="4 Adults">4 Adults</option>
-                                </select>
+                                <Users size={18} className="field-icon" />
+                                <span className="guests-display-text">{guestsSummary}</span>
                             </div>
-                        </div>
 
-                        {/* Children */}
-                        <div className="search-field-box">
-                            <label>Children</label>
-                            <div className="search-input-wrapper">
-                                <select value={children} onChange={(e) => setChildren(e.target.value)}>
-                                    <option value="Children">0 Children</option>
-                                    <option value="1 Child">1 Child</option>
-                                    <option value="2 Children">2 Children</option>
-                                    <option value="3 Children">3 Children</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Rooms */}
-                        <div className="search-field-box">
-                            <label>Rooms</label>
-                            <div className="search-input-wrapper">
-                                <select value={rooms} onChange={(e) => setRooms(e.target.value)}>
-                                    <option value="1 Room">1 Room</option>
-                                    <option value="2 Rooms">2 Rooms</option>
-                                    <option value="3 Rooms">3 Rooms</option>
-                                    <option value="4 Rooms">4 Rooms</option>
-                                </select>
-                            </div>
+                            {showGuestsDropdown && (
+                                <div className="guests-dropdown-card" onClick={(e) => e.stopPropagation()}>
+                                    <div className="guest-row">
+                                        <span>Rooms</span>
+                                        <div className="counter-controls">
+                                            <button type="button" onClick={() => setRoomsCount(Math.max(1, roomsCount - 1))}>-</button>
+                                            <span>{roomsCount}</span>
+                                            <button type="button" onClick={() => setRoomsCount(roomsCount + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                    <div className="guest-row">
+                                        <span>Adults</span>
+                                        <div className="counter-controls">
+                                            <button type="button" onClick={() => setAdultsCount(Math.max(1, adultsCount - 1))}>-</button>
+                                            <span>{adultsCount}</span>
+                                            <button type="button" onClick={() => setAdultsCount(adultsCount + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                    <div className="guest-row">
+                                        <span>Children</span>
+                                        <div className="counter-controls">
+                                            <button type="button" onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))}>-</button>
+                                            <span>{childrenCount}</span>
+                                            <button type="button" onClick={() => setChildrenCount(childrenCount + 1)}>+</button>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        className="guests-done-btn" 
+                                        onClick={() => setShowGuestsDropdown(false)}
+                                    >
+                                        Done
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Search Button */}
                         <button type="submit" className="check-now-btn">
-                            Check Now
+                            Search Hotels
                         </button>
                     </form>
                 </div>

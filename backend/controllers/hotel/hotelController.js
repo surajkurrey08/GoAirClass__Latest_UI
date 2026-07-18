@@ -1,324 +1,197 @@
-const Hotel = require('../../models/hotel/Hotel');
-const Room = require('../../models/hotel/Room');
-const HotelCoupon = require('../../models/hotel/HotelCoupon');
-const engine = require('../../services/pricingEngine');
+const axios = require('axios');
+const HotelLocation = require('../../models/hotel/HotelLocation');
 
-const createHotel = async (req, res) => {
-    try {
-        const hotel = new Hotel(req.body);
-        await hotel.save();
-        res.status(201).json({ success: true, hotel });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+const POPULAR_CITIES = [
+    { id: 99001, name: "Mumbai, Maharashtra, India", cityName: "Mumbai", type: "CITY" },
+    { id: 99002, name: "Delhi, National Capital Territory of Delhi, India", cityName: "Delhi", type: "CITY" },
+    { id: 99003, name: "Bengaluru, Karnataka, India", cityName: "Bengaluru", type: "CITY" },
+    { id: 99004, name: "Hyderabad, Telangana, India", cityName: "Hyderabad", type: "CITY" },
+    { id: 99005, name: "Ahmedabad, Gujarat, India", cityName: "Ahmedabad", type: "CITY" },
+    { id: 99006, name: "Chennai, Tamil Nadu, India", cityName: "Chennai", type: "CITY" },
+    { id: 99007, name: "Kolkata, West Bengal, India", cityName: "Kolkata", type: "CITY" },
+    { id: 99008, name: "Pune, Maharashtra, India", cityName: "Pune", type: "CITY" },
+    { id: 99009, name: "Jaipur, Rajasthan, India", cityName: "Jaipur", type: "CITY" },
+    { id: 99010, name: "Goa, India", cityName: "Goa", type: "CITY" },
+    { id: 99011, name: "Nashik, Maharashtra, India", cityName: "Nashik", type: "CITY" }
+];
+
+// Sync locations from Cleartrip to MongoDB recursively (page by page)
+const syncLocationsFromCleartrip = async () => {
+    const baseUrl = process.env.CLEARTRIP_HOTEL_BASE_URL;
+    const apiKey = process.env.CLEARTRIP_HOTEL_API_KEY;
+    const url = `${baseUrl}/content/locations`;
+
+    if (!baseUrl || !apiKey) {
+        console.error('[Cleartrip Sync] Error: CLEARTRIP_HOTEL_BASE_URL or CLEARTRIP_HOTEL_API_KEY is not defined in env');
+        return;
     }
-};
 
-const getAllHotels = async (req, res) => {
+    console.log('[Cleartrip Sync] Starting Cleartrip locations database synchronization...');
+
+    let nextPageToken = null;
+    let hasNextPage = true;
+    let pageCount = 0;
+    let totalParsed = 0;
+
     try {
-        const hotels = await Hotel.find().sort({ createdAt: -1 });
-        res.json({ success: true, hotels });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
+        while (hasNextPage) {
+            console.log(`[Cleartrip Sync] Fetching page ${pageCount + 1}...`);
 
-const getPendingHotels = async (req, res) => {
-    try {
-        const hotels = await Hotel.find({ status: 'pending' }).sort({ createdAt: -1 });
-        res.json({ success: true, hotels });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const getApprovedHotels = async (req, res) => {
-    try {
-        const { destination } = req.query;
-        let query = { status: 'approved' };
-
-        if (destination) {
-            const searchRegex = new RegExp(destination, 'i');
-            query.$or = [
-                { city: searchRegex },
-                { address: searchRegex },
-                { hotelName: searchRegex }
-            ];
-        }
-
-        const hotels = await Hotel.find(query).lean().sort({ createdAt: -1 });
-        const hotelIds = hotels.map(h => h._id);
-
-        // Fetch active coupons for these hotels
-        const now = new Date();
-        const allCoupons = await HotelCoupon.find({
-            hotelId: { $in: hotelIds },
-            status: 'active',
-            expiryDate: { $gt: now }
-        }).lean();
-
-        // Fetch rooms to determine average/starting price per hotel
-        const rooms = await Room.find({ hotelId: { $in: hotelIds } }).lean();
-
-        // Map rooms by hotelId
-        const roomsByHotelMap = rooms.reduce((acc, room) => {
-            const hid = room.hotelId.toString();
-            if (!acc[hid]) acc[hid] = [];
-            acc[hid].push(room);
-            return acc;
-        }, {});
-
-        // Map best coupon per hotel
-        const bestCouponMap = allCoupons.reduce((acc, coupon) => {
-            const hid = coupon.hotelId.toString();
-            
-            // Check usage limit
-            if (coupon.usageLimit > 0 && coupon.timesUsed >= coupon.usageLimit) return acc;
-
-            const currentBest = acc[hid];
-            if (!currentBest) {
-                acc[hid] = coupon;
-            } else {
-                // Logic to pick "best": simple comparison of discountValue
-                // Note: This logic could be more complex if mix of percentage/flat
-                // but usually flat is higher value than percentage for small values.
-                // Assuming the user wants higher discount value displayed.
-                if (coupon.discountValue > currentBest.discountValue) {
-                    acc[hid] = coupon;
-                }
-            }
-            return acc;
-        }, {});
-
-        // Attach starting price and best coupon with live commission calculation
-        const hotelsWithDeals = await Promise.all(hotels.map(async (hotel) => {
-            const hRooms = roomsByHotelMap[hotel._id.toString()] || [];
-            let startingPrice = null;
-            if (hRooms.length > 0) {
-                startingPrice = Math.min(...hRooms.map(r => r.price || Infinity));
-                if (startingPrice === Infinity) startingPrice = null;
-            }
-
-            let pricingDetails = null;
-            if (startingPrice) {
-                // Calculate live commission/GST for the search results
-                pricingDetails = await engine.calculate({
-                    category: 'Hotel',
-                    hotelId: hotel._id,
-                    sourceCity: hotel.city,
-                    starRating: hotel.starRating,
-                    operatorId: hotel.operatorId,
-                    basePrice: startingPrice,
-                    isWeekend: false, // In a full implementation, these would be dynamic
-                    isFestival: false
-                });
-            }
-            
-            return {
-                ...hotel,
-                startingPrice,
-                pricing: pricingDetails,
-                coupon: bestCouponMap[hotel._id.toString()] || null
+            const params = {
+                locationType: 'CITY',
+                pageSize: 1000
             };
-        }));
+            if (nextPageToken) {
+                params.nextPageToken = nextPageToken;
+            }
 
-        res.json({ success: true, hotels: hotelsWithDeals });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const getRejectedHotels = async (req, res) => {
-    try {
-        const hotels = await Hotel.find({ status: 'rejected' }).sort({ createdAt: -1 });
-        res.json({ success: true, hotels });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const getHotelById = async (req, res) => {
-    try {
-        const hotel = await Hotel.findById(req.params.id);
-        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
-
-        const rooms = await Room.find({ hotelId: req.params.id });
-
-        // Calculate dynamic pricing for each room
-        const roomsWithPricing = await Promise.all(rooms.map(async (room) => {
-            const pricingDetails = await engine.calculate({
-                category: 'Hotel',
-                hotelId: hotel._id,
-                sourceCity: hotel.city,
-                starRating: hotel.starRating,
-                operatorId: hotel.operatorId,
-                basePrice: room.price,
-                isWeekend: false,
-                isFestival: false
+            const response = await axios.get(url, {
+                params,
+                headers: {
+                    'X-CT-API-KEY': apiKey,
+                    'x-request-id': `goairclass-sync-${Date.now()}`,
+                    'Accept': 'application/json'
+                },
+                timeout: 20000
             });
 
-            return {
-                ...room.toObject(),
-                basePrice: room.price,
-                commission: pricingDetails.commission,
-                finalPrice: room.price + pricingDetails.commission,
-                pricing: pricingDetails // Also keep the full breakdown
-            };
-        }));
+            const locationsHierarchy = response.data?.locationsHierarchy || [];
+            const metadataMap = response.data?.locationIdToMetadataMap || {};
 
-        res.json({ success: true, hotel, rooms: roomsWithPricing });
+            hasNextPage = response.data?.hasNextPage || false;
+            nextPageToken = response.data?.nextPageToken || null;
+
+            if (locationsHierarchy.length === 0) {
+                console.log('[Cleartrip Sync] No locations returned on this page. Stopping.');
+                break;
+            }
+
+            // Parse locations on this page
+            const bulkOps = locationsHierarchy.map(item => {
+                const cityId = item.id;
+                const cityMeta = metadataMap[cityId];
+                if (!cityMeta) return null;
+
+                let displayName = cityMeta.name;
+                let parent = item.parent;
+                while (parent && parent.id) {
+                    const parentMeta = metadataMap[parent.id];
+                    if (parentMeta && parentMeta.name) {
+                        displayName += `, ${parentMeta.name}`;
+                    }
+                    parent = parent.parent;
+                }
+
+                return {
+                    updateOne: {
+                        filter: { locationId: cityId },
+                        update: {
+                            $set: {
+                                locationId: cityId,
+                                name: displayName,
+                                cityName: cityMeta.name,
+                                type: cityMeta.type,
+                                coordinates: {
+                                    centerLatitude: cityMeta.coordinates?.centerLatitude,
+                                    centerLongitude: cityMeta.coordinates?.centerLongitude
+                                }
+                            }
+                        },
+                        upsert: true
+                    }
+                };
+            }).filter(Boolean);
+
+            if (bulkOps.length > 0) {
+                await HotelLocation.bulkWrite(bulkOps);
+                totalParsed += bulkOps.length;
+                console.log(`[Cleartrip Sync] Page ${pageCount + 1} synced. Upserted ${bulkOps.length} cities.`);
+            }
+
+            pageCount++;
+
+            // Safety limit in case of infinite loops
+            if (pageCount >= 50) {
+                console.log('[Cleartrip Sync] Reached safety limit of 50 pages. Stopping.');
+                break;
+            }
+        }
+
+        console.log(`[Cleartrip Sync] Finished! Successfully synchronized ${totalParsed} cities from Cleartrip to MongoDB.`);
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        console.error('[Cleartrip Sync] Error during database synchronization:', err.message);
     }
 };
 
-const approveHotel = async (req, res) => {
+// Automatically run sync on startup and seed popular cities
+const initializeLocationsDb = async () => {
     try {
-        const hotel = await Hotel.findByIdAndUpdate(
-            req.params.id,
-            { status: 'approved', rejectionReason: '' },
-            { new: true }
-        );
-        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
-        res.json({ success: true, hotel, message: 'Hotel approved successfully' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const rejectHotel = async (req, res) => {
-    try {
-        const { reason } = req.body;
-        const hotel = await Hotel.findByIdAndUpdate(
-            req.params.id,
-            { status: 'rejected', rejectionReason: reason || 'Rejected by admin' },
-            { new: true }
-        );
-        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
-        res.json({ success: true, hotel, message: 'Hotel rejected' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const blockHotel = async (req, res) => {
-    try {
-        const hotel = await Hotel.findByIdAndUpdate(
-            req.params.id,
-            { isBlocked: true },
-            { new: true }
-        );
-        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
-        res.json({ success: true, hotel, message: 'Hotel blocked' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const unblockHotel = async (req, res) => {
-    try {
-        const hotel = await Hotel.findByIdAndUpdate(
-            req.params.id,
-            { isBlocked: false },
-            { new: true }
-        );
-        if (!hotel) return res.status(404).json({ success: false, message: 'Hotel not found' });
-        res.json({ success: true, hotel, message: 'Hotel unblocked' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const deleteHotel = async (req, res) => {
-    try {
-        await Hotel.findByIdAndDelete(req.params.id);
-        await Room.deleteMany({ hotelId: req.params.id });
-        res.json({ success: true, message: 'Hotel deleted' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-};
-
-const getHotelDashboardStats = async (req, res) => {
-    try {
-        const HotelBooking = require('../../models/hotel/HotelBooking');
-        const dayjs = require('dayjs');
-
-        const [
-            totalHotels,
-            pendingApprovals,
-            approvedHotels,
-            totalBookings,
-            revenueData,
-            recentHotels,
-            rawWeeklyStats
-        ] = await Promise.all([
-            Hotel.countDocuments(),
-            Hotel.countDocuments({ status: 'pending' }),
-            Hotel.countDocuments({ status: 'approved' }),
-            HotelBooking.countDocuments({ status: 'confirmed' }),
-            HotelBooking.aggregate([
-                { $match: { paymentStatus: 'Completed' } },
-                { $group: { _id: null, total: { $sum: '$totalPrice' } } }
-            ]),
-            Hotel.find().sort({ createdAt: -1 }).limit(5),
-            HotelBooking.aggregate([
-                { 
-                    $match: { 
-                        createdAt: { $gte: dayjs().subtract(7, 'days').startOf('day').toDate() },
-                        paymentStatus: 'Completed'
-                    } 
-                },
-                {
-                    $group: {
-                        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                        bookings: { $sum: 1 },
-                        revenue: { $sum: "$totalPrice" }
+        // First seed popular cities so they are always available in MongoDB
+        const bulkOps = POPULAR_CITIES.map(pc => ({
+            updateOne: {
+                filter: { locationId: pc.id },
+                update: {
+                    $set: {
+                        locationId: pc.id,
+                        name: pc.name,
+                        cityName: pc.cityName,
+                        type: pc.type
                     }
                 },
-                { $sort: { _id: 1 } }
-            ])
-        ]);
+                upsert: true
+            }
+        }));
+        await HotelLocation.bulkWrite(bulkOps);
+        console.log(`[Locations Init] Seeded ${POPULAR_CITIES.length} popular cities into MongoDB.`);
 
-        // Standardize the last 7 days to ensure charts are never empty
-        const weeklyStats = [];
-        for (let i = 6; i >= 0; i--) {
-            const dateStr = dayjs().subtract(i, 'days').format('YYYY-MM-DD');
-            const dayData = rawWeeklyStats.find(s => s._id === dateStr);
-            weeklyStats.push({
-                _id: dateStr,
-                bookings: dayData ? dayData.bookings : 0,
-                revenue: dayData ? dayData.revenue : 0
-            });
+        const count = await HotelLocation.countDocuments();
+        // If only seeded cities are present (or less), run Cleartrip sync to grab their cities too
+        if (count <= POPULAR_CITIES.length) {
+            console.log('[Locations Init] Auto-starting Cleartrip sync to fetch partner data...');
+            syncLocationsFromCleartrip();
+        }
+    } catch (err) {
+        console.error('[Locations Init] Error initializing locations database:', err.message);
+    }
+};
+
+// Run initialization check
+setTimeout(initializeLocationsDb, 5000); // Wait 5 seconds for Mongo to connect
+
+// Autocomplete Location Search from MongoDB
+const getLocations = async (req, res) => {
+    try {
+        const { query } = req.query;
+        if (!query || query.trim() === '') {
+            return res.json({ success: true, locations: [] });
         }
 
-        res.json({
-            success: true,
-            stats: {
-                totalHotels,
-                pendingApprovals,
-                approvedHotels,
-                totalBookings,
-                totalRevenue: revenueData[0]?.total || 0,
-            },
-            recentHotels,
-            chartData: weeklyStats
-        });
+        // Search locally in MongoDB using Regex (case-insensitive) for fast matching
+        const searchRegex = new RegExp(query.trim(), 'i');
+        const locations = await HotelLocation.find({
+            $or: [
+                { cityName: searchRegex },
+                { name: searchRegex }
+            ]
+        })
+            .limit(15)
+            .lean();
+
+        res.json({ success: true, locations });
     } catch (err) {
+        console.error('getLocations Error:', err.message);
         res.status(500).json({ success: false, error: err.message });
     }
+};
+
+// Route handler to manually trigger database sync
+const triggerSync = async (req, res) => {
+    // Run asynchronously in background
+    syncLocationsFromCleartrip();
+    res.json({ success: true, message: "Synchronization started in background." });
 };
 
 module.exports = {
-    createHotel,
-    getAllHotels,
-    getPendingHotels,
-    getApprovedHotels,
-    getRejectedHotels,
-    getHotelById,
-    approveHotel,
-    rejectHotel,
-    blockHotel,
-    unblockHotel,
-    deleteHotel,
-    getHotelDashboardStats,
+    getLocations,
+    triggerSync
 };

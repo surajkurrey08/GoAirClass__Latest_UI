@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const OperatorRequest = require('../models/OperatorRequest');
 const Operator = require('../models/Operator');
-const HotelOperator = require('../models/hotel/HotelOperator');
+// const HotelOperator = require('../models/hotel/HotelOperator');
 const Bus = require('../models/Bus');
 const Schedule = require('../models/Schedule');
 const mongoose = require('mongoose');
@@ -158,14 +158,7 @@ const manualCreateOperator = async (req, res) => {
                 adminId: req.user.id
             });
         } else if (operatorType === 'hotel') {
-            await HotelOperator.create({
-                name: fullName,
-                email: email,
-                phone: mobileNumber,
-                username: email, // Default username as email
-                password: 'TEMP_PASSWORD_CHANGE_ME', // Placeholder 
-                role: 'hotel_operator'
-            });
+            console.log("Hotel operator creation is temporarily disabled.");
         }
 
         res.status(201).json({ 

@@ -1,8 +1,17 @@
 const User = require('../models/User');
 const Operator = require('../models/Operator');
-const HotelOperator = require('../models/hotel/HotelOperator');
-const Booking = require('../models/Booking'); // Bus
-const HotelBooking = require('../models/hotel/HotelBooking');
+// const HotelOperator = require('../models/hotel/HotelOperator');
+// const HotelBooking = require('../models/hotel/HotelBooking');
+const HotelOperator = {
+    countDocuments: async () => 0,
+    find: () => ({ sort: () => ({ select: async () => [] }) }),
+    findOne: async () => null,
+    findById: async () => null,
+};
+const HotelBooking = {
+    countDocuments: async () => 0,
+};
+const Booking = require('../models/Booking');
 const FlightBooking = require('../models/flight/flightBooking.model');
 const OperatorRequest = require('../models/OperatorRequest');
 

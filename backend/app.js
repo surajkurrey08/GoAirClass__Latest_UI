@@ -35,18 +35,6 @@ const destinationRoutes = require("./routes/destinationRoutes");
 
 // Hotel module routes
 const hotelRoutes = require('./routes/hotel/hotelRoutes');
-const roomRoutes = require('./routes/hotel/roomRoutes');
-const hotelBookingRoutes = require('./routes/hotel/bookingRoutes');
-const offerRoutes = require('./routes/hotel/offerRoutes');
-const hotelOperatorRoutes = require('./routes/hotel/hotelOperatorRoutes');
-const hotelCouponRoutes = require('./routes/hotel/hotelCouponRoutes');
-
-
-// Hotel Operator Panel routes
-const hotelOperatorAuthRoutes = require('./routes/hotel/hotelOperatorAuthRoutes');
-const operatorHotelRoutes = require('./routes/hotel/operatorHotelRoutes');
-const operatorRoomRoutes = require('./routes/hotel/operatorRoomRoutes');
-const operatorBookingRoutes = require('./routes/hotel/operatorBookingRoutes');
 
 // Flight module routes
 const airportRoutes = require('./routes/flight/airport.routes');
@@ -114,18 +102,6 @@ app.use("/api/bus-operator", busOperatorRoutes);
 
 // Hotel module
 app.use('/api/hotels', hotelRoutes);
-app.use('/api/hotel-rooms', roomRoutes);
-app.use('/api/hotel-bookings', hotelBookingRoutes);
-app.use('/api/hotel-offers', offerRoutes);
-app.use('/api/hotel-operators', hotelOperatorRoutes);
-app.use('/api/hotel-coupons', hotelCouponRoutes);
-
-
-// Hotel Operator Panel
-app.use('/api/hotel-operator/auth', hotelOperatorAuthRoutes);
-app.use('/api/hotel-operator/hotels', operatorHotelRoutes);
-app.use('/api/hotel-operator/rooms', operatorRoomRoutes);
-app.use('/api/hotel-operator/bookings', operatorBookingRoutes);
 
 // Flight module
 app.use('/api/airports', airportRoutes);

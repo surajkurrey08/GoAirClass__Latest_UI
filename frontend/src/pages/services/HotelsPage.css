@@ -169,10 +169,10 @@
 
 .search-bar-container {
   display: grid;
-  grid-template-columns: repeat(5, 1fr) auto;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr auto;
   background: #ffffff;
   border-radius: 0px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #eaeaea;
 }
 
@@ -216,15 +216,173 @@
   -webkit-appearance: none;
 }
 
+.search-input-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: sepia(100%) saturate(200%) brightness(85%) hue-rotate(330deg); /* Style the default indicator if visible */
+}
+
 .field-icon {
   color: #b89565;
+  flex-shrink: 0;
+}
+
+/* Guest Selector Dropdown Styles */
+.guests-select-box {
+  cursor: pointer;
+}
+
+.guests-display-text {
+  color: #222222;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guests-dropdown-card {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.guest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #222222;
+}
+
+.guest-row span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.counter-controls button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #b89565;
+  background: transparent;
+  color: #b89565;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.counter-controls button:hover {
+  background: #b89565;
+  color: #ffffff;
+}
+
+.counter-controls span {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 15px;
+  text-align: center;
+}
+
+.guests-done-btn {
+  background: #b89565;
+  color: #ffffff;
+  border: none;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.guests-done-btn:hover {
+  background: #a38053;
+}
+
+/* Destination Suggestions Dropdown */
+.destination-select-box {
+  position: relative;
+}
+
+.suggestions-dropdown-card {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px;
+}
+
+.suggestion-loading {
+  padding: 15px;
+  color: #888888;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #222222;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid #f9f9f9;
+  text-align: left;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: #f7f5f2;
+  color: #b89565;
+}
+
+.suggestion-icon {
+  color: #b89565;
+  flex-shrink: 0;
 }
 
 .check-now-btn {
   background: #b89565;
   color: #ffffff;
   border: none;
-  padding: 0 45px;
+  padding: 0 35px;
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   font-weight: 700;
@@ -368,17 +526,16 @@
 /* Responsive styles */
 @media (max-width: 1024px) {
   .search-bar-container {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .search-field-box:nth-child(3),
-  .search-field-box:nth-child(4),
-  .search-field-box:nth-child(5) {
+  .search-field-box:nth-child(4) {
     border-top: 1px solid #eaeaea;
   }
 
   .check-now-btn {
-    grid-column: span 3;
+    grid-column: span 2;
     padding: 15px;
   }
 

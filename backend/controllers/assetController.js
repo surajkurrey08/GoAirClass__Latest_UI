@@ -1,6 +1,6 @@
 const Bus = require('../models/Bus');
-const Hotel = require('../models/hotel/Hotel');
-const Room = require('../models/hotel/Room');
+// const Hotel = require('../models/hotel/Hotel');
+// const Room = require('../models/hotel/Room');
 
 const getAssets = async (req, res) => {
     try {
@@ -21,24 +21,7 @@ const getAssets = async (req, res) => {
         }
 
         if (type === 'HOTEL') {
-            const hotels = await Hotel.find();
-
-            // For each hotel, we need its min price from the Room model
-            const assetsWithPrice = await Promise.all(hotels.map(async (h) => {
-                const minRoom = await Room.findOne({ hotelId: h._id }).sort({ price: 1 });
-                return {
-                    id: h._id,
-                    name: h.hotelName,
-                    subtitle: h.city,
-                    price: minRoom?.price || 2000,
-                    type: 'HOTEL',
-                    starRating: h.starRating,
-                    operatorId: h.operatorId || '',
-                    operatorName: h.operatorName || 'N/A'
-                };
-            }));
-
-            return res.json({ success: true, assets: assetsWithPrice });
+            return res.json({ success: true, assets: [] });
         }
 
         res.status(400).json({ success: false, message: 'Invalid asset type' });

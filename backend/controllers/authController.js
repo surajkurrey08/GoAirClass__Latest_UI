@@ -4,7 +4,7 @@ const User = require('../models/User');
 const AdminRequest = require('../models/AdminRequest');
 const Operator = require('../models/Operator');
 const Bus = require('../models/Bus');
-const HotelOperator = require('../models/hotel/HotelOperator');
+// const HotelOperator = require('../models/hotel/HotelOperator');
 const OperatorRequest = require('../models/OperatorRequest');
 const { verifyCaptcha } = require('../utils/captchaService');
 const { sendOTP } = require('../utils/smsService');
@@ -555,16 +555,7 @@ const setAdminPassword = async (req, res) => {
                         { upsert: true, new: true }
                     );
                 } else if (decoded.role === 'hotel_operator') {
-                    await HotelOperator.findOneAndUpdate(
-                        { email: operatorData.email },
-                        { 
-                            ...operatorData,
-                            phone: request.mobileNumber || user.mobileNumber,
-                            username: username || request.email,
-                            role: 'hotel_operator'
-                        },
-                        { upsert: true, new: true }
-                    );
+                    console.log("Hotel operator integration is temporarily disabled.");
                 }
             } catch (createErr) {
                 console.error("Error updating operator record:", createErr);
