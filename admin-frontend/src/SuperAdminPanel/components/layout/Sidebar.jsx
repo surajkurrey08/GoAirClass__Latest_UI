@@ -149,48 +149,6 @@ export default function Sidebar() {
                 </SidebarSection>
 
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
-                    <SidebarDropdown 
-                        label="Flights" 
-                        icon={Plane} 
-                        sidebarOpen={sidebarOpen} 
-                        active={location.pathname.includes('/flights')}
-                    >
-                        {/* Operations */}
-                        <SidebarItem to="flights" icon={LayoutDashboard} label="Flight Dashboard" isSubItem />
-                        <SidebarItem to="flights/bookings" icon={List} label="Bookings" isSubItem />
-                        <SidebarItem to="flights/cancellations" icon={XCircle} label="Refund Panel" isSubItem />
-                        <SidebarItem to="flights/tickets" icon={MessageSquare} label="Support Tickets" isSubItem />
-                        <SidebarItem to="flights/reports" icon={BarChart3} label="Reports" isSubItem />
-
-                        {/* Management & Config */}
-                        <div className="pt-2 pb-1 px-4 ml-4">
-                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 dark:border-slate-800/50 pt-3">
-                                <Settings2 size={12} />
-                                <span>Configuration</span>
-                            </div>
-                        </div>
-                        <SidebarItem to="flights/api-config" icon={Settings2} label="API Config" isSubItem />
-                        <SidebarItem to="flights/airlines" icon={Plane} label="Airlines" isSubItem />
-                        <SidebarItem to="flights/inventory" icon={Layers} label="Flight Inventory" isSubItem />
-                        <SidebarItem to="flights/routes" icon={Navigation} label="Routes" isSubItem />
-                        <SidebarItem to="flights/airports" icon={MapPin} label="Airports" isSubItem />
-                        <SidebarItem to="flights/pricing" icon={Tag} label="Pricing Engine" isSubItem />
-                        <SidebarItem to="flights/commissions" icon={Percent} label="Commissions" isSubItem />
-                        <SidebarItem to="flights/offers" icon={Gift} label="Offers" isSubItem />
-                        
-                        {/* Ancillaries Section */}
-                        <SidebarDropdown 
-                            label="Ancillaries" 
-                            icon={Layers} 
-                            sidebarOpen={sidebarOpen} 
-                            active={location.pathname.includes('/ancillaries')}
-                        >
-                            <SidebarItem to="flights/ancillaries/meals" icon={CheckCircle} label="Meal Master" isSubItem />
-                            <SidebarItem to="flights/ancillaries/add-meals" icon={Plus} label="Add New Meal" isSubItem />
-                            <SidebarItem to="flights/ancillaries/seats" icon={Settings2} label="Seat Configuration" isSubItem />
-                            <SidebarItem to="flights/ancillaries/baggage" icon={FileText} label="Baggage Master" isSubItem />
-                        </SidebarDropdown>
-                    </SidebarDropdown>
                     <SidebarItem to="hotels" icon={Hotel} label="Hotels" />
 
                     <SidebarDropdown

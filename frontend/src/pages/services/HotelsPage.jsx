@@ -149,10 +149,13 @@ export default function HotelsPage() {
     const [suggestions, setSuggestions] = useState([])
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+    const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
 
     // Refs for click outside
     const destinationRef = React.useRef(null)
     const guestsRef = React.useRef(null)
+    const suggestionAbortRef = React.useRef(null)
+    const suggestionTimerRef = React.useRef(null)
 
     // Close dropdowns on clicking outside
     React.useEffect(() => {
@@ -168,28 +171,54 @@ export default function HotelsPage() {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    const handleDestinationChange = async (e) => {
+    React.useEffect(() => {
+        return () => {
+            if (suggestionTimerRef.current) clearTimeout(suggestionTimerRef.current)
+            if (suggestionAbortRef.current) suggestionAbortRef.current.abort()
+        }
+    }, [])
+
+    const handleDestinationChange = (e) => {
         const value = e.target.value
         setDestination(value)
 
+        if (suggestionTimerRef.current) clearTimeout(suggestionTimerRef.current)
+        if (suggestionAbortRef.current) suggestionAbortRef.current.abort()
+
         if (value.trim().length > 1) {
             setLoadingSuggestions(true)
+            setSuggestionsLoaded(false)
             setShowSuggestions(true)
-            try {
-                const response = await API.get(`/hotels/locations?query=${encodeURIComponent(value)}`)
-                if (response.data && response.data.success) {
-                    setSuggestions(response.data.locations || [])
-                } else {
+
+            suggestionTimerRef.current = setTimeout(async () => {
+                const controller = new AbortController()
+                suggestionAbortRef.current = controller
+
+                try {
+                    const response = await API.get(`/hotels/locations?query=${encodeURIComponent(value)}`, {
+                        signal: controller.signal,
+                        timeout: 35000
+                    })
+                    if (response.data && response.data.success) {
+                        setSuggestions(response.data.locations || [])
+                    } else {
+                        setSuggestions([])
+                    }
+                } catch (err) {
+                    if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return
+                    console.error("Error fetching locations:", err)
                     setSuggestions([])
+                } finally {
+                    if (!controller.signal.aborted) {
+                        setLoadingSuggestions(false)
+                        setSuggestionsLoaded(true)
+                    }
                 }
-            } catch (err) {
-                console.error("Error fetching locations:", err)
-                setSuggestions([])
-            } finally {
-                setLoadingSuggestions(false)
-            }
+            }, 350)
         } else {
             setSuggestions([])
+            setSuggestionsLoaded(false)
+            setLoadingSuggestions(false)
             setShowSuggestions(false)
         }
     }
@@ -216,7 +245,7 @@ export default function HotelsPage() {
 
     const handleSearch = (e) => {
         e.preventDefault()
-        alert(`Searching hotels:\nDestination: ${destination || 'Not specified'}\nCheck-In: ${checkIn || 'Not specified'}\nCheck-Out: ${checkOut || 'Not specified'}\nRooms: ${roomsCount}\nGuests: ${adultsCount} Adults, ${childrenCount} Children`)
+        navigate(`/hotels/list?destination=${encodeURIComponent(destination)}&checkIn=${checkIn}&checkOut=${checkOut}&rooms=${roomsCount}&adults=${adultsCount}&children=${childrenCount}&guests=${adultsCount + childrenCount}`)
     }
 
     const handleBookNow = (hotel) => {
@@ -336,11 +365,11 @@ export default function HotelsPage() {
                                 />
                             </div>
 
-                            {showSuggestions && (suggestions.length > 0 || loadingSuggestions) && (
+                            {showSuggestions && (suggestions.length > 0 || loadingSuggestions || suggestionsLoaded) && (
                                 <div className="suggestions-dropdown-card">
                                     {loadingSuggestions ? (
                                         <div className="suggestion-loading">Loading suggestions...</div>
-                                    ) : (
+                                    ) : suggestions.length > 0 ? (
                                         suggestions.map((item, idx) => (
                                             <div 
                                                 key={idx} 
@@ -354,6 +383,8 @@ export default function HotelsPage() {
                                                 <span>{getSuggestionText(item)}</span>
                                             </div>
                                         ))
+                                    ) : (
+                                        <div className="suggestion-loading">No suggestions found</div>
                                     )}
                                 </div>
                             )}

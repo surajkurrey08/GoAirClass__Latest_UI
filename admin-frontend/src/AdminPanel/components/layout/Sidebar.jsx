@@ -15,10 +15,10 @@ const SidebarItem = ({ to, icon: Icon, label, badge }) => (
         to={to}
         end
         className={({ isActive }) => `
-            flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group
+            flex items-center justify-between px-4 py-3 rounded-r-xl rounded-l-none transition-all duration-200 group border-l-4
             ${isActive
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/50 hover:text-blue-600'}
+                ? 'bg-orange-50/70 border-orange-500 text-orange-600 font-bold dark:bg-orange-950/20'
+                : 'border-transparent text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50 hover:text-orange-600'}
         `}
     >
         <div className="flex items-center gap-3">
@@ -26,7 +26,7 @@ const SidebarItem = ({ to, icon: Icon, label, badge }) => (
             <span className="font-semibold text-sm tracking-wide whitespace-nowrap">{label}</span>
         </div>
         {badge && (
-            <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500 text-white rounded-full">
+            <span className="px-2 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded-full">
                 {badge}
             </span>
         )}
@@ -60,19 +60,19 @@ export default function Sidebar() {
     return (
         <aside className={`
             fixed top-0 left-0 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800
-            transition-all duration-300 z-50
+            transition-all duration-300 z-50 font-body
             ${sidebarOpen ? 'w-72' : 'w-20'}
         `}>
             <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100 dark:border-slate-800">
                 {sidebarOpen ? (
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold">A</div>
-                        <span className="text-lg font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
-                            AdminPanel
+                        <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold">A</div>
+                        <span className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                           Admin platform
                         </span>
                     </div>
                 ) : (
-                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold mx-auto">A</div>
+                    <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold mx-auto">A</div>
                 )}
             </div>
 
@@ -85,22 +85,15 @@ export default function Sidebar() {
 
                 <SidebarSection title="Services" isOpen={sidebarOpen}>
                     <SidebarDropdown
-                        icon={Plane}
-                        label="Flights"
+                        icon={Hotel}
+                        label="Hotels"
                         sidebarOpen={sidebarOpen}
                         items={[
-                            { to: '/admin/flights', label: 'Dashboard' },
-                            { to: '/admin/flights/bookings', label: 'Bookings' },
-                            { to: '/admin/flights/refunds', label: 'Refund Panel' },
-                            { to: '/admin/flights/tickets', label: 'Support Tickets' },
-                            { to: '/admin/flights/reports', label: 'Reports' },
-                            { isHeader: true, label: 'Ancillaries' },
-                            { to: '/admin/flights/ancillaries/meals', label: 'Meal Mapping' },
-                            { to: '/admin/flights/ancillaries/seats', label: 'Seat Mapping' },
-                            { to: '/admin/flights/ancillaries/baggage', label: 'Baggage Mapping' }
+                            { to: '/admin/bookings?type=hotels', label: 'Bookings' },
+                            { to: '/admin/hotels/sync', label: 'Sync Content' },
+                            { to: '/admin/hotels/list', label: 'Hotel Directory' }
                         ]}
                     />
-                    <SidebarItem to="bookings?type=hotels" icon={Hotel} label="Hotels" />
                     <SidebarDropdown
                         icon={Bus}
                         label="Buses"
@@ -172,7 +165,7 @@ export default function Sidebar() {
 
             <button
                 onClick={toggleSidebar}
-                className="absolute -right-3 top-24 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm hover:shadow-md transition-all text-slate-400 hover:text-blue-600"
+                className="absolute -right-3 top-24 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm hover:shadow-md transition-all text-slate-400 hover:text-orange-500"
             >
                 {sidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
             </button>

@@ -27,6 +27,13 @@ const CONFIG = {
     desc: 'Comfortable bus travel to 1000+ destinations',
     fallbackBg: 'linear-gradient(135deg, #1c0a00 0%, #78350f 50%, #0a1628 100%)',
   },
+  flights: {
+    title: 'Flights', color: '#2563eb',
+    gradient: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+    heroType: 'flight',
+    desc: 'Fly to your dream destination with premium airlines',
+    fallbackBg: 'linear-gradient(135deg, #091e3a 0%, #2f80ed 50%, #0a1628 100%)',
+  },
 }
 
 export default function ComingSoon({ type }) {
@@ -128,20 +135,37 @@ export default function ComingSoon({ type }) {
 
             {/* Buttons */}
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => navigate('/flights')}
-                style={{
-                  padding: '14px 32px', borderRadius: 99, border: 'none',
-                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                  color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(37,99,235,0.4)',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 32px rgba(37,99,235,0.5)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,99,235,0.4)' }}
-              >
-                ✈️ Book Flights Instead
-              </button>
+              {type !== 'flights' ? (
+                <button
+                  onClick={() => navigate('/flights')}
+                  style={{
+                    padding: '14px 32px', borderRadius: 99, border: 'none',
+                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                    color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                    boxShadow: '0 8px 24px rgba(37,99,235,0.4)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 32px rgba(37,99,235,0.5)' }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(37,99,235,0.4)' }}
+                >
+                  ✈️ Book Flights Instead
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate('/hotels')}
+                  style={{
+                    padding: '14px 32px', borderRadius: 99, border: 'none',
+                    background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                    color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                    boxShadow: '0 8px 24px rgba(124,58,237,0.4)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 32px rgba(124,58,237,0.5)' }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(124,58,237,0.4)' }}
+                >
+                  🏨 Book Hotels Instead
+                </button>
+              )}
               <button
                 onClick={() => navigate('/')}
                 style={{

@@ -69,7 +69,7 @@ export default function Navbar() {
               </span>
               <div className="gac-navbar__dropdown-menu">
                 <div className="navbar__dropdown-menu">
-                  <Link to="/flights" className="gac-dropdown-item">✈ Flights</Link>
+                  <Link to="/flights" className="gac-dropdown-item">✈️ Flights</Link>
                   <Link to="/hotels" className="gac-dropdown-item">🏨 Hotels</Link>
                   <Link to="/trains" className="gac-dropdown-item">🚆 Trains</Link>
                   <Link to="/buses" className="gac-dropdown-item">🚌 Buses</Link>

@@ -2,6 +2,7 @@ const Booking = require('../models/Booking');
 const CancellationLog = require('../models/CancellationLog');
 const FraudAlert = require('../models/FraudAlert');
 const User = require('../models/User');
+const HotelBooking = require('../models/hotel/HotelBooking');
 
 /**
  * GET /api/admin/bookings
@@ -14,7 +15,7 @@ exports.getAllBookings = async (req, res) => {
 
         if (status) query.status = status;
         if (paymentStatus) query.paymentStatus = paymentStatus;
-        
+
         // Date range filtering
         if (startDate && endDate) {
             query.bookingDate = {
@@ -61,7 +62,7 @@ exports.forceCancelBooking = async (req, res) => {
     try {
         const { reason, refundAmount } = req.body;
         const booking = await Booking.findById(req.params.id);
-        
+
         if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
         if (booking.status === 'Cancelled') return res.status(400).json({ success: false, message: 'Booking is already cancelled' });
 
@@ -116,7 +117,7 @@ exports.getFraudAlerts = async (req, res) => {
             .populate('booking', 'pnrNumber totalFare')
             .populate('user', 'name email mbile')
             .sort({ createdAt: -1 });
-            
+
         res.json({ success: true, alerts });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -138,7 +139,7 @@ exports.handleFraudAction = async (req, res) => {
             await User.findByIdAndUpdate(alert.user, { isBlocked: true });
             alert.status = 'Resolved';
         }
-        
+
         await alert.save();
         res.json({ success: true, message: `Fraud alert action '${action}' processed` });
     } catch (error) {
@@ -167,11 +168,11 @@ exports.approveCancel = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-        
+
         booking.status = 'Cancelled';
         booking.paymentStatus = 'Cancelled';
         await booking.save();
-        
+
         res.json({ success: true, message: 'Cancellation approved', booking });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -185,10 +186,10 @@ exports.rejectCancel = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-        
+
         booking.status = 'cancel_rejected';
         await booking.save();
-        
+
         res.json({ success: true, message: 'Cancellation request rejected', booking });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -202,11 +203,11 @@ exports.initiateRefund = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-        
+
         // Admin can initiate, but superadmin handles final (simulated here)
         booking.status = 'refund_initiated';
         await booking.save();
-        
+
         res.json({ success: true, message: 'Refund initiated successfully', booking });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -227,10 +228,10 @@ exports.getOperatorBookings = async (req, res) => {
             })
             .populate('userId', 'name email mobile')
             .sort({ createdAt: -1 });
-            
+
         // Filter out bookings where bus didn't match the operator
         const filtered = bookings.filter(b => b.bus !== null);
-        
+
         res.json({ success: true, bookings: filtered });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -246,27 +247,41 @@ exports.getBookingStats = async (req, res) => {
             {
                 $facet: {
                     totals: [
-                        { $group: { 
-                            _id: null, 
-                            totalBookings: { $sum: 1 },
-                            totalRevenue: { $sum: { $cond: [{ $eq: ["$paymentStatus", "Completed"] }, "$totalFare", 0] } },
-                            cancelledBookings: { $sum: { $cond: [{ $eq: ["$status", "Cancelled"] }, 1, 0] } },
-                            pendingRefunds: { $sum: { $cond: [{ $eq: ["$status", "refund_initiated"] }, 1, 0] } }
-                        }}
+                        {
+                            $group: {
+                                _id: null,
+                                totalBookings: { $sum: 1 },
+                                totalRevenue: { $sum: { $cond: [{ $eq: ["$paymentStatus", "Completed"] }, "$totalFare", 0] } },
+                                cancelledBookings: { $sum: { $cond: [{ $eq: ["$status", "Cancelled"] }, 1, 0] } },
+                                pendingRefunds: { $sum: { $cond: [{ $eq: ["$status", "refund_initiated"] }, 1, 0] } }
+                            }
+                        }
                     ]
                 }
             }
         ]);
 
-        res.json({ 
-            success: true, 
-            stats: stats[0].totals[0] || { 
-                totalBookings: 0, 
-                totalRevenue: 0, 
-                cancelledBookings: 0, 
-                pendingRefunds: 0 
-            } 
+        res.json({
+            success: true,
+            stats: stats[0].totals[0] || {
+                totalBookings: 0,
+                totalRevenue: 0,
+                cancelledBookings: 0,
+                pendingRefunds: 0
+            }
         });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /api/admin/bookings/hotels
+ */
+exports.getAllHotelBookings = async (req, res) => {
+    try {
+        const bookings = await HotelBooking.find({ tripId: { $exists: true, $ne: null } }).sort({ createdAt: -1 });
+        res.json({ success: true, bookings });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

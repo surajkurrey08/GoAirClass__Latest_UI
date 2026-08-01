@@ -19,12 +19,14 @@ import 'react-toastify/dist/ReactToastify.css'
 
 
 // ── Service Pages ──
+import HotelsPage from './pages/services/HotelsPage'
+import HotelListPage from './hotel/HotelListPage'
+import HotelDetailPage from './hotel/HotelDetailPage'
+import HotelCheckoutPage from './hotel/HotelCheckoutPage'
 import FlightsPage from './pages/services/FlightsPage'
-import HotelsPage  from './pages/services/HotelsPage'
-import TrainsPage  from './pages/services/TrainsPage'
-import BusesPage   from './pages/services/BusesPage'
-import FlightReviewPage from './pages/flights/FlightReviewPage'
-import FlightPaymentPage from './pages/flights/FlightPaymentPage'
+import FlightListPage from './flight/FlightListPage'
+import TrainsPage from './pages/services/TrainsPage'
+import BusesPage from './pages/services/BusesPage'
 
 // Admin panels moved to admin.goairclass.com — redirect old links there
 function ExternalRedirect({ to }) {
@@ -43,12 +45,14 @@ export default function App() {
         <Route path="/search" element={<Search />} />
 
         {/* ── Service Pages ── */}
+        <Route path="/hotels" element={<HotelsPage />} />
+        <Route path="/hotels/list" element={<HotelListPage />} />
+        <Route path="/hotels/detail/:hotelId" element={<HotelDetailPage />} />
+        <Route path="/hotel/checkout" element={<HotelCheckoutPage />} />
         <Route path="/flights" element={<FlightsPage />} />
-        <Route path="/flight/review" element={<FlightReviewPage />} />
-        <Route path="/flight/payment" element={<FlightPaymentPage />} />
-        <Route path="/hotels"  element={<HotelsPage />} />
-        <Route path="/trains"  element={<TrainsPage />} />
-        <Route path="/buses"   element={<BusesPage />} />
+        <Route path="/flights/list" element={<FlightListPage />} />
+        <Route path="/trains" element={<TrainsPage />} />
+        <Route path="/buses" element={<BusesPage />} />
 
         <Route path="/detail/:id" element={<Detail />} />
         <Route path="/bus-selection/:scheduleId" element={<SeatSelection />} />
@@ -70,7 +74,7 @@ export default function App() {
           <ProtectedRoute allowedRoles={['bus_operator']}>
             <BusOperatorApp />
           </ProtectedRoute>
-        }/>
+        } />
       </Routes>
     </BrowserRouter>
   )

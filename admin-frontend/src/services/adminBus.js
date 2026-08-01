@@ -177,6 +177,24 @@ export const fetchAdminBookings = async (params = {}) => {
   }
 };
 
+export const fetchAdminHotelBookings = async () => {
+  try {
+    const response = await API.get('/admin/bookings/hotels');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch hotel bookings');
+  }
+};
+
+export const fetchAdminTripDetails = async (tripId) => {
+  try {
+    const response = await API.get(`/hotels/trip/${tripId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch trip details');
+  }
+};
+
 export const fetchBookingStats = async () => {
   try {
     const response = await API.get('/admin/bookings/stats');

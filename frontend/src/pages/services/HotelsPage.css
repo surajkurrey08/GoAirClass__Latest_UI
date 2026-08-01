@@ -161,7 +161,7 @@
 /* Floating Search Bar */
 .search-bar-wrapper {
   position: absolute;
-  bottom: -40px;
+  bottom: 20px;
   left: 60px;
   right: 60px;
   z-index: 10;

@@ -1,43 +1,70 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2563EB;
-  --color-primary-light: #3B82F6;
-  --color-primary-dark: #1D4ED8;
-  --color-secondary: #0EA5E9;
-  --color-accent: #F59E0B;
+  --color-primary: #f97316;
+  --color-primary-light: #fff7ed;
+  --color-primary-dark: #ea580c;
+  --color-secondary: #fb923c;
+  --color-accent: #f97316;
   --color-accent-green: #10B981;
-  --color-bg: #F9FAFB;
+  --color-bg: #f8fafc;
   --color-text-dark: #111827;
-  --color-text-gray: #6B7280;
-  
-  --font-display: 'Clash Display', sans-serif;
-  --font-body: 'Sora', sans-serif;
-  
-  --radius-xl: 28px;
-  --radius-2xl: 32px;
+  --color-text-gray: #374151;
+
+  /* Map default blue/indigo classes to orange theme to prevent visual leakage */
+  --color-blue-50: #fff7ed;
+  --color-blue-100: #ffedd5;
+  --color-blue-200: #fed7aa;
+  --color-blue-500: #f97316;
+  --color-blue-600: #f97316;
+  --color-blue-700: #ea580c;
+
+  --color-indigo-50: #fff7ed;
+  --color-indigo-100: #ffedd5;
+  --color-indigo-500: #f97316;
+  --color-indigo-600: #ea580c;
+  --color-indigo-700: #c2410c;
+
+  --color-slate-50: #f8fafc;
+
+  --font-display: Inter, system-ui, -apple-system, sans-serif;
+  --font-body: Inter, system-ui, -apple-system, sans-serif;
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 9999px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+
+  /* Typography Scale */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
 }
 
 /* Global Styles */
 :root {
-  --primary:       #2563eb;
-  --primary-dark:  #1d4ed8;
-  --primary-light: #bfdbfe;
-  --accent:        #f59e0b;
-  --accent-green:  #10b981;
-  --bg:            #f3f4f6;
-  --border:        #e5e7eb;
-  --text-dark:     #111827;
-  --text-gray:     #6b7280;
-  --text-light:    #9ca3af;
-  --radius:        12px;
-  --radius-lg:     16px;
-  --radius-xl:     20px;
-  --transition:    all 0.25s ease;
-  --shadow-sm:     0 1px 4px rgba(0,0,0,0.06);
-  --shadow-md:     0 4px 16px rgba(0,0,0,0.10);
-  --shadow-lg:     0 8px 24px rgba(0,0,0,0.12);
-  --shadow-xl:     0 16px 40px rgba(0,0,0,0.16);
+  --primary: #f97316;
+  --primary-dark: #ea580c;
+  --primary-light: #fff7ed;
+  --accent: #f97316;
+  --accent-green: #10b981;
+  --bg: #f8fafc;
+  --border: #e5e7eb;
+  --text-dark: #111827;
+  --text-gray: #374151;
+  --text-light: #6b7280;
+  --radius: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 9999px;
+  --transition: all 0.25s ease;
+  --shadow-sm: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  --shadow-md: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
 }
 
 html {
@@ -46,16 +73,22 @@ html {
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
   background-color: var(--color-bg);
   color: var(--color-text-dark);
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100%;
 }
 
 /* Headings */
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   font-family: var(--font-display);
   line-height: 1.2;
 }
@@ -64,9 +97,11 @@ h1, h2, h3, h4, h5 {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-bg);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-primary-light);
   border-radius: 99px;
@@ -74,32 +109,85 @@ h1, h2, h3, h4, h5 {
 
 /* Custom Animations */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
-.animate-fadeInUp { animation: fadeInUp 0.7s ease both; }
-.animate-shake { animation: shake 0.4s ease-in-out; }
-.animate-fadeIn { animation: fadeIn 0.5s ease both; }
+.animate-fadeInUp {
+  animation: fadeInUp 0.7s ease both;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease both;
+}
 
 /* Legacy Utility Compatibility (Optional) */
 .btn {
   @apply inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full font-semibold transition-all duration-300;
 }
+
 .btn-primary {
   @apply bg-primary text-white hover:bg-primary-dark hover:-translate-y-0.5 shadow-lg shadow-primary/20;
 }
+
 .container {
   @apply max-w-7xl mx-auto px-6;
+}
+
+/* Global simple structure overrides to standardize the whole admin panel layout */
+div[class*="rounded-[2"],
+div[class*="rounded-2xl"],
+div[class*="rounded-[2.5"],
+div[class*="rounded-3xl"],
+div[class*="rounded-[24px]"],
+div[class*="rounded-[28px]"] {
+  border-radius: 8px !important;
+}
+
+div[class*="shadow-xl"],
+div[class*="shadow-2xl"],
+div[class*="shadow-lg"] {
+  box-shadow: rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px !important;
+}
+
+/* Global font weight normalizer */
+.font-black {
+  font-weight: 700 !important;
 }

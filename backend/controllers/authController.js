@@ -786,11 +786,13 @@ const adminLoginStep1 = async (req, res) => {
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
-        // Rate limit: 1 OTP request per minute
-        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-        const recentOtp = await Otp.findOne({ email, purpose: 'admin-login', createdAt: { $gte: oneMinuteAgo } });
-        if (recentOtp) {
-            return res.status(429).json({ success: false, message: "Please wait 1 minute before requesting another OTP." });
+        // Rate limit: 1 OTP request per minute (Production only)
+        if (process.env.NODE_ENV === 'production') {
+            const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+            const recentOtp = await Otp.findOne({ email, purpose: 'admin-login', createdAt: { $gte: oneMinuteAgo } });
+            if (recentOtp) {
+                return res.status(429).json({ success: false, message: "Please wait 1 minute before requesting another OTP." });
+            }
         }
 
         const otp = generate6DigitOtp();
@@ -800,13 +802,13 @@ const adminLoginStep1 = async (req, res) => {
         await Otp.create({ email, otp, purpose: 'admin-login', expiresAt });
 
         const mailSent = await sendOtpEmail(email, otp);
-        if (!mailSent) {
+        if (!mailSent && process.env.NODE_ENV !== 'development') {
             return res.status(500).json({ success: false, message: "Failed to send OTP email. Please try again." });
         }
 
         res.status(200).json({
             success: true,
-            message: "OTP sent to your email successfully",
+            message: mailSent ? "OTP sent to your email successfully" : "OTP email failed but allowed in DEV mode",
             ...(process.env.NODE_ENV === 'development' && { otp })
         });
     } catch (error) {

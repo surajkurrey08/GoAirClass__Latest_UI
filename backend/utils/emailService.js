@@ -66,6 +66,13 @@ Do not share this OTP with anyone.`,
         return true;
     } catch (error) {
         console.error('Error sending OTP email:', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.log("\n--- [DEV FALLBACK MODE] EMAIL SENDING FAILED (SMTP AUTH), PRINTING OTP ---");
+            console.log(`To: ${to}`);
+            console.log(`OTP Code: ${otp}`);
+            console.log("-------------------------------------------------------------------------\n");
+            return true;
+        }
         return false;
     }
 };
@@ -125,6 +132,13 @@ const sendSetPasswordEmail = async (to, name, role, link) => {
         return true;
     } catch (error) {
         console.error('Error sending email:', error);
+        if (process.env.NODE_ENV === 'development') {
+            console.log("\n--- [DEV FALLBACK MODE] EMAIL SENDING FAILED (SMTP AUTH), PRINTING LINK ---");
+            console.log(`To: ${to}`);
+            console.log(`Activation Link: ${link}`);
+            console.log("---------------------------------------------------------------------------\n");
+            return true;
+        }
         return false;
     }
 };

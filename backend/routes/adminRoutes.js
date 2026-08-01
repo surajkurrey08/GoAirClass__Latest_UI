@@ -40,6 +40,7 @@ router.patch('/routes/:id/popular', authMiddleware, routeController.togglePopula
 
 // ─── BOOKING CONTROL MANAGEMENT ──────────────────────────────────────────────
 router.get('/bookings', authMiddleware, adminBookingController.getAllBookings);
+router.get('/bookings/hotels', authMiddleware, adminBookingController.getAllHotelBookings);
 router.get('/bookings/stats', authMiddleware, adminBookingController.getBookingStats);
 router.get('/bookings/cancel-requests', authMiddleware, adminBookingController.getCancelRequests);
 router.patch('/bookings/:id/force-cancel', authMiddleware, adminBookingController.forceCancelBooking);

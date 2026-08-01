@@ -12,7 +12,9 @@ const HotelBooking = {
     countDocuments: async () => 0,
 };
 const Booking = require('../models/Booking');
-const FlightBooking = require('../models/flight/flightBooking.model');
+const FlightBooking = {
+    countDocuments: async () => 0,
+};
 const OperatorRequest = require('../models/OperatorRequest');
 
 // Get centralized stats for User Directory

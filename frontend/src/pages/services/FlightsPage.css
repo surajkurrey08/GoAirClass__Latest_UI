@@ -1,0 +1,847 @@
+/* src/pages/services/FlightsPage.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+/* Design Tokens & Theme Mapping */
+:root {
+  --fly-font-family: 'Montserrat', sans-serif;
+  --fly-color-text-primary: #545454;
+  --fly-color-text-secondary: #b89565;
+  /* GoAirClass Gold */
+  --fly-color-text-tertiary: #ffffff;
+  --fly-color-surface-base: #0b0f19;
+  /* GoAirClass Dark */
+  --fly-color-surface-muted: #b89565;
+  /* GoAirClass Gold */
+  --fly-color-border: #e0e0e0;
+  --fly-radius-xs: 4px;
+  --fly-shadow-1: rgb(154, 120, 75) 0px 2px 0px 0px;
+  --fly-shadow-hover: 0 10px 30px rgba(184, 149, 101, 0.25);
+  --fly-space-1: 5px;
+  --fly-space-2: 20px;
+  --fly-transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flights-page-container {
+  font-family: var(--fly-font-family);
+  color: var(--fly-color-text-primary);
+  background-color: #f9fbfd;
+  min-height: 100vh;
+  margin-top: 64px;
+  /* Space for GAC navbar */
+  /* Space for GAC navbar */
+}
+
+/* Hero Section */
+.flights-hero {
+  position: relative;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--fly-color-surface-base);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--fly-color-text-tertiary);
+  padding: 0 var(--fly-space-2);
+  overflow: hidden;
+}
+
+.hero-animating-plane {
+  position: absolute;
+  top: 10%;
+  left: 0;
+  width: 640px;
+  height: auto;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.45));
+}
+
+.flights-hero-content {
+  text-align: center;
+  max-width: 800px;
+  z-index: 10;
+}
+
+.flights-hero-tag {
+  background: var(--fly-color-surface-muted);
+  color: var(--fly-color-text-tertiary);
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: var(--fly-radius-xs);
+  display: inline-block;
+  margin-bottom: var(--fly-space-2);
+  box-shadow: var(--fly-shadow-1);
+}
+
+.flights-hero-title {
+  font-family: 'Cinzel', serif;
+  font-size: 54px;
+  font-weight: 700;
+  margin-bottom: var(--fly-space-2);
+  line-height: 1.2;
+}
+
+.flights-hero-desc {
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+/* Booking Section */
+.charter-booking-section {
+  max-width: 1200px;
+  margin: -80px auto var(--fly-space-2);
+  background: #ffffff;
+  padding: 40px;
+  border-radius: var(--fly-radius-xs);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+  position: relative;
+  border-top: 4px solid var(--fly-color-surface-muted);
+}
+
+.section-title-wrapper {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.section-subtitle {
+  color: var(--fly-color-surface-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.section-main-title {
+  font-family: 'Cinzel', serif;
+  font-size: 32px;
+  color: #1a2744;
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+/* Form Styles */
+.charter-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-space-2);
+}
+
+.form-row-three {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--fly-space-2);
+}
+
+.form-row-two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--fly-space-2);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a2744;
+}
+
+.form-control {
+  padding: 12px 16px;
+  border: 1px solid var(--fly-color-border);
+  border-radius: var(--fly-radius-xs);
+  font-size: 15px;
+  color: var(--fly-color-text-primary);
+  background: #f8fafc;
+  transition: var(--fly-transition-base);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--fly-color-surface-muted);
+  box-shadow: 0 0 0 3px rgba(130, 180, 64, 0.25);
+  background: #ffffff;
+}
+
+/* Button & States */
+.btn-flynext-primary {
+  background-color: var(--fly-color-surface-muted);
+  color: var(--fly-color-text-tertiary);
+  border: none;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: var(--fly-radius-xs);
+  cursor: pointer;
+  box-shadow: var(--fly-shadow-1);
+  transition: var(--fly-transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-flynext-primary:hover {
+  background-color: #6f9a37;
+  transform: translateY(-2px);
+  box-shadow: var(--fly-shadow-hover);
+}
+
+.btn-flynext-primary:active {
+  transform: translateY(0);
+}
+
+.btn-flynext-primary:focus-visible {
+  outline: 3px solid var(--fly-color-surface-muted);
+  outline-offset: 2px;
+}
+
+.btn-flynext-primary:disabled {
+  background-color: #c0c0c0;
+  color: #808080;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Private Jet Fleet Styles */
+.fleet-section {
+  max-width: 1200px;
+  margin: 80px auto;
+  padding: 0 var(--fly-space-2);
+}
+
+.fleet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.fleet-card {
+  background: #ffffff;
+  border-radius: var(--fly-radius-xs);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  transition: var(--fly-transition-base);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.fleet-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--fly-shadow-hover);
+}
+
+.fleet-img-wrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.fleet-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--fly-transition-base);
+}
+
+.fleet-card:hover .fleet-img {
+  transform: scale(1.08);
+}
+
+.fleet-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: var(--fly-color-surface-muted);
+  color: var(--fly-color-text-tertiary);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--fly-radius-xs);
+  text-transform: uppercase;
+}
+
+.fleet-content {
+  padding: 24px;
+}
+
+.fleet-title {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  color: #1a2744;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.fleet-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: var(--fly-color-text-primary);
+}
+
+.fleet-specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 16px 0;
+  margin-bottom: 20px;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec-label {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.spec-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a2744;
+}
+
+.fleet-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fleet-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fly-color-surface-muted);
+}
+
+.fleet-price span {
+  font-size: 12px;
+  color: var(--fly-color-text-primary);
+  font-weight: 400;
+}
+
+/* Features/Benefits Section */
+.benefits-section {
+  background: #f8fafc;
+  color: var(--fly-color-text-primary);
+  padding: 80px 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.benefits-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--fly-space-2);
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.benefit-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 30px 24px;
+  border-radius: var(--fly-radius-xs);
+  transition: var(--fly-transition-base);
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.benefit-card:hover {
+  background: #ffffff;
+  border-color: var(--fly-color-surface-muted);
+  box-shadow: var(--fly-shadow-hover);
+  transform: translateY(-5px);
+}
+
+.benefit-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(184, 149, 101, 0.15);
+  color: var(--fly-color-surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 24px;
+}
+
+.benefit-title {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2744;
+  margin-bottom: 12px;
+}
+
+.benefit-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .fleet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .flights-hero-title {
+    font-size: 38px;
+  }
+
+  .charter-booking-section {
+    padding: 24px;
+    margin-top: -40px;
+  }
+
+  .form-row-three,
+  .form-row-two {
+    grid-template-columns: 1fr;
+  }
+
+  .fleet-grid,
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Commercial Flight Search Form Styles */
+.flight-search-container {
+  max-width: 1200px;
+  margin: -85px auto 40px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+  z-index: 20;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.flight-tabs {
+  display: inline-flex;
+  gap: 8px;
+  background: #f8fafc;
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.flight-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flight-tab:hover {
+  color: #1e293b;
+}
+
+.flight-tab.active {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.search-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.search-field-box {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  position: relative;
+}
+
+.search-field-box:hover {
+  border-color: #cbd5e1;
+}
+
+.search-field-box label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.search-field-box input {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.field-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swap-btn-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swap-btn-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.swap-btn-circle:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: rotate(180deg);
+}
+
+.travellers-row {
+  margin-bottom: 12px;
+}
+
+.travellers-box {
+  width: 100%;
+}
+
+.btn-search-flights-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto;
+  background: #d97706;
+  /* Match gold/orange button */
+  color: #ffffff;
+  border: none;
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.2);
+}
+
+.btn-search-flights-submit:hover {
+  background: #b45309;
+  transform: translateY(-1px);
+}
+
+/* Suggestion Dropdown styling */
+.city-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.city-suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+}
+
+.city-suggestion-item:hover {
+  background: #f1f5f9;
+}
+
+.city-name-bold {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.city-airport-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Custom Dropdown select styling for Cabin Class */
+.cabin-class-select {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+@media (max-width: 1024px) {
+  .search-fields-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .swap-btn-container {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .swap-btn-container {
+    grid-column: span 1;
+  }
+}
+
+/* Booking Roadmap Section Styles */
+.roadmap-section {
+  width: 100%;
+  max-width: 100%;
+  margin: 60px 0;
+  padding: 80px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.roadmap-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: var(--roadmap-bg-url);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1;
+  /* Fully visible world map background as requested */
+  z-index: 0;
+  pointer-events: none;
+}
+
+.roadmap-header {
+  max-width: 1200px;
+  margin: 0 auto 50px auto;
+  position: relative;
+  z-index: 2;
+}
+
+.roadmap-subtitle {
+  font-family: 'Caveat', 'Playpen Sans', cursive;
+  font-size: 28px;
+  color: var(--fly-color-surface-muted);
+  /* GoAirClass Gold */
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.roadmap-title {
+  font-family: 'Cinzel', serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: #0b0f19;
+  line-height: 1.3;
+}
+
+.roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  z-index: 2;
+}
+
+/* Roadmap step timeline connection line (desktop only) */
+.roadmap-grid::before {
+  content: '';
+  position: absolute;
+  top: 55px;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: #f1f5f9;
+  z-index: 1;
+  border-top: 2px dashed #cbd5e1;
+}
+
+.roadmap-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.roadmap-icon-outer {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 2px dotted var(--fly-color-surface-muted);
+  /* GoAirClass Gold */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.roadmap-step:hover .roadmap-icon-outer {
+  transform: scale(1.05);
+  border-style: solid;
+}
+
+.roadmap-icon-inner {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--fly-color-surface-muted);
+  /* GoAirClass Gold */
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(184, 149, 101, 0.3);
+  /* GoAirClass Gold shadow */
+}
+
+.roadmap-icon-inner svg {
+  width: 32px;
+  height: 32px;
+}
+
+.roadmap-step-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0b0f19;
+  margin-bottom: 12px;
+}
+
+.roadmap-step-desc {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  max-width: 230px;
+  margin-bottom: 20px;
+}
+
+.roadmap-arrow-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roadmap-step:hover .roadmap-arrow-btn {
+  background: var(--fly-color-surface-muted);
+  /* GoAirClass Gold */
+  transform: translateX(4px);
+}
+
+@media (max-width: 1024px) {
+  .roadmap-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+  }
+
+  .roadmap-grid::before {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .roadmap-grid {
+    grid-template-columns: 1fr;
+  }
+}

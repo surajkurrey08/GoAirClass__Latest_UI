@@ -6,6 +6,8 @@ import Bookings from '../pages/Bookings';
 import Users from '../pages/Users';
 import AdminHeroImages from '../pages/AdminHeroImages';
 import Inquiries from '../pages/Inquiries';
+import HotelSync from '../pages/hotels/HotelSync';
+import HotelDirectory from '../pages/hotels/HotelDirectory';
 
 // Booking Control Pages
 import AllBookings from '../../SuperAdminPanel/pages/bookings/AllBookings';
@@ -38,15 +40,6 @@ import VideoContent from '../pages/marketing/VideoContent';
 import AllReviews from '../pages/marketing/reviews/AllReviews';
 import AddReview from '../pages/marketing/reviews/AddReview';
 
-// Flight Management Pages
-import FlightDashboard from '../../SuperAdminPanel/pages/flights/FlightDashboard';
-import FlightBookingManagement from '../../SuperAdminPanel/pages/flights/BookingManagement';
-import FlightRefunds from '../../SuperAdminPanel/pages/flights/CancellationRefunds';
-import FlightTickets from '../../SuperAdminPanel/pages/flights/SupportTickets';
-import FlightReports from '../../SuperAdminPanel/pages/flights/FlightReports';
-import MealMapping from '../pages/flights/ancillaries/MealMapping';
-import SeatMapping from '../pages/flights/ancillaries/SeatMapping';
-import BaggageMapping from '../pages/flights/ancillaries/BaggageMapping';
 
 export default function AdminRoutes() {
     return (
@@ -58,15 +51,9 @@ export default function AdminRoutes() {
                 <Route path="hero-images" element={<AdminHeroImages />} />
                 <Route path="inquiries" element={<Inquiries />} />
 
-                {/* Flight Management */}
-                <Route path="flights" element={<FlightDashboard />} />
-                <Route path="flights/bookings" element={<FlightBookingManagement />} />
-                <Route path="flights/refunds" element={<FlightRefunds />} />
-                <Route path="flights/tickets" element={<FlightTickets />} />
-                <Route path="flights/reports" element={<FlightReports />} />
-                <Route path="flights/ancillaries/meals" element={<MealMapping />} />
-                <Route path="flights/ancillaries/seats" element={<SeatMapping />} />
-                <Route path="flights/ancillaries/baggage" element={<BaggageMapping />} />
+                {/* Hotel Management */}
+                <Route path="hotels/sync" element={<HotelSync />} />
+                <Route path="hotels/list" element={<HotelDirectory />} />
 
                 {/* Bus Management */}
                 <Route path="buses/all" element={<AllBuses />} />

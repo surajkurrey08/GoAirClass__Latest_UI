@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Search, Bell, Moon, Sun, SearchIcon, 
-  Settings, User, LogOut, ChevronDown 
+import {
+    Search, Bell, Moon, Sun, SearchIcon,
+    Settings, User, LogOut, ChevronDown
 } from 'lucide-react';
 import { useAdmin } from '../../../context/AdminContext.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -21,23 +21,23 @@ export default function Navbar() {
     };
 
     return (
-        <header 
+        <header
             className={`
                 sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md 
                 border-b border-slate-200 dark:border-slate-800 transition-all duration-300
             `}
         >
             <div className={`px-4 sm:px-6 h-20 flex items-center justify-between`}>
-                
+
                 {/* Search Bar */}
                 <div className="flex-1 max-w-md hidden sm:block">
                     <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <Search size={18} className="text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                         </div>
-                        <input 
-                            type="text" 
-                            placeholder="Search everything..." 
+                        <input
+                            type="text"
+                            placeholder="Search everything..."
                             className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 transition-all"
                         />
                     </div>
@@ -45,9 +45,9 @@ export default function Navbar() {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-3 ml-auto">
-                    
+
                     {/* Dark Mode Toggle */}
-                    <button 
+                    <button
                         onClick={toggleDarkMode}
                         className="p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-all active:scale-95"
                     >
@@ -64,7 +64,7 @@ export default function Navbar() {
 
                     {/* Profile Dropdown */}
                     <div className="relative">
-                        <button 
+                        <button
                             onClick={() => setProfileOpen(!profileOpen)}
                             className="flex items-center gap-3 p-1.5 pl-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group"
                         >
@@ -87,7 +87,7 @@ export default function Navbar() {
                                     <Settings size={16} /> System Logs
                                 </a>
                                 <div className="h-px bg-slate-100 dark:bg-slate-700 my-2" />
-                                <button 
+                                <button
                                     onClick={handleLogout}
                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 font-semibold"
                                 >

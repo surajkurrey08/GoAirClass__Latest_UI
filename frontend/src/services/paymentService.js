@@ -6,7 +6,7 @@ import API from './axios';
 
 export const createPaymentOrder = async (orderData) => {
     try {
-        const response = await API.post('/flight-payments/create-order', orderData);
+        const response = await API.post('/payments/create-order', orderData);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to create payment order');
@@ -15,7 +15,7 @@ export const createPaymentOrder = async (orderData) => {
 
 export const verifyPayment = async (paymentData) => {
     try {
-        const response = await API.post('/flight-payments/verify', paymentData);
+        const response = await API.post('/payments/verify', paymentData);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Payment verification failed');

@@ -18,6 +18,10 @@ mongoose.connect(process.env.MONGO_URI, {
         const { initReminderCron } = require('./services/reminderCron');
         initReminderCron();
 
+        // Initialize Cleartrip Hotel Incremental Updates Scheduler
+        const { syncAllHotelsCron } = require('./controllers/hotel/hotelController');
+        syncAllHotelsCron();
+
         const port = process.env.PORT || 5000;
         const server = app.listen(port, () => {
             console.log(` 🚀 Server running on port ${port}`);

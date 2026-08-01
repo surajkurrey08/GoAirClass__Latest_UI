@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Users as UsersIcon, UserCheck, Mail, Phone, 
-    Search, Filter, MoreHorizontal, Trash2, 
+import {
+    Users as UsersIcon, UserCheck, Mail, Phone,
+    Search, Filter, MoreHorizontal, Trash2,
     Edit, CheckCircle, XCircle, Loader2,
     Building2, Hotel as HotelIcon, Bus as BusIcon,
-    Plus, Send, ExternalLink, Activity, ShieldAlert, 
+    Plus, Send, ExternalLink, Activity, ShieldAlert,
     ShieldCheck, Ban, Shield
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { 
-    fetchDirectoryStats, 
-    fetchDirectoryUsers, 
+import {
+    fetchDirectoryStats,
+    fetchDirectoryUsers,
     fetchDirectoryOperators,
     updateDirectoryStatus,
     manualCreateOperator,
@@ -207,12 +207,12 @@ export default function Users() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">System Directory</h1>
-                    <p className="text-slate-500 font-medium italic">Manage verified users and service operators.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">System Directory</h1>
+                    <p className="text-slate-500 text-sm font-medium">Manage verified users and service operators.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg shadow-blue-600/20 transition-all font-bold text-sm"
+                    className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg shadow-sm transition-all font-bold text-sm"
                 >
                     <Plus size={18} />
                     Add Operator
@@ -221,23 +221,23 @@ export default function Users() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard 
-                    title="Active Users" 
-                    value={stats?.totalUsers || 0} 
-                    icon={UsersIcon} 
-                    colorClass="bg-blue-600/10" 
+                <StatCard
+                    title="Active Users"
+                    value={stats?.totalUsers || 0}
+                    icon={UsersIcon}
+                    colorClass="bg-blue-600/10"
                 />
-                <StatCard 
-                    title="Bus Operators" 
-                    value={stats?.operatorsBreakdown?.bus || 0} 
-                    icon={BusIcon} 
-                    colorClass="bg-amber-600/10" 
+                <StatCard
+                    title="Bus Operators"
+                    value={stats?.operatorsBreakdown?.bus || 0}
+                    icon={BusIcon}
+                    colorClass="bg-amber-600/10"
                 />
-                <StatCard 
-                    title="Hotel Partners" 
-                    value={stats?.operatorsBreakdown?.hotel || 0} 
-                    icon={HotelIcon} 
-                    colorClass="bg-indigo-600/10" 
+                <StatCard
+                    title="Hotel Partners"
+                    value={stats?.operatorsBreakdown?.hotel || 0}
+                    icon={HotelIcon}
+                    colorClass="bg-indigo-600/10"
                 />
             </div>
 
@@ -251,8 +251,8 @@ export default function Users() {
                         key={tab.id}
                         onClick={() => { setActiveTab(tab.id); setStatusFilter('all'); }}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === tab.id
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                            : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
                             }`}
                     >
                         <tab.icon size={18} />
@@ -267,13 +267,13 @@ export default function Users() {
                     <div className="flex items-center gap-4">
                         {activeTab === 'operators' && (
                             <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                                <button 
+                                <button
                                     onClick={() => setOperatorType('bus')}
                                     className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${operatorType === 'bus' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}
                                 >
                                     BUS
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setOperatorType('hotel')}
                                     className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${operatorType === 'hotel' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
                                 >
@@ -283,8 +283,8 @@ export default function Users() {
                         )}
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 placeholder="Search by name, email or mobile..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -294,7 +294,7 @@ export default function Users() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <select 
+                        <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-xs font-black px-4 py-2 text-slate-600"
@@ -340,11 +340,11 @@ export default function Users() {
                                     <tr key={item._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-blue-600 border border-slate-200 dark:border-slate-700">
+                                                <div className="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center font-bold text-orange-500 border border-orange-100 dark:border-slate-700">
                                                     {(item.fullName || item.name || 'U').charAt(0)}
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
-                                                    <span className="text-sm font-black text-slate-900 dark:text-white truncate">{item.fullName || item.name}</span>
+                                                    <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">{item.fullName || item.name}</span>
                                                     <span className="text-[11px] font-medium text-slate-400 truncate">{item.email}</span>
                                                 </div>
                                             </div>
@@ -353,7 +353,7 @@ export default function Users() {
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center gap-2 text-slate-600">
                                                     <Phone size={12} className="text-slate-400" />
-                                                    <span className="text-xs font-bold">{item.mobileNumber || item.contactNumber || item.phone}</span>
+                                                    <span className="text-xs font-medium text-slate-700">{item.mobileNumber || item.contactNumber || item.phone}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-slate-400">
                                                     <Activity size={12} className="text-slate-300" />
@@ -364,28 +364,27 @@ export default function Users() {
                                         <td className="px-6 py-5">
                                             {activeTab === 'users' ? (
                                                 <div className="flex flex-col">
-                                                    <span className="text-xs font-black text-slate-700 dark:text-slate-300">{item.bookingCount || 0}</span>
+                                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{item.bookingCount || 0}</span>
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Orders</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
                                                     <Building2 size={12} className="text-slate-400" />
-                                                    <span className="text-xs font-black truncate max-w-[150px]">{item.companyName || 'Private Venture'}</span>
+                                                    <span className="text-xs font-semibold truncate max-w-[150px]">{item.companyName || 'Private Venture'}</span>
                                                 </div>
                                             )}
                                         </td>
                                         <td className="px-6 py-5">
-                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tight ${
-                                                item.isBlocked 
+                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight ${item.isBlocked
                                                 ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                                                : ['approved', 'active'].includes((item.status || 'Active').toLowerCase()) 
-                                                ? 'bg-green-50 text-green-600 dark:bg-green-500/10' 
-                                                : (item.status || '').toLowerCase() === 'suspended'
-                                                ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 border border-orange-200'
-                                                : (item.status || '').toLowerCase() === 'pending'
-                                                ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10'
-                                                : 'bg-red-50 text-red-600 dark:bg-red-500/10'
-                                            }`}>
+                                                : ['approved', 'active'].includes((item.status || 'Active').toLowerCase())
+                                                    ? 'bg-green-50 text-green-600 dark:bg-green-500/10'
+                                                    : (item.status || '').toLowerCase() === 'suspended'
+                                                        ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 border border-orange-200'
+                                                        : (item.status || '').toLowerCase() === 'pending'
+                                                            ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/10'
+                                                            : 'bg-red-50 text-red-600 dark:bg-red-500/10'
+                                                }`}>
                                                 {item.isBlocked ? 'Blocked' : (item.status || 'Active')}
                                             </span>
                                         </td>
@@ -393,21 +392,21 @@ export default function Users() {
                                             <div className="flex items-center justify-end gap-1 transition-opacity">
                                                 {activeTab === 'operators' ? (
                                                     <>
-                                                        <button 
+                                                        <button
                                                             className={`p-2 transition-all rounded-xl ${item.status === 'Active' ? 'text-amber-500 hover:bg-amber-50' : 'text-green-500 hover:bg-green-50'}`}
                                                             title={item.status === 'Active' ? 'Deactivate' : 'Activate'}
                                                             onClick={() => handleStatusToggle(item._id, item.status)}
                                                         >
                                                             {item.status === 'Active' ? <Ban size={16} /> : <ShieldCheck size={16} />}
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             className="p-2 text-orange-500 hover:bg-orange-50 transition-all rounded-xl"
                                                             title="Suspend Operator"
                                                             onClick={() => handleSuspend(item._id)}
                                                         >
                                                             <ShieldAlert size={16} />
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all rounded-xl"
                                                             title="Soft Delete"
                                                             onClick={() => handleDelete(item._id, item.fullName || item.name)}
@@ -416,7 +415,7 @@ export default function Users() {
                                                         </button>
                                                     </>
                                                 ) : (
-                                                    <button 
+                                                    <button
                                                         className={`p-2 transition-all rounded-xl ${item.isBlocked ? 'text-green-500 hover:bg-green-50' : 'text-red-500 hover:bg-red-50'}`}
                                                         title={item.isBlocked ? 'Unblock User' : 'Block User'}
                                                         onClick={() => handleToggleBlock(item._id, item.isBlocked, item.fullName || item.name)}
@@ -424,7 +423,7 @@ export default function Users() {
                                                         {item.isBlocked ? <ShieldCheck size={16} /> : <Ban size={16} />}
                                                     </button>
                                                 )}
-                                                <button 
+                                                <button
                                                     className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all rounded-xl"
                                                     title="Edit Profile"
                                                     onClick={() => handleEdit(item)}
@@ -453,11 +452,11 @@ export default function Users() {
                         </div>
                         <form onSubmit={handleManualCreate} className="p-8 space-y-6">
                             <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
-                                <button type="button" onClick={() => setNewOperator({...newOperator, operatorType: 'bus'})}
+                                <button type="button" onClick={() => setNewOperator({ ...newOperator, operatorType: 'bus' })}
                                     className={`py-2 rounded-xl text-xs font-black transition-all ${newOperator.operatorType === 'bus' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-lg' : 'text-slate-500'}`}>
                                     BUS SERVICE
                                 </button>
-                                <button type="button" onClick={() => setNewOperator({...newOperator, operatorType: 'hotel'})}
+                                <button type="button" onClick={() => setNewOperator({ ...newOperator, operatorType: 'hotel' })}
                                     className={`py-2 rounded-xl text-xs font-black transition-all ${newOperator.operatorType === 'hotel' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-lg' : 'text-slate-500'}`}>
                                     HOTEL PARTNER
                                 </button>
@@ -466,19 +465,19 @@ export default function Users() {
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                                     <input required type="text" placeholder="e.g. Rahul Sharma"
-                                        value={newOperator.fullName} onChange={(e) => setNewOperator({...newOperator, fullName: e.target.value})}
+                                        value={newOperator.fullName} onChange={(e) => setNewOperator({ ...newOperator, fullName: e.target.value })}
                                         className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
                                     <input required type="email" placeholder="rahul@example.com"
-                                        value={newOperator.email} onChange={(e) => setNewOperator({...newOperator, email: e.target.value})}
+                                        value={newOperator.email} onChange={(e) => setNewOperator({ ...newOperator, email: e.target.value })}
                                         className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
                                     <input required type="tel" placeholder="9876543210"
-                                        value={newOperator.mobileNumber} onChange={(e) => setNewOperator({...newOperator, mobileNumber: e.target.value})}
+                                        value={newOperator.mobileNumber} onChange={(e) => setNewOperator({ ...newOperator, mobileNumber: e.target.value })}
                                         className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                             </div>
@@ -507,26 +506,26 @@ export default function Users() {
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                                     <input required type="text"
-                                        value={editData.fullName} onChange={(e) => setEditData({...editData, fullName: e.target.value})}
+                                        value={editData.fullName} onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
                                         className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
                                     <input required type="email"
-                                        value={editData.email} onChange={(e) => setEditData({...editData, email: e.target.value})}
+                                        value={editData.email} onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                                         className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
                                     <input required type="tel"
-                                        value={editData.mobileNumber} onChange={(e) => setEditData({...editData, mobileNumber: e.target.value})}
+                                        value={editData.mobileNumber} onChange={(e) => setEditData({ ...editData, mobileNumber: e.target.value })}
                                         className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 {activeTab === 'operators' && (
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Company Name</label>
                                         <input required type="text"
-                                            value={editData.companyName} onChange={(e) => setEditData({...editData, companyName: e.target.value})}
+                                            value={editData.companyName} onChange={(e) => setEditData({ ...editData, companyName: e.target.value })}
                                             className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20" />
                                     </div>
                                 )}
@@ -550,12 +549,12 @@ export default function Users() {
                         </div>
                         <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-4">Operator Created!</h3>
                         <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">Share this secure activation link with the operator to let them set their password.</p>
-                        
+
                         <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 mb-8">
                             <div className="flex-1 text-left truncate text-blue-600 font-bold text-sm">
                                 {activationLink}
                             </div>
-                            <button 
+                            <button
                                 onClick={() => {
                                     navigator.clipboard.writeText(activationLink);
                                     toast.success("Link copied to clipboard!");
@@ -566,7 +565,7 @@ export default function Users() {
                             </button>
                         </div>
 
-                        <button 
+                        <button
                             onClick={() => setActivationLink('')}
                             className="w-full py-4 bg-slate-900 dark:bg-slate-800 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20"
                         >

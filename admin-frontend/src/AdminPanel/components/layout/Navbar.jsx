@@ -16,8 +16,8 @@ export default function Navbar() {
                     <Menu size={20} className="text-slate-500" />
                 </button>
 
-                <div className="hidden sm:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 w-64 lg:w-96 group focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-                    <Search size={18} className="text-slate-400 group-focus-within:text-blue-500" />
+                <div className="hidden sm:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 w-64 lg:w-96 group focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
+                    <Search size={18} className="text-slate-400 group-focus-within:text-orange-500" />
                     <input
                         type="text"
                         placeholder="Search bookings, users..."
@@ -27,7 +27,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-                <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all relative">
+                <button className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-xl transition-all relative">
                     <Bell size={20} />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
                 </button>
@@ -37,9 +37,9 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 pl-2">
                     <div className="hidden md:block text-right">
                         <p className="text-sm font-bold text-slate-900 dark:text-white leading-none mb-1">{user.fullName || 'Admin User'}</p>
-                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider leading-none">Operations Admin</p>
+                        <p className="text-[10px] font-bold text-orange-500 uppercase tracking-wider leading-none">Operations Admin</p>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                    <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
                         <User size={20} />
                     </div>
                 </div>

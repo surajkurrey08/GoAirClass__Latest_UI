@@ -14,7 +14,6 @@ import { fetchPublicCoupons } from '../services/couponService'
 import { fetchPublicDestinations } from '../services/destinationService.js'
 import { fetchVideoContent } from '../services/videoContentService'
 import { fetchPublicTestimonials } from '../services/reviewService'
-import { searchFlightsPost, searchFlightsWithBudget } from '../services/flightApi'
 import './Home.css'
 
 const HERO_FEATURES = [
@@ -49,43 +48,12 @@ export default function Home() {
   // Validation
   const isValid = from.trim() !== '' && destination.trim() !== '' && travelDate !== ''
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (!from.trim()) { toast.error('Please enter departure city'); return }
     if (!destination.trim()) { toast.error('Please enter destination city'); return }
     if (!travelDate) { toast.error('Please select travel date'); return }
 
-    try {
-      const payload = {
-        from: from.trim(),
-        to: destination.trim(),
-        date: travelDate,
-        budget: budget ? Number(budget) : undefined
-      }
-
-      let response;
-      if (budget) {
-        response = await searchFlightsWithBudget(payload);
-      } else {
-        response = await searchFlightsPost(payload);
-      }
-
-      if (response.success) {
-        navigate('/flights', {
-          state: {
-            from: from.trim(),
-            to: destination.trim(),
-            date: travelDate,
-            budget: budget ? Number(budget) : undefined,
-            flights: response.flights
-          }
-        });
-      } else {
-        toast.error(response.message || 'Search failed');
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Search failed. Please try again.');
-    }
+    navigate(`/search?type=buses&from=${from.trim()}&to=${destination.trim()}&date=${travelDate}&budget=${budget ? Number(budget) : ''}`);
   }
 
   const getRouteIcon = (type) => {

@@ -37,19 +37,7 @@ const destinationRoutes = require("./routes/destinationRoutes");
 const hotelRoutes = require('./routes/hotel/hotelRoutes');
 
 // Flight module routes
-const airportRoutes = require('./routes/flight/airport.routes');
-const airlineRoutes = require('./routes/flight/airline.routes');
-const flightRoutes = require('./routes/flight/flight.routes');
-const flightBookingRoutes = require('./routes/flight/booking.routes');
-const flightOfferRoutes = require('./routes/flight/offer.routes');
-const flightSettingsRoutes = require('./routes/flight/settings.routes');
-const flightDashboardRoutes = require('./routes/flight/dashboard.routes');
-const passengerRoutes = require('./routes/flight/passenger.routes');
-const flightSeatRoutes = require('./routes/flight/seat.routes');
-const flightPaymentRoutes = require('./routes/flight/payment.routes');
-const flightTicketRoutes = require('./routes/flight/ticket.routes');
-const faresRoutes = require('./routes/flight/fares.routes');
-const flightMealRoutes = require('./routes/flight/meal.routes');
+const flightRoutes = require('./routes/Flight/flightRoutes');
 
 
 const videoContentRoutes = require('./routes/videoContentRoutes');
@@ -90,8 +78,8 @@ app.use("/api/destinations", destinationRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/cities", cityRoutes);
 app.use("/api/payments", paymentRoutes);
+
 app.use("/api/admin", adminRoutes);
-app.use("/api/admin/flights", require("./routes/flight/flightAdmin.routes"));
 app.use("/api/admin/bus-requests", busRequestRoutes);
 app.use("/api/admin/train", superAdminTrainRoutes);
 app.use("/api/trains", trainRoutes);
@@ -104,33 +92,20 @@ app.use("/api/bus-operator", busOperatorRoutes);
 app.use('/api/hotels', hotelRoutes);
 
 // Flight module
-app.use('/api/airports', airportRoutes);
-app.use('/api/airlines', airlineRoutes);
-app.use('/api/flights/dashboard', flightDashboardRoutes);
 app.use('/api/flights', flightRoutes);
-app.use('/api/flight-bookings', flightBookingRoutes);
-app.use('/api/flight-offers', flightOfferRoutes);
-app.use('/api/flight-settings', flightSettingsRoutes);
-app.use('/api/passengers', passengerRoutes);
-app.use('/api/seats', flightSeatRoutes);
-app.use('/api/flight-payments', flightPaymentRoutes);
-app.use('/api/tickets', flightTicketRoutes);
+
 app.use('/api/commission', commissionRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/ads', adRoutes);
 app.use('/api/banner', bannerRoutes);
-app.use('/api/fares', faresRoutes);
 app.use('/api/user-directory', userDirectoryRoutes);
 app.use('/api/operator-mgmt', operatorManagementRoutes);
-app.use('/api/meals', flightMealRoutes);
-app.use('/api/seats-master', require('./routes/flight/seatMaster.routes'));
-app.use('/api/baggage-mapping', require('./routes/flight/baggageMapping.routes'));
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/hero-images', heroImageRoutes);
 app.use('/uploads/banners', require('express').static('uploads/banners'));
-app.use('/uploads/meals', require('express').static('uploads/meals'));
+
 
 app.get("/", (req, res) => {
     res.send("API Working...");
@@ -148,6 +123,16 @@ cron.schedule("0 * * * *", async () => {
         }
     } catch (err) {
         console.error("[Cron] Error expiring coupons:", err);
+    }
+});
+
+// Auto Sync Hotels Cleartrip Content Cron Job (Runs every Sunday at 3:00 AM)
+cron.schedule("0 3 * * 0", async () => {
+    try {
+        const { syncAllHotelsCron } = require('./controllers/hotel/hotelController');
+        await syncAllHotelsCron();
+    } catch (err) {
+        console.error("[Cron] Error running hotel sync job:", err);
     }
 });
 
