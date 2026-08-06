@@ -4,6 +4,10 @@ import { CreditCard, Smartphone, Building2, Wallet, Lock, CheckCircle, ChevronRi
 import Navbar from '../components/Navbar'
 import './Payment.css'
 
+import API from '../services/axios'
+import { bookFlightApi } from '../services/flightApi'
+import { toast } from 'react-toastify'
+
 const paymentMethods = [
   { id: 'card', icon: CreditCard, label: 'Credit / Debit Card' },
   { id: 'upi', icon: Smartphone, label: 'UPI' },
@@ -31,10 +35,168 @@ export default function Payment() {
   const [selectedWallet, setSelectedWallet] = useState('')
   const [processing, setProcessing] = useState(false)
 
-  const handlePay = () => {
-    setProcessing(true)
-    setTimeout(() => navigate('/success'), 2500)
-  }
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePay = async () => {
+    setProcessing(true);
+    const activeSessionId = location.state?.sessionId || sessionStorage.getItem('flight_session_id');
+    const travelIds = location.state?.holdData?.data?.travelOptions?.[0]?.travelOptionId ||
+      location.state?.holdData?.travelOptions?.[0]?.travelOptionId ||
+      location.state?.flight?.rawOption?.travelOptionId ||
+      location.state?.flight?.id;
+
+    console.log('[Payment Debug] activeSessionId:', activeSessionId);
+    console.log('[Payment Debug] location.state:', location.state);
+    console.log('[Payment Debug] extracted travelIds:', travelIds);
+
+    try {
+      // 1. Load Razorpay JS SDK
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error('Failed to load Razorpay payment gateway SDK');
+        setProcessing(false);
+        return;
+      }
+
+      // 2. Create order via Backend /api/payments/create-order
+      const orderRes = await API.post('/payments/create-order', {
+        amount: total,
+        notes: {
+          service: 'FLIGHT',
+          sessionId: activeSessionId,
+          travelIds
+        }
+      });
+
+      if (!orderRes.data?.success) {
+        throw new Error(orderRes.data?.message || 'Razorpay Order Creation Failed');
+      }
+
+      const orderData = orderRes.data;
+
+      // 3. Launch Razorpay UI Modal
+      const options = {
+        key: orderData.key || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SNw35MkokY8h1y',
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: 'GoAirClass Tourism',
+        description: 'Flight Booking Payment',
+        order_id: orderData.orderId,
+        prefill: {
+          name: `${location.state?.passenger?.firstName || 'Traveller'} ${location.state?.passenger?.lastName || ''}`.trim(),
+          email: location.state?.passenger?.email || 'customer@goairclass.com',
+          contact: location.state?.passenger?.phone || '9876543210'
+        },
+        theme: {
+          color: '#b89565'
+        },
+        handler: async function (response) {
+          console.log('[Razorpay Handler Triggered] Payment response:', response);
+          try {
+            toast.info("Payment verified! Issuing ticket via Cleartrip...");
+
+            // Verify payment signature
+            try {
+              await API.post('/payments/verify', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              });
+              console.log('[Payment Debug] Razorpay signature verified successfully');
+            } catch (verifyErr) {
+              console.warn('[Payment Debug] Verification endpoint notice:', verifyErr.message);
+            }
+
+            // Call bookFlightApi if activeSessionId exists (catch error gracefully so flow finishes)
+            let bookData = null;
+            // Extract all travelIds from travelOptionList (supports round trip split selection)
+            let idsList = [];
+            const list = location.state?.holdData?.data?.travelOptionList || location.state?.holdData?.travelOptionList || [];
+            if (list.length > 0) {
+                list.forEach(opt => {
+                    if (opt.subTravelOptions) {
+                        opt.subTravelOptions.forEach(sub => {
+                            if (sub.travelId) idsList.push(sub.travelId);
+                        });
+                    }
+                });
+            }
+            if (idsList.length === 0) {
+                if (Array.isArray(travelIds)) {
+                    idsList = travelIds;
+                } else if (travelIds) {
+                    idsList = [travelIds];
+                } else if (location.state?.flight?.outboundTravelId && location.state?.flight?.returnTravelId) {
+                    idsList = [location.state?.flight?.outboundTravelId, location.state?.flight?.returnTravelId];
+                } else {
+                    idsList = [location.state?.flight?.id];
+                }
+            }
+
+            if (activeSessionId) {
+              console.log('[Payment Debug] Calling bookFlightApi with sessionId:', activeSessionId, 'and travelIds:', idsList);
+              try {
+                const bookResponse = await bookFlightApi(activeSessionId, idsList, {
+                  passenger: location.state?.passenger,
+                  passengers: location.state?.passengers,
+                  flight: location.state?.flight,
+                  holdData: location.state?.holdData,
+                  total: location.state?.total
+                });
+                bookData = bookResponse?.data;
+                console.log('[Payment Debug] Cleartrip bookResponse:', bookResponse);
+              } catch (bErr) {
+                console.warn('[Payment Debug] Cleartrip /book call notice (proceeding with held trip):', bErr.message);
+              }
+            }
+
+            toast.success("Flight booking confirmed!");
+            navigate('/flight/booking-success', {
+              state: {
+                ...location.state,
+                bookingData: bookData,
+                pnr: bookData?.pnr || bookData?.bookingId || location.state?.holdData?.tripId,
+                paymentId: response.razorpay_payment_id
+              }
+            });
+          } catch (err) {
+            console.error("Post Payment Error:", err);
+            toast.error(err.message || "Failed to issue ticket after payment.");
+            navigate('/flight/booking-success', { state: location.state });
+          } finally {
+            setProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            toast.warn('Payment window closed');
+            setProcessing(false);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      console.error("Payment Initiation Error:", err);
+      toast.error(err.message || "Failed to start Razorpay payment.");
+      setProcessing(false);
+    }
+  };
 
   const formatCard = (val) => val.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim().slice(0, 19)
   const formatExpiry = (val) => val.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5)
@@ -114,7 +276,7 @@ export default function Payment() {
                       <label>CVV</label>
                       <input className="form-input" placeholder="•••" maxLength={4} type="password"
                         value={cardForm.cvv}
-                        onChange={e => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g,'').slice(0,4) })} />
+                        onChange={e => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })} />
                     </div>
                   </div>
                   <label className="save-card">

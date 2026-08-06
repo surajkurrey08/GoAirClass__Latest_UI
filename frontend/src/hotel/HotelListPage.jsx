@@ -5,14 +5,31 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { searchHotelsByLocation } from '../services/hotelApi'
 
+const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+const getFutureDateString = (daysToAdd) => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysToAdd);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
 export default function HotelListPage() {
     const location = useLocation();
     const navigate = useNavigate();
 
     // Search parameters state (synced with URL)
     const [destination, setDestination] = useState('Pune, Maharashtra, India');
-    const [checkIn, setCheckIn] = useState('2026-07-20');
-    const [checkOut, setCheckOut] = useState('2026-07-23');
+    const [checkIn, setCheckIn] = useState(getTodayDateString());
+    const [checkOut, setCheckOut] = useState(getFutureDateString(3));
     const [roomsCount, setRoomsCount] = useState(1);
     const [adultsCount, setAdultsCount] = useState(2);
     const [childrenCount, setChildrenCount] = useState(0);
@@ -35,8 +52,8 @@ export default function HotelListPage() {
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const dest = queryParams.get('destination') || 'Pune, Maharashtra, India';
-        const checkI = queryParams.get('checkIn') || '2026-07-20';
-        const checkO = queryParams.get('checkOut') || '2026-07-23';
+        const checkI = queryParams.get('checkIn') || getTodayDateString();
+        const checkO = queryParams.get('checkOut') || getFutureDateString(3);
         const rms = parseInt(queryParams.get('rooms')) || 1;
         const adults = parseInt(queryParams.get('adults')) || parseInt(queryParams.get('guests')) || 2;
         const kids = parseInt(queryParams.get('children')) || 0;
@@ -303,10 +320,62 @@ export default function HotelListPage() {
             {/* ── Main Container ── */}
             <main className="mx-auto max-w-7xl px-4 py-4">
 
+                {/* ── Horizontal Date / Price Strip Calendar ── */}
+                <div className="bg-white rounded-xl p-3.5 mb-4 border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                        <div className="flex items-center space-x-2">
+                            <Calendar className="h-4 w-4 text-orange-500" />
+                            <span className="text-xs font-bold text-slate-800">Check-in Date & Price Calendar</span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 font-medium">Select a date for instant rate updates</span>
+                    </div>
 
+                    <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((offset) => {
+                            const baseDate = new Date(checkIn || Date.now());
+                            const dateObj = new Date(baseDate);
+                            dateObj.setDate(baseDate.getDate() + offset);
+
+                            const formattedDate = dateObj.toISOString().split('T')[0];
+                            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                            const monthDay = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
+                            const isSelected = checkIn === formattedDate;
+
+                            // Mock price variation based on day
+                            const estMinPrice = Math.round(2400 + (dateObj.getDate() * 170) % 1800);
+
+                            return (
+                                <button
+                                    key={formattedDate}
+                                    onClick={() => {
+                                        setCheckIn(formattedDate);
+                                        // Auto compute checkOut as 1 night after if checkOut <= selected date
+                                        if (!checkOut || new Date(checkOut) <= dateObj) {
+                                            const nextDay = new Date(dateObj);
+                                            nextDay.setDate(dateObj.getDate() + 1);
+                                            setCheckOut(nextDay.toISOString().split('T')[0]);
+                                        }
+                                    }}
+                                    className={`shrink-0 min-w-[105px] py-2 px-3 rounded-none border text-center transition-all ${
+                                        isSelected
+                                            ? 'bg-orange-500 border-orange-500 text-white shadow-md'
+                                            : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-orange-300 hover:bg-orange-50/40'
+                                    }`}
+                                >
+                                    <div className={`text-[11px] font-semibold ${isSelected ? 'text-orange-100' : 'text-slate-500'}`}>
+                                        {dayName}, {monthDay}
+                                    </div>
+                                    <div className={`text-xs font-bold mt-0.5 ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                                        ₹{estMinPrice.toLocaleString()}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-
                     {/* ── Sidebar Filters ── */}
                     <aside
                         className="lg:col-span-3 bg-white p-4 rounded border border-slate-200 h-fit"
@@ -588,5 +657,5 @@ export default function HotelListPage() {
 
             <Footer />
         </div>
-    )
+    );
 }

@@ -6,6 +6,23 @@ import { toast } from 'react-toastify';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+const getFutureDateString = (daysToAdd) => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysToAdd);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
 export default function HotelDetailPage() {
     const { hotelId } = useParams();
     const location = useLocation();
@@ -20,8 +37,8 @@ export default function HotelDetailPage() {
 
     // Parse query parameters
     const queryParams = new URLSearchParams(location.search);
-    const checkIn = queryParams.get('checkIn') || '2026-07-21';
-    const checkOut = queryParams.get('checkOut') || '2026-07-22';
+    const checkIn = queryParams.get('checkIn') || getTodayDateString();
+    const checkOut = queryParams.get('checkOut') || getFutureDateString(1);
     const rooms = parseInt(queryParams.get('rooms')) || 1;
     const guests = parseInt(queryParams.get('guests')) || 2;
     const cityName = queryParams.get('city') || '';

@@ -25,6 +25,9 @@ import HotelDetailPage from './hotel/HotelDetailPage'
 import HotelCheckoutPage from './hotel/HotelCheckoutPage'
 import FlightsPage from './pages/services/FlightsPage'
 import FlightListPage from './flight/FlightListPage'
+import FlightBookingDetailsPage from './flight/FlightBookingDetailsPage'
+import SeatAndAncillarySelectionPage from './flight/SeatAndAncillarySelectionPage'
+import FlightBookingSuccessPage from './flight/FlightBookingSuccessPage'
 import TrainsPage from './pages/services/TrainsPage'
 import BusesPage from './pages/services/BusesPage'
 
@@ -51,6 +54,9 @@ export default function App() {
         <Route path="/hotel/checkout" element={<HotelCheckoutPage />} />
         <Route path="/flights" element={<FlightsPage />} />
         <Route path="/flights/list" element={<FlightListPage />} />
+        <Route path="/flight/booking-details" element={<FlightBookingDetailsPage />} />
+        <Route path="/flight/seat-selection" element={<SeatAndAncillarySelectionPage />} />
+        <Route path="/flight/booking-success" element={<FlightBookingSuccessPage />} />
         <Route path="/trains" element={<TrainsPage />} />
         <Route path="/buses" element={<BusesPage />} />
 

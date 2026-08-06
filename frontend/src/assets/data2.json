@@ -1,0 +1,167 @@
+{
+    "success": true,
+    "data": {
+        "booking_details": {
+            "trip_id": "Q260804968542",
+            "booking_status": "H",
+            "booked_date": 1785838391000,
+            "booking_type": "ONLINE",
+            "selected_insurances": [],
+            "user_details": {
+                "phone": "12345",
+                "email": "rdhayatidak@gmail.com",
+                "title": "MR",
+                "first_name": "Shivam",
+                "last_name": "Dhayatidak"
+            },
+            "journey_details": {
+                "journey_type": "OW",
+                "is_international": false,
+                "flight_details": [
+                    {
+                        "flight_id": 43257874,
+                        "segment_details": [
+                            {
+                                "segment_id": 1,
+                                "oa": "6E",
+                                "al": "6E",
+                                "web_checkin": "https://www.goindigo.in/how-to-check-in.html?linkNav=how-to-check-in_header",
+                                "fn": "6653",
+                                "booking_status": "H",
+                                "dep": "BLR",
+                                "arr": "GOI",
+                                "dt": "1",
+                                "dd": 1786345500000,
+                                "ad": 1786350000000,
+                                "booking_infos": [
+                                    {
+                                        "pax_info_id": 1,
+                                        "booking_status": "H",
+                                        "cabin_type": "E",
+                                        "booking_info_id": 1,
+                                        "pricing_id": 1
+                                    }
+                                ],
+                                "baggage": {
+                                    "airline_link": "https://www.goindigo.in/travel-information/en/baggage-allowance.html",
+                                    "ADT": {
+                                        "cab": "7kg",
+                                        "free_text": "",
+                                        "cib": "15kg"
+                                    }
+                                }
+                            },
+                            {
+                                "segment_id": 2,
+                                "oa": "6E",
+                                "al": "6E",
+                                "web_checkin": "https://www.goindigo.in/how-to-check-in.html?linkNav=how-to-check-in_header",
+                                "fn": "5231",
+                                "booking_status": "H",
+                                "dep": "GOI",
+                                "arr": "BOM",
+                                "at": "1",
+                                "dd": 1786359600000,
+                                "ad": 1786364400000,
+                                "booking_infos": [
+                                    {
+                                        "pax_info_id": 1,
+                                        "booking_status": "H",
+                                        "cabin_type": "E",
+                                        "booking_info_id": 2,
+                                        "pricing_id": 1
+                                    }
+                                ],
+                                "baggage": {
+                                    "airline_link": "https://www.goindigo.in/travel-information/en/baggage-allowance.html",
+                                    "ADT": {
+                                        "cab": "7kg",
+                                        "free_text": "",
+                                        "cib": "15kg"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "meta_data": {
+                    "airlines": {
+                        "6E": {
+                            "name": "IndiGo",
+                            "uri": "http://book.goindigo.in/",
+                            "contact_number": "099103 83838"
+                        }
+                    },
+                    "airports": {
+                        "GOI": {
+                            "name": "Dabolim Airport",
+                            "city": "Goa",
+                            "country": "India",
+                            "country_code": "IN",
+                            "time_zone": "Asia/Kolkata"
+                        },
+                        "BOM": {
+                            "name": "Chatrapati Shivaji Airport",
+                            "city": "Mumbai",
+                            "country": "India",
+                            "country_code": "IN",
+                            "time_zone": "Asia/Kolkata"
+                        },
+                        "BLR": {
+                            "name": "Kempegowda International Airport",
+                            "city": "Bangalore",
+                            "country": "India",
+                            "country_code": "IN",
+                            "time_zone": "Asia/Kolkata"
+                        }
+                    },
+                    "special_fares": [
+                        "REGULAR_FARE"
+                    ]
+                },
+                "traveller_details": [
+                    {
+                        "title": "MR",
+                        "pax_info_id": 1,
+                        "fn": "Shivam",
+                        "mn": "",
+                        "ln": "Dhayatidak",
+                        "type": "ADT",
+                        "nationality": "IN",
+                        "dob": "2001-08-04",
+                        "poi_details": []
+                    }
+                ]
+            },
+            "payment_details": {
+                "currency": "INR",
+                "booking_payment_breakup": {
+                    "total": 3577,
+                    "pricing_breakup": [
+                        {
+                            "pricing_id": 1,
+                            "base_fare": 1700,
+                            "coupon_cashback": 0,
+                            "total_taxes": 1877,
+                            "convenience_fees": 0,
+                            "fare_group": {
+                                "type": "REGULAR_FARE",
+                                "brand_name": "REGULAR"
+                            }
+                        }
+                    ]
+                }
+            },
+            "cancellation_txns": [],
+            "download_keys": {}
+        },
+        "fwd_txns": [
+            {
+                "status": "S",
+                "amount": 0,
+                "transaction_time": 1785838413000
+            }
+        ],
+        "rev_txns": []
+    }
+}

@@ -6,6 +6,23 @@ import Footer from '../components/Footer';
 import { provisionalBookHotel, confirmBookHotel } from '../services/hotelApi';
 import { createPaymentOrder } from '../services/paymentService';
 
+const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+const getFutureDateString = (daysToAdd) => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysToAdd);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
 export default function HotelCheckoutPage() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -35,8 +52,8 @@ export default function HotelCheckoutPage() {
         rateName = 'Room Only',
         bookingCode = '',
         searchId = '',
-        checkIn = '2026-07-21',
-        checkOut = '2026-07-22',
+        checkIn = getTodayDateString(),
+        checkOut = getFutureDateString(1),
         rooms = 1,
         guests = 2,
         baseFare = 2070,

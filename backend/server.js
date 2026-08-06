@@ -5,6 +5,16 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 const app = require("./app");
 const seedSuperAdmin = require("./config/seed");
 
+// Prevent server crash on unhandled errors
+process.on('uncaughtException', (err) => {
+    console.error('⚠️  UNCAUGHT EXCEPTION (server kept alive):', err.message);
+    console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('⚠️  UNHANDLED REJECTION (server kept alive):', reason);
+});
+
 // Increase timeout to handle slow internet/Atlas connections
 mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 60000,

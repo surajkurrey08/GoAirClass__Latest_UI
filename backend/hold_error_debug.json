@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-08-04T09:57:42.592Z",
+  "sessionId": "65273301_4001a593-2708-4931-9a9c-85d5afd53458-260804105627",
+  "searchId": "DC_Search-b1dab426-25ab-4276-8647-3bf8bd222cd9",
+  "payload": {
+    "flightPreviewId": "0bdffdce-f17e-474e-b6ad-81d0fb7e7852",
+    "travelOptions": [
+      {
+        "travelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+        "subTravelOptions": [
+          {
+            "subTravelType": "FLIGHT",
+            "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+            "fareId": "REGULAR__05/08/2026__6E^6E__6E^6E__BLR_BOM__false__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51f3LvsPcVPQTm0MUBHZbB2SkJrVf5E51s37DcQcJ1ybhn/Sw0mSwyFZOzsRhiS95pCJD2jEXwH6mNmsReZMIH9CtzHzDfYxSewJiGpumQ6Xo0XgJHuE152xl82LgtokC3IUNV9NH23+e5i2FmpCZTxJLxcQVjRB8fvPfXGyu6WTuPzMMvtZ0a3hCz04d5yMUsTp74bNmfvy0D0iMnTrjE4a9F030wDEftWrpvZiXghJyyfXpwHd4p3Hziezz4nILd/CKxtHHCiQShYnjq4j/6Q4iu+RGDV3oELJacb+VCH1iaFdROW1lOP~~V3"
+          }
+        ]
+      }
+    ],
+    "passengerInformation": {
+      "passengers": [
+        {
+          "firstName": "Rutuja",
+          "lastName": "Dhayatidak",
+          "middleName": "",
+          "gender": "MALE",
+          "email": "rdhayatidak@gmail.com",
+          "travellerType": "ADT",
+          "dob": "2001-08-04",
+          "nationalityCode": "IN",
+          "address": {
+            "mobileNumber": "111111111",
+            "countryCode": "91"
+          },
+          "title": "MR",
+          "subTravelOptionAncillaries": [
+            {
+              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+              "subTravelType": "FLIGHT",
+              "flightAncillaries": [
+                {
+                  "flightId": "6E-6653-BLR-GOI-1785913500",
+                  "ancillaries": []
+                },
+                {
+                  "flightId": "6E-5231-GOI-BOM-1785927600",
+                  "ancillaries": []
+                }
+              ],
+              "ancillaries": []
+            }
+          ],
+          "documents": []
+        },
+        {
+          "firstName": "ajay",
+          "lastName": "Dhayatidak",
+          "middleName": "",
+          "gender": "MALE",
+          "email": "rdhayatidak@gmail.com",
+          "travellerType": "ADT",
+          "dob": "2001-08-04",
+          "nationalityCode": "IN",
+          "address": {
+            "mobileNumber": "111111111",
+            "countryCode": "91"
+          },
+          "title": "MR",
+          "subTravelOptionAncillaries": [
+            {
+              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+              "subTravelType": "FLIGHT",
+              "flightAncillaries": [
+                {
+                  "flightId": "6E-6653-BLR-GOI-1785913500",
+                  "ancillaries": []
+                },
+                {
+                  "flightId": "6E-5231-GOI-BOM-1785927600",
+                  "ancillaries": []
+                }
+              ],
+              "ancillaries": []
+            }
+          ],
+          "documents": []
+        },
+        {
+          "firstName": "sakshi",
+          "lastName": "Dhayatidak",
+          "middleName": "",
+          "gender": "MALE",
+          "email": "rdhayatidak@gmail.com",
+          "travellerType": "CHD",
+          "dob": "2016-10-06",
+          "nationalityCode": "IN",
+          "address": {
+            "mobileNumber": "111111111",
+            "countryCode": "91"
+          },
+          "title": "MR",
+          "subTravelOptionAncillaries": [
+            {
+              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+              "subTravelType": "FLIGHT",
+              "flightAncillaries": [
+                {
+                  "flightId": "6E-6653-BLR-GOI-1785913500",
+                  "ancillaries": []
+                },
+                {
+                  "flightId": "6E-5231-GOI-BOM-1785927600",
+                  "ancillaries": []
+                }
+              ],
+              "ancillaries": []
+            }
+          ],
+          "documents": []
+        },
+        {
+          "firstName": "Rutuja",
+          "lastName": "Dhayatidak",
+          "middleName": "",
+          "gender": "MALE",
+          "email": "rdhayatidak@gmail.com",
+          "travellerType": "INF",
+          "dob": "2025-08-04",
+          "nationalityCode": "IN",
+          "address": {
+            "mobileNumber": "111111111",
+            "countryCode": "91"
+          },
+          "title": "MR",
+          "subTravelOptionAncillaries": [
+            {
+              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+              "subTravelType": "FLIGHT",
+              "flightAncillaries": [
+                {
+                  "flightId": "6E-6653-BLR-GOI-1785913500",
+                  "ancillaries": []
+                },
+                {
+                  "flightId": "6E-5231-GOI-BOM-1785927600",
+                  "ancillaries": []
+                }
+              ],
+              "ancillaries": []
+            }
+          ],
+          "documents": []
+        }
+      ]
+    },
+    "customerInformation": {
+      "firstName": "Rutuja",
+      "lastName": "Dhayatidak",
+      "title": "MR",
+      "emailId": "rdhayatidak@gmail.com",
+      "address": {
+        "countryCode": "91"
+      },
+      "phoneNumberDetails": {
+        "phoneNumber": "111111111",
+        "countryCode": "91"
+      }
+    },
+    "metaInformation": {
+      "currency": "INR",
+      "domain": "IN",
+      "sectorType": "DOMESTIC",
+      "itineraryId": "65273301_4001a593-2708-4931-9a9c-85d5afd53458-260804105627"
+    }
+  },
+  "error": "Request failed with status code 400",
+  "statusCode": 400,
+  "response": {
+    "message": "Duplicate passenger name is not allowed on a single itinerary",
+    "code": 4047,
+    "errorType": "DUPLICATE_PASSENGER_NAME"
+  }
+}

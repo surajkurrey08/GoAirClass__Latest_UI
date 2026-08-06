@@ -8,6 +8,7 @@ import AdminHeroImages from '../pages/AdminHeroImages';
 import Inquiries from '../pages/Inquiries';
 import HotelSync from '../pages/hotels/HotelSync';
 import HotelDirectory from '../pages/hotels/HotelDirectory';
+import AdminFlightBookingsPage from '../pages/flights/AdminFlightBookingsPage';
 
 // Booking Control Pages
 import AllBookings from '../../SuperAdminPanel/pages/bookings/AllBookings';
@@ -54,6 +55,9 @@ export default function AdminRoutes() {
                 {/* Hotel Management */}
                 <Route path="hotels/sync" element={<HotelSync />} />
                 <Route path="hotels/list" element={<HotelDirectory />} />
+
+                {/* Flight Management */}
+                <Route path="flights/bookings" element={<AdminFlightBookingsPage />} />
 
                 {/* Bus Management */}
                 <Route path="buses/all" element={<AllBuses />} />

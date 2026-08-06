@@ -156,12 +156,12 @@ export const toggleRoutePopularity = async (id) => {
  */
 
 export const fetchGlobalCities = async () => {
-    try {
-        const response = await API.get('/cities');
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch cities');
-    }
+  try {
+    const response = await API.get('/cities');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch cities');
+  }
 };
 
 /**
@@ -291,5 +291,23 @@ export const processFraudAction = async (id, action) => {
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Failed to process fraud action');
+  }
+};
+
+export const fetchAdminFlightTripDetails = async (tripId) => {
+  try {
+    const response = await API.get(`/flights/trip/${tripId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch flight trip details');
+  }
+};
+
+export const fetchAdminFlightBookings = async () => {
+  try {
+    const response = await API.get('/flights/bookings');
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to fetch flight bookings list');
   }
 };

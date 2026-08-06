@@ -86,6 +86,23 @@ const AIRPORTS = [
     { city: 'Bangkok (BKK)', name: 'Suvarnabhumi Airport' }
 ]
 
+const getTodayDateString = () => {
+    const today = new Date()
+    const yyyy = today.getFullYear()
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const dd = String(today.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+}
+
+const getFutureDateString = (daysToAdd) => {
+    const date = new Date()
+    date.setDate(date.getDate() + daysToAdd)
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+}
+
 export default function FlightsPage() {
     const navigate = useNavigate()
     const [tripType, setTripType] = useState('oneWay')
@@ -93,14 +110,19 @@ export default function FlightsPage() {
     const [fromAirport, setFromAirport] = useState('Kempegowda Intl. Airport')
     const [toCity, setToCity] = useState('Mumbai (BOM)')
     const [toAirport, setToAirport] = useState('Chhatrapati Shivaji Maharaj Intl.')
-    const [departureDate, setDepartureDate] = useState('2026-07-31')
+    const [departureDate, setDepartureDate] = useState(getTodayDateString())
+    const [returnDate, setReturnDate] = useState(getFutureDateString(5))
     const [cabinClass, setCabinClass] = useState('Economy')
-    const [travellersCount, setTravellersCount] = useState('1 Adult')
+    const [adultsCount, setAdultsCount] = useState(1)
+    const [childrenCount, setChildrenCount] = useState(0)
+    const [infantsCount, setInfantsCount] = useState(0)
 
     // UI Toggles
     const [showFromSuggestions, setShowFromSuggestions] = useState(false)
     const [showToSuggestions, setShowToSuggestions] = useState(false)
     const [showTravellersDropdown, setShowTravellersDropdown] = useState(false)
+    const [showCustomDatePicker, setShowCustomDatePicker] = useState(false)
+    const [showReturnDatePicker, setShowReturnDatePicker] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
 
     const [loading, setLoading] = useState(false)
@@ -342,12 +364,16 @@ export default function FlightsPage() {
 
     const handleSearch = (e) => {
         e.preventDefault()
+        const totalPax = adultsCount + childrenCount + infantsCount;
+        const paxStr = `${totalPax} Traveller${totalPax > 1 ? 's' : ''}`;
         const fromParam = encodeURIComponent(fromCity)
         const toParam = encodeURIComponent(toCity)
         const dateParam = encodeURIComponent(departureDate)
+        const returnParam = encodeURIComponent(returnDate)
+        const tripParam = encodeURIComponent(tripType)
         const cabinParam = encodeURIComponent(cabinClass)
-        const travellersParam = encodeURIComponent(travellersCount)
-        navigate(`/flights/list?from=${fromParam}&to=${toParam}&date=${dateParam}&cabin=${cabinParam}&travellers=${travellersParam}`)
+        const travellersParam = encodeURIComponent(paxStr)
+        navigate(`/flights/list?from=${fromParam}&to=${toParam}&date=${dateParam}&returnDate=${returnParam}&tripType=${tripParam}&cabin=${cabinParam}&travellers=${travellersParam}&adults=${adultsCount}&children=${childrenCount}&infants=${infantsCount}`)
     }
 
     const swapLocations = () => {
@@ -395,26 +421,144 @@ export default function FlightsPage() {
 
             {/* Booking Form Section (Commercial Flight Search) */}
             <section className="flight-search-container" id="charter-enquiry-form">
-                {/* Tabs */}
-                <div className="flight-tabs">
-                    <button
-                        className={`flight-tab ${tripType === 'oneWay' ? 'active' : ''}`}
-                        onClick={() => setTripType('oneWay')}
-                    >
-                        ✈️ One Way
-                    </button>
-                    <button
-                        className={`flight-tab ${tripType === 'roundTrip' ? 'active' : ''}`}
-                        onClick={() => setTripType('roundTrip')}
-                    >
-                        ⇄ Round Trip
-                    </button>
-                    <button
-                        className={`flight-tab ${tripType === 'multiCity' ? 'active' : ''}`}
-                        onClick={() => setTripType('multiCity')}
-                    >
-                        ☍ Multi City
-                    </button>
+                {/* Tabs & Travellers Header Bar */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <div className="flight-tabs mb-0 flex items-center gap-1">
+                        <button
+                            type="button"
+                            className={`flight-tab ${tripType === 'oneWay' ? 'active' : ''}`}
+                            onClick={() => setTripType('oneWay')}
+                        >
+                            ✈️ One Way
+                        </button>
+                        <button
+                            type="button"
+                            className={`flight-tab ${tripType === 'roundTrip' ? 'active' : ''}`}
+                            onClick={() => setTripType('roundTrip')}
+                        >
+                            ⇄ Round Trip
+                        </button>
+                        <button
+                            type="button"
+                            className={`flight-tab ${tripType === 'multiCity' ? 'active' : ''}`}
+                            onClick={() => setTripType('multiCity')}
+                        >
+                            ☍ Multi City
+                        </button>
+
+                        {/* Travellers & Cabin Class Selector (Directly Inside Tab Row Next to Multi City) */}
+                        <div className="relative border-l border-slate-300/60 pl-2 ml-1">
+                            <button
+                                type="button"
+                                onClick={() => setShowTravellersDropdown(!showTravellersDropdown)}
+                                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-xs"
+                            >
+                                <Users size={15} className="text-[#b89565]" />
+                                <span>{adultsCount + childrenCount + infantsCount} Traveller(s), {cabinClass}</span>
+                                <ChevronDown size={14} className="text-slate-500" />
+                            </button>
+
+                            {/* Full MakeMyTrip / Cleartrip Style Modal Dropdown */}
+                            {showTravellersDropdown && (
+                                <div className="absolute top-[110%] right-0 z-[999999] bg-white border border-slate-300 rounded-none shadow-2xl p-3.5 w-[330px]" onClick={(e) => e.stopPropagation()}>
+                                    
+                                    {/* Adults Counter */}
+                                    <div className="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
+                                        <div>
+                                            <div className="font-bold text-slate-800 text-xs">Adults</div>
+                                            <div className="text-[10px] text-slate-400 font-medium">12+ Years</div>
+                                        </div>
+                                        <div className="flex items-center gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setAdultsCount(Math.max(1, adultsCount - 1))}
+                                                disabled={adultsCount <= 1}
+                                                className="w-7 h-7 rounded-none border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:border-blue-600 hover:text-blue-600 disabled:opacity-40"
+                                            >-</button>
+                                            <span className="font-bold text-slate-800 text-xs w-4 text-center">{adultsCount}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setAdultsCount(Math.min(9, adultsCount + 1))}
+                                                className="w-7 h-7 rounded-none border border-blue-600 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-50"
+                                            >+</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Children Counter */}
+                                    <div className="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
+                                        <div>
+                                            <div className="font-bold text-slate-800 text-xs">Children</div>
+                                            <div className="text-[10px] text-slate-400 font-medium">2 - 12 yrs</div>
+                                        </div>
+                                        <div className="flex items-center gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))}
+                                                disabled={childrenCount <= 0}
+                                                className="w-7 h-7 rounded-none border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:border-blue-600 hover:text-blue-600 disabled:opacity-40"
+                                            >-</button>
+                                            <span className="font-bold text-slate-800 text-xs w-4 text-center">{childrenCount}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setChildrenCount(Math.min(6, childrenCount + 1))}
+                                                className="w-7 h-7 rounded-none border border-blue-600 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-50"
+                                            >+</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Infants Counter */}
+                                    <div className="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
+                                        <div>
+                                            <div className="font-bold text-slate-800 text-xs">Infants</div>
+                                            <div className="text-[10px] text-slate-400 font-medium">Below 2 yrs</div>
+                                        </div>
+                                        <div className="flex items-center gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setInfantsCount(Math.max(0, infantsCount - 1))}
+                                                disabled={infantsCount <= 0}
+                                                className="w-7 h-7 rounded-none border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:border-blue-600 hover:text-blue-600 disabled:opacity-40"
+                                            >-</button>
+                                            <span className="font-bold text-slate-800 text-xs w-4 text-center">{infantsCount}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setInfantsCount(Math.min(adultsCount, infantsCount + 1))}
+                                                className="w-7 h-7 rounded-none border border-blue-600 text-blue-600 flex items-center justify-center font-bold hover:bg-blue-50"
+                                            >+</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Cabin Class Options */}
+                                    <div className="mb-3">
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cabin Class</div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {['Economy', 'Premium Economy', 'Business', 'First Class'].map((cls) => (
+                                                <button
+                                                    key={cls}
+                                                    type="button"
+                                                    onClick={() => setCabinClass(cls)}
+                                                    className={`px-2.5 py-1 rounded-none text-xs font-semibold border transition-all ${cabinClass === cls
+                                                            ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
+                                                        }`}
+                                                >
+                                                    {cls}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTravellersDropdown(false)}
+                                        className="w-full bg-[#b89565] hover:bg-[#a38053] text-white font-bold py-1.5 rounded-none text-xs uppercase tracking-wider transition-all shadow-sm"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSearch}>
@@ -534,104 +678,167 @@ export default function FlightsPage() {
                             )}
                         </div>
 
-                        {/* Departure Date */}
-                        <div className="search-field-box">
+                        {/* Custom Interactive DatePicker with Cleartrip Prices inside Calendar Grid */}
+                        <div className="search-field-box relative cursor-pointer" onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}>
                             <label>Departure Date</label>
-                            <input
-                                type="date"
-                                value={departureDate}
-                                onChange={(e) => setDepartureDate(e.target.value)}
-                            />
-                            <div className="field-sub">
-                                {new Date(departureDate).toLocaleDateString('en-IN', { weekday: 'long' })}
+                            <div className="text-base font-bold text-slate-800 flex items-center justify-between mt-0.5">
+                                <span>{new Date(departureDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                                <Calendar size={16} className="text-[#b89565]" />
                             </div>
-                        </div>
-
-                        {/* Cabin Class */}
-                        <div className="search-field-box">
-                            <label>Cabin Class</label>
-                            <select
-                                className="cabin-class-select"
-                                value={cabinClass}
-                                onChange={(e) => setCabinClass(e.target.value)}
-                            >
-                                <option value="Economy">Economy</option>
-                                <option value="Premium Economy">Premium Economy</option>
-                                <option value="Business">Business</option>
-                                <option value="First Class">First Class</option>
-                            </select>
-                            <div className="field-sub">Select preferred class</div>
-                        </div>
-
-                    </div>
-
-                    {/* Lowest Fare Calendar Bar (Cleartrip B2B Integration) */}
-                    {fareCalendar && (
-                        <div style={{ margin: '15px 0 5px 0', padding: '12px 16px', background: 'rgba(255,255,255,0.7)', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Calendar size={14} color="#b89565" /> Lowest Fare Calendar ({fromCity.split(' ')[0]} ➔ {toCity.split(' ')[0]})
+                            <div className="flex items-center justify-between mt-1">
+                                <span className="field-sub text-[11px] font-semibold text-slate-500">
+                                    {new Date(departureDate).toLocaleDateString('en-IN', { weekday: 'long' })}
                                 </span>
-                                {loadingCalendar && <span style={{ fontSize: '11px', color: '#b89565', fontWeight: '600' }}>Updating fares...</span>}
+                                {fareCalendar && fareCalendar[departureDate] && (
+                                    <span className="text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                        ₹{fareCalendar[departureDate].price ? fareCalendar[departureDate].price.toLocaleString('en-IN') : '3,200'}
+                                    </span>
+                                )}
                             </div>
-                            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px', scrollbarWidth: 'thin' }}>
-                                {Object.entries(fareCalendar).slice(0, 10).map(([dateStr, item]) => {
-                                    const dateObj = new Date(dateStr);
-                                    const isSelected = departureDate === dateStr;
-                                    const formattedDay = dateObj.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
-                                    return (
-                                        <div
-                                            key={dateStr}
-                                            onClick={() => setDepartureDate(dateStr)}
-                                            style={{
-                                                minWidth: '85px',
-                                                padding: '8px 10px',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                textAlign: 'center',
-                                                border: isSelected ? '2px solid #b89565' : '1px solid #cbd5e1',
-                                                background: isSelected ? '#fffbeb' : '#ffffff',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                        >
-                                            <div style={{ fontSize: '11px', fontWeight: '600', color: isSelected ? '#b89565' : '#64748b' }}>{formattedDay}</div>
-                                            <div style={{ fontSize: '13px', fontWeight: '800', color: isSelected ? '#92400e' : '#0f172a', marginTop: '2px' }}>
-                                                ₹{item.price ? item.price.toLocaleString('en-IN') : 'N/A'}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Travellers Row */}
-                    <div className="travellers-row">
-                        <div className="search-field-box" onClick={() => setShowTravellersDropdown(!showTravellersDropdown)}>
-                            <label>Travellers</label>
-                            <div style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>
-                                {travellersCount}
-                            </div>
-                            <div className="field-sub">ADT</div>
-                            {showTravellersDropdown && (
-                                <div className="city-suggestions-dropdown" style={{ padding: '10px' }}>
-                                    {['1 Adult', '2 Adults', '3 Adults', '4 Adults', '5+ Adults'].map((tc) => (
-                                        <div
-                                            key={tc}
-                                            className="city-suggestion-item"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setTravellersCount(tc);
-                                                setShowTravellersDropdown(false);
-                                            }}
-                                        >
-                                            <span className="city-name-bold">{tc}</span>
-                                        </div>
-                                    ))}
+                            {/* Cleartrip Custom Calendar Modal Grid */}
+                            {showCustomDatePicker && (
+                                <div className="absolute top-[105%] left-0 z-[999999] bg-white border border-slate-300 rounded-lg shadow-2xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex justify-between items-center mb-3 border-b pb-2 border-slate-100">
+                                        <span className="font-bold text-slate-800 text-sm">
+                                            {new Date(departureDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                                        </span>
+                                        <button type="button" onClick={() => setShowCustomDatePicker(false)} className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 bg-slate-100 rounded">Close</button>
+                                    </div>
+                                    <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
+                                        <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                                    </div>
+                                    <div className="grid grid-cols-7 gap-1">
+                                        {(() => {
+                                            const baseDate = new Date(departureDate);
+                                            const year = baseDate.getFullYear();
+                                            const monthIndex = baseDate.getMonth();
+                                            const firstDayWeekday = new Date(year, monthIndex, 1).getDay();
+                                            const offset = (firstDayWeekday + 6) % 7;
+                                            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                                            const monthStr = String(monthIndex + 1).padStart(2, '0');
+
+                                            return [
+                                                ...Array.from({ length: offset }).map((_, idx) => (
+                                                    <div key={`empty-${idx}`} className="p-1.5" />
+                                                )),
+                                                ...Array.from({ length: daysInMonth }).map((_, i) => {
+                                                    const dayNum = i + 1;
+                                                    const curDateStr = `${year}-${monthStr}-${dayNum < 10 ? '0' + dayNum : dayNum}`;
+                                                    const fareItem = fareCalendar ? fareCalendar[curDateStr] : null;
+                                                    const priceVal = fareItem ? fareItem.price : null;
+                                                    const isSelected = departureDate === curDateStr;
+
+                                                    return (
+                                                        <div
+                                                            key={i}
+                                                            onClick={() => {
+                                                                setDepartureDate(curDateStr);
+                                                                setShowCustomDatePicker(false);
+                                                            }}
+                                                            className={`p-1.5 text-center rounded border transition-all cursor-pointer ${isSelected
+                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                                                    : 'bg-white border-slate-100 hover:border-[#b89565] hover:bg-amber-50/40 text-slate-700'
+                                                                }`}
+                                                        >
+                                                            <div className="font-bold text-xs">{dayNum}</div>
+                                                            <div className={`text-[9px] font-semibold leading-tight ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                                                                {priceVal ? `₹${priceVal.toLocaleString('en-IN')}` : '-'}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            ];
+                                        })()}
+                                    </div>
                                 </div>
                             )}
                         </div>
+
+                        {/* Return Date with Cleartrip Prices inside Calendar Grid */}
+                        {tripType === 'roundTrip' && (
+                            <div className="search-field-box relative cursor-pointer" onClick={() => setShowReturnDatePicker(!showReturnDatePicker)}>
+                                <label>Return Date</label>
+                                <div className="text-base font-bold text-slate-800 flex items-center justify-between mt-0.5">
+                                    <span>{returnDate ? new Date(returnDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Select Date'}</span>
+                                    <Calendar size={16} className="text-[#b89565]" />
+                                </div>
+                                <div className="flex items-center justify-between mt-1">
+                                    <span className="field-sub text-[11px] font-semibold text-slate-500">
+                                        {returnDate ? new Date(returnDate).toLocaleDateString('en-IN', { weekday: 'long' }) : 'Select return date'}
+                                    </span>
+                                    {fareCalendar && fareCalendar[returnDate] && (
+                                        <span className="text-[11px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                                            ₹{fareCalendar[returnDate].price ? fareCalendar[returnDate].price.toLocaleString('en-IN') : '3,480'}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Cleartrip Custom Return Calendar Modal Grid */}
+                                {showReturnDatePicker && (
+                                    <div className="absolute top-[105%] right-0 z-[999999] bg-white border border-slate-300 rounded-lg shadow-2xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
+                                        <div className="flex justify-between items-center mb-3 border-b pb-2 border-slate-100">
+                                            <span className="font-bold text-slate-800 text-sm">
+                                                {new Date(returnDate || departureDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                                            </span>
+                                            <button type="button" onClick={() => setShowReturnDatePicker(false)} className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 bg-slate-100 rounded">Close</button>
+                                        </div>
+                                        <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
+                                            <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                                        </div>
+                                        <div className="grid grid-cols-7 gap-1">
+                                            {(() => {
+                                                const baseDate = new Date(returnDate || departureDate);
+                                                const year = baseDate.getFullYear();
+                                                const monthIndex = baseDate.getMonth();
+                                                const firstDayWeekday = new Date(year, monthIndex, 1).getDay();
+                                                const offset = (firstDayWeekday + 6) % 7;
+                                                const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                                                const monthStr = String(monthIndex + 1).padStart(2, '0');
+
+                                                return [
+                                                    ...Array.from({ length: offset }).map((_, idx) => (
+                                                        <div key={`empty-${idx}`} className="p-1.5" />
+                                                    )),
+                                                    ...Array.from({ length: daysInMonth }).map((_, i) => {
+                                                        const dayNum = i + 1;
+                                                        const curDateStr = `${year}-${monthStr}-${dayNum < 10 ? '0' + dayNum : dayNum}`;
+                                                        const fareItem = fareCalendar ? fareCalendar[curDateStr] : null;
+                                                        const priceVal = fareItem ? fareItem.price : null;
+                                                        const isSelected = returnDate === curDateStr;
+
+                                                        return (
+                                                            <div
+                                                                key={i}
+                                                                onClick={() => {
+                                                                    setReturnDate(curDateStr);
+                                                                    setShowReturnDatePicker(false);
+                                                                }}
+                                                                className={`p-1.5 text-center rounded border transition-all cursor-pointer ${isSelected
+                                                                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                                                                        : 'bg-white border-slate-100 hover:border-[#b89565] hover:bg-amber-50/40 text-slate-700'
+                                                                    }`}
+                                                            >
+                                                                <div className="font-bold text-xs">{dayNum}</div>
+                                                                <div className={`text-[9px] font-semibold leading-tight ${isSelected ? 'text-amber-100' : 'text-slate-400'}`}>
+                                                                    {priceVal ? `₹${priceVal.toLocaleString('en-IN')}` : '-'}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ];
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+
+
                     </div>
+
+
 
                     {/* Search Button */}
                     <button type="submit" className="btn-search-flights-submit" disabled={loading}>

@@ -117,6 +117,14 @@ export default function Sidebar() {
                             { to: '/admin/bookings/operator-wise', label: 'Operator Wise Bookings' }
                         ]}
                     />
+                    <SidebarDropdown
+                        icon={Plane}
+                        label="Flights"
+                        sidebarOpen={sidebarOpen}
+                        items={[
+                            { to: '/admin/flights/bookings', label: 'Bookings' }
+                        ]}
+                    />
                     <SidebarItem to="bookings?type=trains" icon={TrainFront} label="Trains" />
                 </SidebarSection>
 
