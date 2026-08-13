@@ -42,8 +42,7 @@ const StatCard = ({ title, value, subValue, icon: Icon, colorClass }) => (
 );
 
 export default function Users() {
-    const [activeTab, setActiveTab] = useState('users'); // users, operators
-    const [operatorType, setOperatorType] = useState('bus'); // bus, hotel
+    const [activeTab, setActiveTab] = useState('app-users'); // app-users, web-users
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState(null);
     const [data, setData] = useState([]);
@@ -67,7 +66,7 @@ export default function Users() {
 
     useEffect(() => {
         loadData();
-    }, [activeTab, operatorType, searchTerm, statusFilter]);
+    }, [activeTab, searchTerm, statusFilter]);
 
     const loadStats = async () => {
         try {
@@ -82,9 +81,9 @@ export default function Users() {
         setLoading(true);
         try {
             let res;
-            if (activeTab === 'operators') {
-                res = await fetchDirectoryOperators(operatorType, searchTerm, statusFilter === 'all' ? '' : statusFilter);
-                if (res.success) setData(res.operators);
+            if (activeTab === 'web-users') {
+                res = await fetchDirectoryUsers('web-user', searchTerm, statusFilter === 'all' ? '' : statusFilter);
+                if (res.success) setData(res.users);
             } else {
                 res = await fetchDirectoryUsers('user', searchTerm, statusFilter === 'all' ? '' : statusFilter);
                 if (res.success) setData(res.users);
@@ -117,12 +116,12 @@ export default function Users() {
     };
 
     const handleDelete = async (id, name) => {
-        if (!window.confirm(`Are you sure you want to deactivate ${name}? This will remove them from the active list (Soft Delete).`)) return;
+        if (!window.confirm(`Are you sure you want to deactivate ${name}? This will remove them from the active list.`)) return;
         try {
-            const type = activeTab === 'operators' ? `${operatorType}-operator` : 'user';
+            const type = activeTab === 'web-users' ? 'web-user' : 'user';
             const res = await deleteDirectoryRecord(id, type);
             if (res.success) {
-                toast.success("Operator deactivated (Soft Deleted)");
+                toast.success("User deactivated successfully");
                 loadData();
                 loadStats();
             }
@@ -133,7 +132,7 @@ export default function Users() {
 
     const handleStatusToggle = async (id, currentStatus) => {
         try {
-            const type = activeTab === 'operators' ? `${operatorType}-operator` : activeTab;
+            const type = activeTab === 'web-users' ? 'web-user' : 'user';
             const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
             const res = await updateDirectoryStatus(id, type, newStatus);
             if (res.success) {
@@ -146,12 +145,12 @@ export default function Users() {
     };
 
     const handleSuspend = async (id) => {
-        if (!window.confirm("Are you sure you want to SUSPEND this operator? they will lose access immediately.")) return;
+        if (!window.confirm("Are you sure you want to suspend this user? They will lose access immediately.")) return;
         try {
-            const type = activeTab === 'operators' ? `${operatorType}-operator` : activeTab;
+            const type = activeTab === 'web-users' ? 'web-user' : 'user';
             const res = await updateDirectoryStatus(id, type, 'Suspended');
             if (res.success) {
-                toast.warning("Operator suspended");
+                toast.warning("User suspended");
                 loadData();
             }
         } catch (error) {
@@ -165,7 +164,7 @@ export default function Users() {
             fullName: item.fullName || item.name || '',
             email: item.email || '',
             mobileNumber: item.mobileNumber || item.contactNumber || item.phone || '',
-            companyName: item.companyName || ''
+            companyName: ''
         });
         setShowEditModal(true);
     };
@@ -188,7 +187,7 @@ export default function Users() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const type = activeTab === 'operators' ? `${operatorType}-operator` : 'user';
+            const type = activeTab === 'web-users' ? 'web-user' : 'user';
             const res = await updateDirectoryRecord(editingItem._id, type, editData);
             if (res.success) {
                 toast.success("Profile updated!");
@@ -208,35 +207,28 @@ export default function Users() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">System Directory</h1>
-                    <p className="text-slate-500 text-sm font-medium">Manage verified users and service operators.</p>
+                    <p className="text-slate-500 text-sm font-medium">Manage app users and website users.</p>
                 </div>
-                <button
-                    onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg shadow-sm transition-all font-bold text-sm"
-                >
-                    <Plus size={18} />
-                    Add Operator
-                </button>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
-                    title="Active Users"
-                    value={stats?.totalUsers || 0}
+                    title="App Users"
+                    value={stats?.appUsersCount || 0}
                     icon={UsersIcon}
                     colorClass="bg-blue-600/10"
                 />
                 <StatCard
-                    title="Bus Operators"
-                    value={stats?.operatorsBreakdown?.bus || 0}
-                    icon={BusIcon}
+                    title="Website Users"
+                    value={stats?.webUsersCount || 0}
+                    icon={UsersIcon}
                     colorClass="bg-amber-600/10"
                 />
                 <StatCard
-                    title="Hotel Partners"
-                    value={stats?.operatorsBreakdown?.hotel || 0}
-                    icon={HotelIcon}
+                    title="Total Users"
+                    value={stats?.totalUsers || 0}
+                    icon={UsersIcon}
                     colorClass="bg-indigo-600/10"
                 />
             </div>
@@ -244,8 +236,8 @@ export default function Users() {
             {/* Main Tabs */}
             <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-2 w-fit shadow-sm">
                 {[
-                    { id: 'users', label: 'Users', icon: UsersIcon },
-                    { id: 'operators', label: 'Operators', icon: Building2 },
+                    { id: 'app-users', label: 'App Users', icon: UsersIcon },
+                    { id: 'web-users', label: 'Website Users', icon: UsersIcon },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -265,22 +257,6 @@ export default function Users() {
             <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none overflow-hidden">
                 <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        {activeTab === 'operators' && (
-                            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                                <button
-                                    onClick={() => setOperatorType('bus')}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${operatorType === 'bus' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}
-                                >
-                                    BUS
-                                </button>
-                                <button
-                                    onClick={() => setOperatorType('hotel')}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${operatorType === 'hotel' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
-                                >
-                                    HOTEL
-                                </button>
-                            </div>
-                        )}
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                             <input
@@ -313,7 +289,7 @@ export default function Users() {
                             <tr className="bg-slate-50/50 dark:bg-slate-800/50">
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Profile & Identity</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact Info</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{activeTab === 'operators' ? 'Company' : 'Activities'}</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Activities</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                             </tr>
@@ -362,17 +338,10 @@ export default function Users() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            {activeTab === 'users' ? (
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{item.bookingCount || 0}</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Orders</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                                                    <Building2 size={12} className="text-slate-400" />
-                                                    <span className="text-xs font-semibold truncate max-w-[150px]">{item.companyName || 'Private Venture'}</span>
-                                                </div>
-                                            )}
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{item.bookingCount || 0}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Orders</span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-5">
                                             <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight ${item.isBlocked
@@ -390,45 +359,26 @@ export default function Users() {
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex items-center justify-end gap-1 transition-opacity">
-                                                {activeTab === 'operators' ? (
-                                                    <>
-                                                        <button
-                                                            className={`p-2 transition-all rounded-xl ${item.status === 'Active' ? 'text-amber-500 hover:bg-amber-50' : 'text-green-500 hover:bg-green-50'}`}
-                                                            title={item.status === 'Active' ? 'Deactivate' : 'Activate'}
-                                                            onClick={() => handleStatusToggle(item._id, item.status)}
-                                                        >
-                                                            {item.status === 'Active' ? <Ban size={16} /> : <ShieldCheck size={16} />}
-                                                        </button>
-                                                        <button
-                                                            className="p-2 text-orange-500 hover:bg-orange-50 transition-all rounded-xl"
-                                                            title="Suspend Operator"
-                                                            onClick={() => handleSuspend(item._id)}
-                                                        >
-                                                            <ShieldAlert size={16} />
-                                                        </button>
-                                                        <button
-                                                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all rounded-xl"
-                                                            title="Soft Delete"
-                                                            onClick={() => handleDelete(item._id, item.fullName || item.name)}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button
-                                                        className={`p-2 transition-all rounded-xl ${item.isBlocked ? 'text-green-500 hover:bg-green-50' : 'text-red-500 hover:bg-red-50'}`}
-                                                        title={item.isBlocked ? 'Unblock User' : 'Block User'}
-                                                        onClick={() => handleToggleBlock(item._id, item.isBlocked, item.fullName || item.name)}
-                                                    >
-                                                        {item.isBlocked ? <ShieldCheck size={16} /> : <Ban size={16} />}
-                                                    </button>
-                                                )}
+                                                <button
+                                                    className={`p-2 transition-all rounded-xl ${item.isBlocked ? 'text-green-500 hover:bg-green-50' : 'text-red-500 hover:bg-red-50'}`}
+                                                    title={item.isBlocked ? 'Unblock User' : 'Block User'}
+                                                    onClick={() => handleToggleBlock(item._id, item.isBlocked, item.fullName || item.name)}
+                                                >
+                                                    {item.isBlocked ? <ShieldCheck size={16} /> : <Ban size={16} />}
+                                                </button>
                                                 <button
                                                     className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all rounded-xl"
                                                     title="Edit Profile"
                                                     onClick={() => handleEdit(item)}
                                                 >
                                                     <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all rounded-xl"
+                                                    title="Deactivate User"
+                                                    onClick={() => handleDelete(item._id, item.fullName || item.name)}
+                                                >
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         </td>

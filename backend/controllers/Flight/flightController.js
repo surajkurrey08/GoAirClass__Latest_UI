@@ -743,8 +743,8 @@ exports.bookFlight = async (req, res) => {
                 dob: p.dob || '1990-01-01',
                 nationalityCode: 'IN',
                 address: {
-                    mobileNumber: contact?.phone || p.phone || '9876543210',
-                    countryCode: '91'
+                    mobileNumber: String(contact?.phone || p.phone || '9876543210').replace(/\D/g, ''),
+                    countryCode: String(contact?.countryCode || '91').replace('+', '')
                 },
                 title: titleUpper === 'MRS' ? 'MRS' : (titleUpper === 'MS' ? 'MS' : 'MR'),
                 subTravelOptionAncillaries: (holdData?.travelOptionList || []).flatMap(opt =>
@@ -766,11 +766,11 @@ exports.bookFlight = async (req, res) => {
             title: (primaryPax.title || 'MR').toUpperCase() === 'MRS' ? 'MRS' : ((primaryPax.title || 'MR').toUpperCase() === 'MS' ? 'MS' : 'MR'),
             emailId: contact?.email || primaryPax.email || 'customer@goairclass.com',
             address: {
-                countryCode: '91'
+                countryCode: String(contact?.countryCode || '91').replace('+', '')
             },
             phoneNumberDetails: {
-                phoneNumber: contact?.phone || primaryPax.phone || '9876543210',
-                countryCode: '91'
+                phoneNumber: String(contact?.phone || primaryPax.phone || '9876543210').replace(/\D/g, ''),
+                countryCode: String(contact?.countryCode || '91').replace('+', '')
             }
         };
 

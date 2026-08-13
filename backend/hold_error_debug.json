@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-08-04T09:57:42.592Z",
-  "sessionId": "65273301_4001a593-2708-4931-9a9c-85d5afd53458-260804105627",
-  "searchId": "DC_Search-b1dab426-25ab-4276-8647-3bf8bd222cd9",
+  "timestamp": "2026-08-11T19:26:49.481Z",
+  "sessionId": "65273301_98b79aba-813a-40be-88a4-0299143b0733-260811202650",
+  "searchId": "DC_Search-19f4b11e-f0c7-4304-b0b7-9eb8aadf8ef2",
   "payload": {
-    "flightPreviewId": "0bdffdce-f17e-474e-b6ad-81d0fb7e7852",
+    "flightPreviewId": "bdf986b7-5d8c-410c-8bcc-885536353b6f",
     "travelOptions": [
       {
-        "travelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+        "travelOptionId": "6E-5205-BLR-BOM-1786486500",
         "subTravelOptions": [
           {
             "subTravelType": "FLIGHT",
-            "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
-            "fareId": "REGULAR__05/08/2026__6E^6E__6E^6E__BLR_BOM__false__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51f3LvsPcVPQTm0MUBHZbB2SkJrVf5E51s37DcQcJ1ybhn/Sw0mSwyFZOzsRhiS95pCJD2jEXwH6mNmsReZMIH9CtzHzDfYxSewJiGpumQ6Xo0XgJHuE152xl82LgtokC3IUNV9NH23+e5i2FmpCZTxJLxcQVjRB8fvPfXGyu6WTuPzMMvtZ0a3hCz04d5yMUsTp74bNmfvy0D0iMnTrjE4a9F030wDEftWrpvZiXghJyyfXpwHd4p3Hziezz4nILd/CKxtHHCiQShYnjq4j/6Q4iu+RGDV3oELJacb+VCH1iaFdROW1lOP~~V3"
+            "subTravelOptionId": "6E-5205-BLR-BOM-1786486500",
+            "fareId": "REGULAR__12/08/2026__6E__6E__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z52Lx8/j6BKtblR7QQUZuTro6aSYZT9RUcYtiqUL8RlHjDEPCjNeYyznW5hLbFxnV0vuqs7qP5RATMx78FgCNBiUo623uyXR6Bc2PGAUxIvxt7XiDj9pUadhBH1vAAdO0MeKuX22o7lCO6jr/ciiIw4kTlVQM+/50G4VmJb4Zi9a17v0Z0Ot0yHh3yE+aDy1tExEY4tdBzcMJmS9RyWrDTQ0KXSdUaZydH95PTGebj5EWypL9SQ1Mpj/aRwf/U/SIV3c5f8bABvjNBXVMN5uRNJa7ns=~~V3"
           }
         ]
       }
@@ -25,123 +25,20 @@
           "gender": "MALE",
           "email": "rdhayatidak@gmail.com",
           "travellerType": "ADT",
-          "dob": "2001-08-04",
+          "dob": "2001-08-11",
           "nationalityCode": "IN",
           "address": {
-            "mobileNumber": "111111111",
+            "mobileNumber": "8767605792",
             "countryCode": "91"
           },
           "title": "MR",
           "subTravelOptionAncillaries": [
             {
-              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
+              "subTravelOptionId": "6E-5205-BLR-BOM-1786486500",
               "subTravelType": "FLIGHT",
               "flightAncillaries": [
                 {
-                  "flightId": "6E-6653-BLR-GOI-1785913500",
-                  "ancillaries": []
-                },
-                {
-                  "flightId": "6E-5231-GOI-BOM-1785927600",
-                  "ancillaries": []
-                }
-              ],
-              "ancillaries": []
-            }
-          ],
-          "documents": []
-        },
-        {
-          "firstName": "ajay",
-          "lastName": "Dhayatidak",
-          "middleName": "",
-          "gender": "MALE",
-          "email": "rdhayatidak@gmail.com",
-          "travellerType": "ADT",
-          "dob": "2001-08-04",
-          "nationalityCode": "IN",
-          "address": {
-            "mobileNumber": "111111111",
-            "countryCode": "91"
-          },
-          "title": "MR",
-          "subTravelOptionAncillaries": [
-            {
-              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
-              "subTravelType": "FLIGHT",
-              "flightAncillaries": [
-                {
-                  "flightId": "6E-6653-BLR-GOI-1785913500",
-                  "ancillaries": []
-                },
-                {
-                  "flightId": "6E-5231-GOI-BOM-1785927600",
-                  "ancillaries": []
-                }
-              ],
-              "ancillaries": []
-            }
-          ],
-          "documents": []
-        },
-        {
-          "firstName": "sakshi",
-          "lastName": "Dhayatidak",
-          "middleName": "",
-          "gender": "MALE",
-          "email": "rdhayatidak@gmail.com",
-          "travellerType": "CHD",
-          "dob": "2016-10-06",
-          "nationalityCode": "IN",
-          "address": {
-            "mobileNumber": "111111111",
-            "countryCode": "91"
-          },
-          "title": "MR",
-          "subTravelOptionAncillaries": [
-            {
-              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
-              "subTravelType": "FLIGHT",
-              "flightAncillaries": [
-                {
-                  "flightId": "6E-6653-BLR-GOI-1785913500",
-                  "ancillaries": []
-                },
-                {
-                  "flightId": "6E-5231-GOI-BOM-1785927600",
-                  "ancillaries": []
-                }
-              ],
-              "ancillaries": []
-            }
-          ],
-          "documents": []
-        },
-        {
-          "firstName": "Rutuja",
-          "lastName": "Dhayatidak",
-          "middleName": "",
-          "gender": "MALE",
-          "email": "rdhayatidak@gmail.com",
-          "travellerType": "INF",
-          "dob": "2025-08-04",
-          "nationalityCode": "IN",
-          "address": {
-            "mobileNumber": "111111111",
-            "countryCode": "91"
-          },
-          "title": "MR",
-          "subTravelOptionAncillaries": [
-            {
-              "subTravelOptionId": "6E-6653-BLR-GOI-1785913500__6E-5231-GOI-BOM-1785927600",
-              "subTravelType": "FLIGHT",
-              "flightAncillaries": [
-                {
-                  "flightId": "6E-6653-BLR-GOI-1785913500",
-                  "ancillaries": []
-                },
-                {
-                  "flightId": "6E-5231-GOI-BOM-1785927600",
+                  "flightId": "6E-5205-BLR-BOM-1786486500",
                   "ancillaries": []
                 }
               ],
@@ -161,7 +58,7 @@
         "countryCode": "91"
       },
       "phoneNumberDetails": {
-        "phoneNumber": "111111111",
+        "phoneNumber": "8767605792",
         "countryCode": "91"
       }
     },
@@ -169,14 +66,13 @@
       "currency": "INR",
       "domain": "IN",
       "sectorType": "DOMESTIC",
-      "itineraryId": "65273301_4001a593-2708-4931-9a9c-85d5afd53458-260804105627"
+      "itineraryId": "65273301_98b79aba-813a-40be-88a4-0299143b0733-260811202650"
     }
   },
-  "error": "Request failed with status code 400",
-  "statusCode": 400,
+  "error": "Request failed with status code 500",
+  "statusCode": 500,
   "response": {
-    "message": "Duplicate passenger name is not allowed on a single itinerary",
-    "code": 4047,
-    "errorType": "DUPLICATE_PASSENGER_NAME"
+    "errorMessage": "Hold failed",
+    "errorCode": 531
   }
 }

@@ -33,6 +33,9 @@ const getOtp = async (req, res) => {
 
         // Find or Create user to ensure only one record per phone number
         let user = await User.findOne({ mobileNumber });
+        if (!user) {
+            user = await User.AppUser.findOne({ mobileNumber });
+        }
         
         if (user && user.isBlocked) {
             return res.status(403).json({ success: false, message: "Your account has been suspended. Please contact support." });
@@ -86,7 +89,10 @@ const verifyOtp = async (req, res) => {
             return res.status(400).json({ success: false, message: "Mobile number and OTP are required" });
         }
 
-        const user = await User.findOne({ mobileNumber });
+        let user = await User.findOne({ mobileNumber });
+        if (!user) {
+            user = await User.AppUser.findOne({ mobileNumber });
+        }
 
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found. Please request a new OTP." });
@@ -187,6 +193,9 @@ const sendRegistrationOtp = async (req, res) => {
 
         let user = await User.findOne({ mobileNumber });
         if (!user) {
+            user = await User.AppUser.findOne({ mobileNumber });
+        }
+        if (!user) {
             user = new User({
                 fullName,
                 mobileNumber,
@@ -227,7 +236,10 @@ const verifyRegistrationOtp = async (req, res) => {
             return res.status(400).json({ success: false, message: "Mobile number and OTP are required" });
         }
 
-        const user = await User.findOne({ mobileNumber });
+        let user = await User.findOne({ mobileNumber });
+        if (!user) {
+            user = await User.AppUser.findOne({ mobileNumber });
+        }
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found. Please request a new OTP." });
         }
@@ -641,7 +653,10 @@ const sendRegisterEmailOtp = async (req, res) => {
         }
 
         // Check if email already exists
-        const existingUser = await User.findOne({ email });
+        let existingUser = await User.findOne({ email });
+        if (!existingUser) {
+            existingUser = await User.AppUser.findOne({ email });
+        }
         if (existingUser) {
             return res.status(400).json({ success: false, message: "Email already registered. Please login." });
         }
@@ -690,7 +705,7 @@ const sendRegisterEmailOtp = async (req, res) => {
  */
 const verifyRegisterEmailOtp = async (req, res) => {
     try {
-        const { fullName, mobileNumber, email, otp } = req.body;
+        const { fullName, mobileNumber, email, otp, password } = req.body;
 
         if (!fullName || !mobileNumber || !email || !otp) {
             return res.status(400).json({ success: false, message: "Full Name, Mobile Number, Email Address, and OTP are required" });
@@ -713,6 +728,9 @@ const verifyRegisterEmailOtp = async (req, res) => {
 
         // OTP verified - Create user
         let user = await User.findOne({ mobileNumber });
+        if (!user) {
+            user = await User.AppUser.findOne({ mobileNumber });
+        }
         if (user) {
             // Mobile number is unique, so let's check if they already have an email or if there is a conflict.
             if (user.email && user.email !== email) {
@@ -721,12 +739,17 @@ const verifyRegisterEmailOtp = async (req, res) => {
             user.email = email;
             user.fullName = fullName;
             user.isEmailVerified = true;
+            if (password) {
+                user.password = await bcrypt.hash(password, 10);
+            }
             await user.save();
         } else {
+            const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
             user = await User.create({
                 fullName,
                 mobileNumber,
                 email,
+                password: hashedPassword,
                 isEmailVerified: true,
                 role: 'user'
             });
@@ -898,7 +921,10 @@ const sendLoginEmailOtp = async (req, res) => {
         }
 
         // Check if user exists by email
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.AppUser.findOne({ email });
+        }
         if (!user) {
             return res.status(404).json({ success: false, message: "Please register first. This email is not registered." });
         }
@@ -973,7 +999,10 @@ const verifyLoginEmailOtp = async (req, res) => {
         }
 
         // Find user by email
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.AppUser.findOne({ email });
+        }
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found." });
         }
@@ -1033,4 +1062,140 @@ module.exports = {
     getAllAdmins,
     deleteAdmin,
     verifyActivationToken
+};
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: "Invalid email format" });
+        }
+
+        // Check if user exists (User or AppUser)
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.AppUser.findOne({ email });
+        }
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Email not found. Please register first." });
+        }
+
+        const otp = generate6DigitOtp();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+        // Delete old forgot-password OTPs
+        await Otp.deleteMany({ email, purpose: 'forgot-password' });
+
+        // Save new OTP
+        await Otp.create({
+            email,
+            otp,
+            purpose: 'forgot-password',
+            expiresAt
+        });
+
+        // Send OTP via email
+        const mailSent = await sendOtpEmail(email, otp);
+        if (!mailSent) {
+            return res.status(500).json({ success: false, message: "Failed to send verification email. Please try again." });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "OTP sent to your email successfully",
+            ...(process.env.NODE_ENV === 'development' && { otp })
+        });
+    } catch (error) {
+        console.error("forgotPassword error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ success: false, message: "Email, OTP, and New Password are required" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: "Password must be at least 8 characters long" });
+        }
+
+        const otpRecord = await Otp.findOne({ email, purpose: 'forgot-password' }).sort({ createdAt: -1 });
+
+        if (!otpRecord) {
+            return res.status(400).json({ success: false, message: "No OTP found. Please request a new OTP." });
+        }
+
+        if (new Date() > otpRecord.expiresAt) {
+            await Otp.deleteMany({ email, purpose: 'forgot-password' });
+            return res.status(400).json({ success: false, message: "OTP expired. Please request a new one." });
+        }
+
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
+        }
+
+        // Find user in either collection
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = await User.AppUser.findOne({ email });
+        }
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        // Hash and update the password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        // Delete used OTP
+        await Otp.deleteMany({ email, purpose: 'forgot-password' });
+
+        res.status(200).json({
+            success: true,
+            message: "Password reset successfully"
+        });
+    } catch (error) {
+        console.error("resetPassword error:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+module.exports = {
+    getOtp,
+    resendOtp,
+    verifyOtp,
+    loginWithOtp,
+    verifyLoginOtp,
+    sendRegistrationOtp,
+    verifyRegistrationOtp,
+    sendRegisterEmailOtp,
+    verifyRegisterEmailOtp,
+    sendLoginEmailOtp,
+    verifyLoginEmailOtp,
+    getDashboardStats,
+    submitAdminRequest,
+    getAdminRequests,
+    getAdminNotifications,
+    updateAdminRequestStatus,
+    setAdminPassword,
+    adminLogin,
+    adminLoginStep1,
+    adminLoginVerifyOtp,
+    getAllAdmins,
+    deleteAdmin,
+    verifyActivationToken,
+    forgotPassword,
+    resetPassword
 };

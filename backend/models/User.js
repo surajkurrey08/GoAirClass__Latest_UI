@@ -92,7 +92,58 @@ const userSchema = new mongoose.Schema({
     profileImage: {
         type: String,
         default: null,
+    },
+    registrationSource: {
+        type: String,
+        default: "WEBSITE",
+    },
+    password: {
+        type: String,
+        default: null,
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model("User", userSchema);
+const appUserSchema = new mongoose.Schema({
+    ...userSchema.obj,
+    registrationSource: {
+        type: String,
+        default: "APP",
+    }
+}, { timestamps: true });
+
+const AppUser = mongoose.model("AppUser", appUserSchema, "app_users");
+
+// Fallback search mechanisms for seamless ID-based updates/lookups
+userSchema.statics.findById = function (id, projection, options) {
+    const query = this.findOne({ _id: id }, projection, options);
+    const originalThen = query.then.bind(query);
+    query.then = function (onResolve, onReject) {
+        return originalThen(user => {
+            if (!user) {
+                return AppUser.findOne({ _id: id }, projection, options).then(onResolve, onReject);
+            }
+            return onResolve ? onResolve(user) : user;
+        }, onReject);
+    };
+    return query;
+};
+
+userSchema.statics.findByIdAndUpdate = function (id, update, options) {
+    const query = this.findOneAndUpdate({ _id: id }, update, options);
+    const originalThen = query.then.bind(query);
+    query.then = function (onResolve, onReject) {
+        return originalThen(user => {
+            if (!user) {
+                return AppUser.findOneAndUpdate({ _id: id }, update, options).then(onResolve, onReject);
+            }
+            return onResolve ? onResolve(user) : user;
+        }, onReject);
+    };
+    return query;
+};
+
+const User = mongoose.model("User", userSchema);
+User.AppUser = AppUser;
+
+module.exports = User;
+

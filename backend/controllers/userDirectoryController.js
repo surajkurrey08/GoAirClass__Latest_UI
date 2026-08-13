@@ -20,23 +20,19 @@ const OperatorRequest = require('../models/OperatorRequest');
 // Get centralized stats for User Directory
 const getDirectoryStats = async (req, res) => {
     try {
-        const [totalAdmins, totalUsers, busOperators, hotelOperators] = await Promise.all([
+        const [totalAdmins, appUsersCount, webUsersCount] = await Promise.all([
             User.countDocuments({ role: 'admin' }),
-            User.countDocuments({ role: 'user' }),
-            Operator.countDocuments({ isDeleted: { $ne: true } }),
-            HotelOperator.countDocuments({ isDeleted: { $ne: true } })
+            User.AppUser.countDocuments({ role: 'user' }),
+            User.countDocuments({ role: 'user' })
         ]);
 
         res.status(200).json({
             success: true,
             stats: {
                 totalAdmins,
-                totalUsers,
-                totalOperators: busOperators + hotelOperators,
-                operatorsBreakdown: {
-                    bus: busOperators,
-                    hotel: hotelOperators
-                }
+                appUsersCount,
+                webUsersCount,
+                totalUsers: appUsersCount + webUsersCount
             }
         });
     } catch (error) {
@@ -49,7 +45,20 @@ const getDirectoryStats = async (req, res) => {
 const getUsersByRole = async (req, res) => {
     try {
         const { role, search, status } = req.query;
-        let query = { role: role || 'user' };
+        
+        let query = {};
+        let activeModel = User;
+
+        if (role === 'web-user') {
+            query.role = 'user';
+            activeModel = User;
+        } else if (role === 'user') {
+            query.role = 'user';
+            activeModel = User.AppUser;
+        } else {
+            query.role = role || 'user';
+            activeModel = User;
+        }
 
         if (search) {
             query.$or = [
@@ -62,7 +71,7 @@ const getUsersByRole = async (req, res) => {
         // Users don't have a status field in the schema yet, but we'll return them all
         // or filter by other fields if needed.
 
-        const users = await User.find(query).sort({ createdAt: -1 }).select('-adminPassword -otp -otpExpiry');
+        const users = await activeModel.find(query).sort({ createdAt: -1 }).select('-adminPassword -otp -otpExpiry');
 
         // Fetch booking counts for each user (only if role is 'user')
         let usersWithBookings = users;
@@ -131,7 +140,7 @@ const updateDirectoryUserStatus = async (req, res) => {
         if (type === 'bus-operator') model = Operator;
         else if (type === 'hotel-operator') model = HotelOperator;
         else if (type === 'admin') model = User;
-        else if (type === 'user') model = User;
+        else if (type === 'user') model = User.AppUser;
         else return res.status(400).json({ success: false, message: "Invalid type" });
 
         const updatedUser = await model.findByIdAndUpdate(id, { status }, { new: true });
@@ -156,7 +165,7 @@ const deleteDirectoryRecord = async (req, res) => {
             // Permanent delete for normal users/admins if requested, 
             // but we'll stick to soft delete for admins if preferred.
             // For now, let's just use soft delete for operators as requested.
-            model = User;
+            model = (type === 'user') ? User.AppUser : User;
             const deleted = await model.findByIdAndDelete(id); 
             if (!deleted) return res.status(404).json({ success: false, message: "Record not found" });
             return res.status(200).json({ success: true, message: "Record deleted successfully" });
@@ -187,7 +196,7 @@ const updateDirectoryRecord = async (req, res) => {
         let updateData = {};
 
         if (type === 'admin' || type === 'user') {
-            model = User;
+            model = (type === 'user') ? User.AppUser : User;
             updateData = { fullName, email, mobileNumber };
         } else if (type === 'bus-operator') {
             model = Operator;
@@ -218,7 +227,10 @@ const toggleUserBlock = async (req, res) => {
         const { id } = req.params;
         const { isBlocked } = req.body;
 
-        const user = await User.findById(id);
+        let user = await User.findById(id);
+        if (!user) {
+            user = await User.AppUser.findById(id);
+        }
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }

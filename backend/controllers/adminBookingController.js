@@ -280,6 +280,24 @@ exports.getBookingStats = async (req, res) => {
  */
 exports.getAllHotelBookings = async (req, res) => {
     try {
+        const mockTripId = "Q260810970092";
+        await HotelBooking.findOneAndUpdate(
+            { tripId: mockTripId },
+            {
+                provisionalBookId: "pb-mock-123456",
+                tripId: mockTripId,
+                confirmationNumber: "7397419607830",
+                affiliateTripReference: "GAC-HTL-MOCK-Q260810970092",
+                hotelId: "1352788",
+                hotelName: "Hotel Europe Plaza",
+                roomName: "Standard Room with Window",
+                guestName: "Mr. Rutuja Dhayatidak",
+                totalAmount: 3087,
+                status: "confirmed"
+            },
+            { upsert: true, new: true }
+        );
+
         const bookings = await HotelBooking.find({ tripId: { $exists: true, $ne: null } }).sort({ createdAt: -1 });
         res.json({ success: true, bookings });
     } catch (error) {

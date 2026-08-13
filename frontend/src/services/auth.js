@@ -1,3 +1,4 @@
+
 import API from './axios';
 
 /**
@@ -67,9 +68,9 @@ export const sendRegistrationOtp = async (fullName, mobileNumber, email) => {
  * @param {string} email 
  * @param {string} otp 
  */
-export const verifyRegistrationOtp = async (fullName, mobileNumber, email, otp) => {
+export const verifyRegistrationOtp = async (fullName, mobileNumber, email, otp, password) => {
   try {
-    const response = await API.post('/auth/register/verify-otp', { fullName, mobileNumber, email, otp });
+    const response = await API.post('/auth/register/verify-otp', { fullName, mobileNumber, email, otp, password });
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Registration verification failed.';
@@ -318,4 +319,34 @@ export const logoutUser = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   localStorage.removeItem('role');
+};
+
+/**
+ * Request forgot password OTP
+ * @param {string} email 
+ */
+export const forgotPassword = async (email) => {
+  try {
+    const response = await API.post('/auth/forgot-password', { email });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to send OTP. Please check the email address.';
+    throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Reset password using OTP
+ * @param {string} email 
+ * @param {string} otp 
+ * @param {string} newPassword 
+ */
+export const resetPassword = async (email, otp, newPassword) => {
+  try {
+    const response = await API.post('/auth/reset-password', { email, otp, newPassword });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to reset password. Please try again.';
+    throw new Error(errorMessage);
+  }
 };

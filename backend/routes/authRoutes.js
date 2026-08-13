@@ -23,7 +23,9 @@ const {
     getAllAdmins,
     setAdminPassword, 
     deleteAdmin,
-    verifyActivationToken 
+    verifyActivationToken,
+    forgotPassword,
+    resetPassword
 } = require('../controllers/authController');
 
 const { authMiddleware, checkRole } = require('../middleware/authMiddleware');
@@ -54,6 +56,8 @@ router.post('/register/send-otp', sendRegisterEmailOtp);
 router.post('/register/verify-otp', verifyRegisterEmailOtp);
 router.post('/login/send-otp', sendLoginEmailOtp);
 router.post('/login/verify-otp', verifyLoginEmailOtp);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Protected Admin Routes
 router.get('/dashboard-stats', authMiddleware, checkRole(['admin', 'superadmin']), getDashboardStats);

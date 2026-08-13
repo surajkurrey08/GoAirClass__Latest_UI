@@ -1,167 +1,697 @@
 {
     "success": true,
     "data": {
-        "booking_details": {
-            "trip_id": "Q260804968542",
-            "booking_status": "H",
-            "booked_date": 1785838391000,
-            "booking_type": "ONLINE",
-            "selected_insurances": [],
-            "user_details": {
-                "phone": "12345",
-                "email": "rdhayatidak@gmail.com",
-                "title": "MR",
-                "first_name": "Shivam",
-                "last_name": "Dhayatidak"
-            },
-            "journey_details": {
-                "journey_type": "OW",
-                "is_international": false,
-                "flight_details": [
+        "penalties": {
+            "1d9e1dfe12682b2869aeb68601052629": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
                     {
-                        "flight_id": 43257874,
-                        "segment_details": [
-                            {
-                                "segment_id": 1,
-                                "oa": "6E",
-                                "al": "6E",
-                                "web_checkin": "https://www.goindigo.in/how-to-check-in.html?linkNav=how-to-check-in_header",
-                                "fn": "6653",
-                                "booking_status": "H",
-                                "dep": "BLR",
-                                "arr": "GOI",
-                                "dt": "1",
-                                "dd": 1786345500000,
-                                "ad": 1786350000000,
-                                "booking_infos": [
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
                                     {
-                                        "pax_info_id": 1,
-                                        "booking_status": "H",
-                                        "cabin_type": "E",
-                                        "booking_info_id": 1,
-                                        "pricing_id": 1
+                                        "amount": 5209,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
                                     }
-                                ],
-                                "baggage": {
-                                    "airline_link": "https://www.goindigo.in/travel-information/en/baggage-allowance.html",
-                                    "ADT": {
-                                        "cab": "7kg",
-                                        "free_text": "",
-                                        "cib": "15kg"
-                                    }
-                                }
-                            },
-                            {
-                                "segment_id": 2,
-                                "oa": "6E",
-                                "al": "6E",
-                                "web_checkin": "https://www.goindigo.in/how-to-check-in.html?linkNav=how-to-check-in_header",
-                                "fn": "5231",
-                                "booking_status": "H",
-                                "dep": "GOI",
-                                "arr": "BOM",
-                                "at": "1",
-                                "dd": 1786359600000,
-                                "ad": 1786364400000,
-                                "booking_infos": [
-                                    {
-                                        "pax_info_id": 1,
-                                        "booking_status": "H",
-                                        "cabin_type": "E",
-                                        "booking_info_id": 2,
-                                        "pricing_id": 1
-                                    }
-                                ],
-                                "baggage": {
-                                    "airline_link": "https://www.goindigo.in/travel-information/en/baggage-allowance.html",
-                                    "ADT": {
-                                        "cab": "7kg",
-                                        "free_text": "",
-                                        "cib": "15kg"
-                                    }
-                                }
+                                ]
                             }
-                        ]
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT2H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1069,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT2H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
                     }
                 ],
-                "meta_data": {
-                    "airlines": {
-                        "6E": {
-                            "name": "IndiGo",
-                            "uri": "http://book.goindigo.in/",
-                            "contact_number": "099103 83838"
-                        }
-                    },
-                    "airports": {
-                        "GOI": {
-                            "name": "Dabolim Airport",
-                            "city": "Goa",
-                            "country": "India",
-                            "country_code": "IN",
-                            "time_zone": "Asia/Kolkata"
+                "id": "1d9e1dfe12682b2869aeb68601052629"
+            },
+            "2388b33069a38e6cb3edd7993d31bd24": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 4774,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
                         },
-                        "BOM": {
-                            "name": "Chatrapati Shivaji Airport",
-                            "city": "Mumbai",
-                            "country": "India",
-                            "country_code": "IN",
-                            "time_zone": "Asia/Kolkata"
-                        },
-                        "BLR": {
-                            "name": "Kempegowda International Airport",
-                            "city": "Bangalore",
-                            "country": "India",
-                            "country_code": "IN",
-                            "time_zone": "Asia/Kolkata"
-                        }
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
                     },
-                    "special_fares": [
-                        "REGULAR_FARE"
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 4999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "2388b33069a38e6cb3edd7993d31bd24"
+            },
+            "c266d98c25d2d379682bcf942195ccd4": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5209,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3499,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3400,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT576H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2499,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT576H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "c266d98c25d2d379682bcf942195ccd4"
+            },
+            "473e326a16a8d5e174fdc0fe239486b4": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5209,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT2H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1069,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT2H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "473e326a16a8d5e174fdc0fe239486b4"
+            },
+            "9bef29c9490562606f736a11beaef780": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 4774,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "9bef29c9490562606f736a11beaef780"
+            },
+            "4b64e11115acb6bc3c11d14e048f9011": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 4774,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "4b64e11115acb6bc3c11d14e048f9011"
+            },
+            "e71ff9fb424a7c3ebecbb12982a36fd4": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 9121,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1499,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "e71ff9fb424a7c3ebecbb12982a36fd4"
+            },
+            "c01e8795cd1d9e657841eaf12112a40e": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 9121,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 249,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "c01e8795cd1d9e657841eaf12112a40e"
+            },
+            "28d423cba2b0ccd05fd772e2b3af9167": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 9121,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 249,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "28d423cba2b0ccd05fd772e2b3af9167"
+            }
+        },
+        "baggageAllowances": {
+            "c74bc80af43c5b6b951704e9ee64ec10": [
+                {
+                    "type": "BAGGAGE_CABIN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 7,
+                            "text": "",
+                            "unit": "KG"
+                        }
                     ]
                 },
-                "traveller_details": [
-                    {
-                        "title": "MR",
-                        "pax_info_id": 1,
-                        "fn": "Shivam",
-                        "mn": "",
-                        "ln": "Dhayatidak",
-                        "type": "ADT",
-                        "nationality": "IN",
-                        "dob": "2001-08-04",
-                        "poi_details": []
-                    }
-                ]
-            },
-            "payment_details": {
-                "currency": "INR",
-                "booking_payment_breakup": {
-                    "total": 3577,
-                    "pricing_breakup": [
+                {
+                    "type": "BAGGAGE_CHECK_IN",
+                    "allowedBaggages": [
                         {
-                            "pricing_id": 1,
-                            "base_fare": 1700,
-                            "coupon_cashback": 0,
-                            "total_taxes": 1877,
-                            "convenience_fees": 0,
-                            "fare_group": {
-                                "type": "REGULAR_FARE",
-                                "brand_name": "REGULAR"
-                            }
+                            "piece": 1,
+                            "quantity": 20,
+                            "text": "",
+                            "unit": "KG"
                         }
                     ]
                 }
-            },
-            "cancellation_txns": [],
-            "download_keys": {}
+            ],
+            "acd372200d87083dfd31172adfa65d95": [
+                {
+                    "type": "BAGGAGE_CABIN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 7,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
+                },
+                {
+                    "type": "BAGGAGE_CHECK_IN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 15,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
+                }
+            ]
         },
-        "fwd_txns": [
-            {
-                "status": "S",
-                "amount": 0,
-                "transaction_time": 1785838413000
+        "benefits": {
+            "c4dc95e02115dd97155a99031cb89b60": {
+                "benefitType": "MEAL",
+                "value": "PAID",
+                "description": "Paid",
+                "shortDescription": "Paid Meal",
+                "amount": 0
+            },
+            "0d02e47132a139c314fcd95280b6ec2e": {
+                "benefitType": "SEAT",
+                "value": "FREE",
+                "description": "Free",
+                "shortDescription": "Free Seat",
+                "amount": 0
+            },
+            "ef1aca914ab769cf9a7b7bbdb9700227": {
+                "benefitType": "SEAT",
+                "value": "PAID",
+                "description": "Paid",
+                "shortDescription": "Paid Seat",
+                "amount": 0
+            },
+            "27b38941e0985d11b6eb05be8bd0afa3": {
+                "benefitType": "MEAL",
+                "value": "FREE",
+                "description": "Free",
+                "shortDescription": "Free Meal",
+                "amount": 0
             }
-        ],
-        "rev_txns": []
+        },
+        "fares": {
+            "REGULAR__11/08/2026__6E__6E__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z531WnBf3MyrJUlAa4ud9kCc9Si/ueIFS1skTVikbXkTIUh8dhub3PW+bYrnBpthvN2O0HjtXtAW7go8FWYKJi3b3YPb4SFqjWGSBLlIz3IQJ4DwQSvspOmqNbLBRCArXrV4rwqaRiIDcLkSwyMCv//ua3quVF738O6sXGBHqYKdPraiM8wMMOjb0dKGUgvdD9q9LAAdYGekGimlYmX2vOL5qDI0jR4AMhhk/qKikAqs3+dA4UwIWuCyRdFn4UCoJxJDsztTfCGDA6ymdzCqr8vnf8o=~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "2388b33069a38e6cb3edd7993d31bd24"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_BOM": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "9bef29c9490562606f736a11beaef780",
+                                "4b64e11115acb6bc3c11d14e048f9011",
+                                "2388b33069a38e6cb3edd7993d31bd24"
+                            ],
+                            "benefitIds": [
+                                "ef1aca914ab769cf9a7b7bbdb9700227",
+                                "c4dc95e02115dd97155a99031cb89b60"
+                            ],
+                            "flightBenefits": {
+                                "BLR_BOM": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "FARE_FAMILY__11/08/2026__6E__6E__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z53k5WtbUSTxHSlnvQmLjoDlhbUoFH2A8WZhkJHnPK0kPw91XclrpQ+2SkWLiJcQKbmZbacWVXUKyoIyUiWP33F9esQUCm5YtXKrdeZXC7VraU8e/uDwImYSbH/952NIQI8IY2wJPi1c3k1hXelZUXO8ixeh8C6fNNKM6H6nCLmhLa26VVWq5t2eWChEI8JixV66o41TyaIfUb2WeNxfhSEHoi52yDzMzcmfG8adVJkW+UXEmMjjQeBoHdKSCRU5Sp26yuPrqROoFn9NfH7e5M+W1mg=~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "e71ff9fb424a7c3ebecbb12982a36fd4"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_BOM": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "c01e8795cd1d9e657841eaf12112a40e",
+                                "28d423cba2b0ccd05fd772e2b3af9167",
+                                "e71ff9fb424a7c3ebecbb12982a36fd4"
+                            ],
+                            "benefitIds": [
+                                "0d02e47132a139c314fcd95280b6ec2e",
+                                "27b38941e0985d11b6eb05be8bd0afa3"
+                            ],
+                            "flightBenefits": {
+                                "BLR_BOM": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "c74bc80af43c5b6b951704e9ee64ec10"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "FARE_FAMILY__11/08/2026__6E__6E__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z519T7OiHNxeDQDEZMXzyuKzzm+VL2GUPIr7w869SqfoJhqyDCOtOjeFnnobwwQqrZqZwiIUZPX4mTYqz7y5e2vLAk6M9wflWC3VCLAnVbTSHXvoyluQc/iZN15iUfl47opgucsya4kUWCe2M30p7khJGvDtPHmvORN0y40f6w/kwk1TnIQ8j4x712H8TC1F9/UoTcQroSHfsf70dPw1qEAcpbu4pwOlLVsnZIXnB62J4Pq6zHth0R4L/rkVVQX0YqvzSV/6XDL3+wkWv+bJQFS+06k=~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "c266d98c25d2d379682bcf942195ccd4"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_BOM": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "1d9e1dfe12682b2869aeb68601052629",
+                                "473e326a16a8d5e174fdc0fe239486b4",
+                                "c266d98c25d2d379682bcf942195ccd4"
+                            ],
+                            "benefitIds": [
+                                "0d02e47132a139c314fcd95280b6ec2e",
+                                "27b38941e0985d11b6eb05be8bd0afa3"
+                            ],
+                            "flightBenefits": {
+                                "BLR_BOM": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "errors": []
     }
 }

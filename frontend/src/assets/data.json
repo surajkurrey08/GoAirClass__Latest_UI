@@ -1,0 +1,249 @@
+{
+    "success": true,
+    "data": {
+        "penalties": {
+            "1b1e3aa34d5242f55322e68b93b664aa": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 8924,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "1b1e3aa34d5242f55322e68b93b664aa"
+            },
+            "1a2ae305a3e3a91f152e34926be67319": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 8924,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "1a2ae305a3e3a91f152e34926be67319"
+            },
+            "d6c4496e5f57c27f9b241937dfef2358": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 8924,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 4999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "d6c4496e5f57c27f9b241937dfef2358"
+            }
+        },
+        "baggageAllowances": {
+            "acd372200d87083dfd31172adfa65d95": [
+                {
+                    "type": "BAGGAGE_CABIN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 7,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
+                },
+                {
+                    "type": "BAGGAGE_CHECK_IN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 15,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
+                }
+            ]
+        },
+        "benefits": {
+            "c4dc95e02115dd97155a99031cb89b60": {
+                "benefitType": "MEAL",
+                "value": "PAID",
+                "description": "Paid",
+                "shortDescription": "Paid Meal",
+                "amount": 0
+            },
+            "ef1aca914ab769cf9a7b7bbdb9700227": {
+                "benefitType": "SEAT",
+                "value": "PAID",
+                "description": "Paid",
+                "shortDescription": "Paid Seat",
+                "amount": 0
+            }
+        },
+        "fares": {
+            "REGULAR__08/08/2026__6E__6E__BLR_CCU__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z52Jq6lCC4oYJ8GpKuxDsB8je29ouRbVOCw0sc5HILRkkwdvdnmsKOmpr3Z85AsQcvXboIMdKfMO4296v6ZNY0W8KREDQBjVJuGF89Kr0z5Mng4nvYi2TonYDbUoJyufdIbXntyIHXyftrMZHijwxnG8RBrn9NQctBclk5v1a3EFvGUojb6HaAh+L0MBu2GTluYx8f9dtM9C2m0AmoPozmnVEAflCgBY2A34hiZhc+MAM6NSXdHdBYjG8EqL+YE4IMYUKza7MufDYOiRMhV04899FQ==~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "d6c4496e5f57c27f9b241937dfef2358"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_CCU": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "1b1e3aa34d5242f55322e68b93b664aa",
+                                "1a2ae305a3e3a91f152e34926be67319",
+                                "d6c4496e5f57c27f9b241937dfef2358"
+                            ],
+                            "benefitIds": [
+                                "ef1aca914ab769cf9a7b7bbdb9700227",
+                                "c4dc95e02115dd97155a99031cb89b60"
+                            ],
+                            "flightBenefits": {
+                                "BLR_CCU": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "errors": []
+    }
+}

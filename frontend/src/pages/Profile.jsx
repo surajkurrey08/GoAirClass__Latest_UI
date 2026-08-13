@@ -25,9 +25,13 @@ const getFlightStatusLabel = (status) => {
 };
 
 const getRealPnr = (booking) => {
-  if (!booking.pnr) return 'Not Available';
-  if (booking.pnr === booking.tripId || booking.pnr === booking.bookingId) return 'Not Available';
-  return booking.pnr;
+  const livePnr = booking.liveDetails?.booking_details?.journey_details?.flight_details?.[0]?.segment_details?.[0]?.booking_infos?.[0]?.pnr 
+               || booking.liveDetails?.booking_details?.journey_details?.flight_details?.[0]?.segment_details?.[0]?.booking_infos?.[0]?.gds_pnr
+               || booking.liveDetails?.pnr;
+  if (livePnr) return livePnr;
+  if (booking.pnr && booking.pnr !== 'Not Available') return booking.pnr;
+  if (booking.tripId) return booking.tripId;
+  return 'Confirmed';
 };
 
 const SeatIcon = () => (

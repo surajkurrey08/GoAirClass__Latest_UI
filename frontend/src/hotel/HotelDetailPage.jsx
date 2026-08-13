@@ -222,10 +222,18 @@ export default function HotelDetailPage() {
                             {hotel.name}
                         </h1>
                         <div className="flex items-center gap-1 text-amber-400">
-                            {Array.from({ length: hotel.stars || 5 }).map((_, i) => (
+                            {Array.from({ length: hotel.ratings?.starRating || hotel.stars || 5 }).map((_, i) => (
                                 <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                             ))}
+                            <span className="text-slate-500 text-xs font-semibold ml-1">
+                                ({hotel.ratings?.starRating || hotel.stars || 5} Star Rating)
+                            </span>
                         </div>
+                        {hotel.property && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-none text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                {typeof hotel.property === 'object' ? (hotel.property.type || hotel.property.name || JSON.stringify(hotel.property)) : String(hotel.property)}
+                            </span>
+                        )}
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-none border border-[#f97316]/40 text-[#ea580c] text-[11px] font-semibold bg-[#fff7ed]">
                             <span className="text-[11px] font-bold">%</span>
                             <span>Monsoon Mega Deals</span>
@@ -238,7 +246,7 @@ export default function HotelDetailPage() {
                     >
                         <span>{hotel.address || 'GATE NO 1, behind METRO, Cash and Pay Colony, Charbagh, Lucknow, Uttar Pradesh 226004'}</span>
                         <span className="text-slate-300">|</span>
-                        <span>{hotel.city || 'Lucknow'}, {hotel.country || 'India'}</span>
+                        <span>{hotel.locality && typeof hotel.locality === 'string' ? `${hotel.locality}, ` : ''}{hotel.city || 'Lucknow'}, {hotel.country || 'India'}</span>
                         <span className="text-slate-300">|</span>
                         <span>{formatDate(checkIn)} - {formatDate(checkOut)}</span>
                         <span className="text-slate-300">|</span>
@@ -530,6 +538,76 @@ export default function HotelDetailPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Contact & Additional Info */}
+                        <div className="bg-white rounded-none border border-slate-200 p-5 shadow-sm space-y-4">
+                            <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                                <PhoneCall className="h-4 w-4 text-[#3b2a82]" />
+                                <span>Contact & Additional Info</span>
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                <div className="space-y-2 border border-slate-100 p-3 bg-slate-50/50">
+                                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Contact Information</span>
+                                    {hotel.contacts ? (
+                                        <div className="space-y-1.5 text-slate-700 font-medium">
+                                            {Array.isArray(hotel.contacts) ? (
+                                                hotel.contacts.map((item, idx) => {
+                                                    if (typeof item === 'object' && item !== null) {
+                                                        return (
+                                                            <div key={idx} className="space-y-1.5">
+                                                                {Object.entries(item).map(([k, v]) => (
+                                                                    <p key={k} className="flex gap-1.5">
+                                                                        <span className="font-bold text-slate-500">{k}:</span>
+                                                                        <span className="text-slate-800">{Array.isArray(v) ? v.join(', ') : String(v)}</span>
+                                                                    </p>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return <p key={idx}>{String(item)}</p>;
+                                                })
+                                            ) : typeof hotel.contacts === 'object' && hotel.contacts !== null ? (
+                                                Object.entries(hotel.contacts).map(([key, val]) => {
+                                                    const displayVal = Array.isArray(val) ? val.join(', ') : (val !== null && val !== undefined ? String(val) : 'N/A');
+                                                    return (
+                                                        <p key={key} className="flex gap-1.5">
+                                                            <span className="font-bold text-slate-500">{key}:</span>
+                                                            <span className="text-slate-800">{displayVal}</span>
+                                                        </p>
+                                                    );
+                                                })
+                                            ) : typeof hotel.contacts === 'string' ? (
+                                                <p>{hotel.contacts}</p>
+                                            ) : (
+                                                <p className="text-slate-400">Not Available</p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-slate-400">Not Available</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2 border border-slate-100 p-3 bg-slate-50/50">
+                                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Additional Information</span>
+                                    <div className="text-slate-600 leading-relaxed font-medium">
+                                        {typeof hotel.otherInfo === 'object' && hotel.otherInfo !== null ? (
+                                            <div className="space-y-1.5">
+                                                {Object.entries(hotel.otherInfo).map(([key, val]) => {
+                                                    const displayVal = val !== null && val !== undefined ? String(val) : 'N/A';
+                                                    return (
+                                                        <div key={key} className="flex gap-1.5">
+                                                            <span className="font-bold text-slate-500">{key}:</span>
+                                                            <span className="text-slate-800">{displayVal}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            hotel.otherInfo || "No additional information provided."
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* ── Right Panel (Select Room & Plan - Exact Replica) ── */}
@@ -593,9 +671,6 @@ export default function HotelDetailPage() {
                                                     <span className="flex items-center gap-1">
                                                         <Users className="h-3 w-3 text-slate-400" />
                                                         {room.maxOccupancy?.totalMaxOccupancy ? `Max ${room.maxOccupancy.totalMaxOccupancy} Guests` : `${guests} Guests`}
-                                                    </span>
-                                                    <span className="flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 font-bold">
-                                                        ⚡ Limited Availability
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-1 pt-1">

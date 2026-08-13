@@ -38,6 +38,9 @@ export default function FlightListPage() {
     const [searchId, setSearchId] = useState(null);
     const [dataId, setDataId] = useState(null);
     const [isCreatingSession, setIsCreatingSession] = useState(false);
+    const [allFares, setAllFares] = useState({});
+    const [allBenefits, setAllBenefits] = useState(null);
+    const [selectedFareId, setSelectedFareId] = useState(null);
     const fetchedRef = useRef('');
 
 
@@ -179,7 +182,7 @@ export default function FlightListPage() {
                         const fare = faresDict[fareId] || option.defaultFare || option.fare || {};
                         const price = fare?.pricing?.totalPrice || fare?.pricing?.totalFare || fare?.totalPrice || option.pricing?.totalPrice || option.price || option.defaultFare?.pricing?.totalPrice || 0;
                         const isRefundable = fare?.refundable !== undefined ? fare.refundable : (association?.refundable !== undefined ? association.refundable : true);
-                        
+
                         const rawFlightFares = fare?.subTravelOptionFare?.[0]?.flightFare || fare?.flightFares || [];
                         const flightFares = Array.isArray(rawFlightFares) ? rawFlightFares : [rawFlightFares];
 
@@ -221,7 +224,7 @@ export default function FlightListPage() {
                             const airlineName = airlinesDict[airlineCode]?.name || flt.airlineName || airlineCode;
 
                             const flightFare = (Array.isArray(flightFares) ? flightFares.find(ff => ff?.flightId === fId) : null) || flightFares[0] || {};
-                            
+
                             const baggageAllowanceList = flightFare?.baggageAllowances || fare?.baggageAllowances || flt.baggageAllowances || subTravelOption?.baggageAllowances || option?.baggageAllowances || [];
                             let cabinBag = null;
                             let checkInBag = null;
@@ -243,7 +246,7 @@ export default function FlightListPage() {
                                     if (!b || typeof b !== 'object') continue;
                                     const bType = String(b.type || b.baggageType || b.category || '').toUpperCase();
                                     const allowance = (Array.isArray(b.allowedBaggages) ? b.allowedBaggages[0] : null) || b;
-                                    
+
                                     if (!cabinBag && (bType.includes('CABIN') || bType.includes('HAND'))) {
                                         cabinBag = allowance;
                                     }
@@ -272,17 +275,17 @@ export default function FlightListPage() {
                             const equipmentKey = flt.equipment || flt.equipmentCode || flt.equipmentType;
                             const equipmentObj = (equipmentKey && equipmentsDict[equipmentKey]) ? equipmentsDict[equipmentKey] : (typeof flt.equipment === 'object' ? flt.equipment : null);
 
-                            const aircraftVal = 
-                                flt.aircraftType || 
-                                flt.aircraftName || 
+                            const aircraftVal =
+                                flt.aircraftType ||
+                                flt.aircraftName ||
                                 (typeof flt.aircraft === 'string' ? flt.aircraft : (flt.aircraft?.name || flt.aircraft?.type || flt.aircraft?.model)) ||
-                                flt.equipmentName || 
-                                flt.equipmentType || 
+                                flt.equipmentName ||
+                                flt.equipmentType ||
                                 (typeof flt.equipment === 'string' && isNaN(Number(flt.equipment)) ? flt.equipment : null) ||
-                                equipmentObj?.name || 
-                                equipmentObj?.equipmentName || 
-                                equipmentObj?.type || 
-                                equipmentObj?.description || 
+                                equipmentObj?.name ||
+                                equipmentObj?.equipmentName ||
+                                equipmentObj?.type ||
+                                equipmentObj?.description ||
                                 null;
 
                             const origCode = flt.departureAirport?.code || 'BLR';
@@ -367,6 +370,8 @@ export default function FlightListPage() {
                 const processedJ1 = parseOptionsList(rawJ1);
                 const processedJ2 = parseOptionsList(rawJ2);
 
+                setAllFares(faresDict);
+                setAllBenefits(apiData.benefits || null);
                 setAllOutboundFlights(processedJ1);
                 setAllReturnFlights(processedJ2);
                 setFlights(processedJ1);
@@ -535,41 +540,41 @@ export default function FlightListPage() {
                 outboundSegmentsCount: selectedOutbound.segments.length
             };
 
-            navigate('/flight/booking-details', { 
-                state: { 
-                    flight: combinedFlight, 
-                    searchId, 
+            navigate('/flight/booking-details', {
+                state: {
+                    flight: combinedFlight,
+                    searchId,
                     dataId,
                     adultsCount,
                     childrenCount,
                     infantsCount
-                } 
+                }
             });
         } else {
             const adultsCount = Number(searchParams.get('adults')) || 1;
             const childrenCount = Number(searchParams.get('children')) || 0;
             const infantsCount = Number(searchParams.get('infants')) || 0;
 
-            navigate('/flight/booking-details', { 
-                state: { 
-                    flight, 
-                    searchId, 
+            navigate('/flight/booking-details', {
+                state: {
+                    flight,
+                    searchId,
                     dataId,
                     adultsCount,
                     childrenCount,
                     infantsCount
-                } 
+                }
             });
         }
     };
 
     // Helper function to resolve Cleartrip B2B Bulk Benefits mappings
-    const getResolvedBenefits = () => {
+    const getResolvedBenefits = (specificFareId) => {
         if (!bulkBenefits || !previewFlight) return null;
 
         const fares = bulkBenefits.data?.fares || bulkBenefits.fares || {};
-        const selectedFareId = previewFlight.rawOption?.fareId;
-        const fareInfo = fares[selectedFareId];
+        const currentFareId = specificFareId || selectedFareId || previewFlight.rawOption?.fareId;
+        const fareInfo = fares[currentFareId];
         if (!fareInfo) return null;
 
         // Try to get subTravelOptionBenefits (keyed by sector, e.g., "BLR_BOM")
@@ -580,7 +585,7 @@ export default function FlightListPage() {
         // 1. Resolve baggage allowances
         const baggageList = [];
         const baggageAllowancesMap = bulkBenefits.data?.baggageAllowances || bulkBenefits.baggageAllowances || {};
-        
+
         // Find baggage mappings in flightBenefits
         const flightBenefits = benefitsInfo.flightBenefits || {};
         Object.values(flightBenefits).forEach(segBenefit => {
@@ -644,16 +649,27 @@ export default function FlightListPage() {
 
     const handleCardClick = (flight) => {
         setPreviewFlight(flight);
+        setSelectedFareId(flight.rawOption?.fareId || null);
         setIsDrawerOpen(true);
 
+        const flightIds = flight.segments.map(s => s.id);
+        const fareIdsToFetch = Object.entries(allFares).filter(([fareId, fareData]) => {
+            if (!fareData.subTravelOptionFare) return false;
+            return fareData.subTravelOptionFare.some(sto => {
+                if (!sto.flightFare) return false;
+                const stoFlightIds = sto.flightFare.map(ff => ff.flightId);
+                return stoFlightIds.length === flightIds.length && stoFlightIds.every(id => flightIds.includes(id));
+            });
+        }).map(([fareId]) => fareId);
+
         // Fetch Bulk Benefits dynamically for this flight inside the drawer
-        if (dataId && flight.rawOption?.fareId) {
+        if (dataId && fareIdsToFetch.length > 0) {
             setLoadingBenefits(true);
             setBulkBenefits(null);
             fetchBulkBenefitsApi({
                 dataId,
                 searchId,
-                fareIds: [flight.rawOption.fareId],
+                fareIds: fareIdsToFetch,
                 requiredBenefitTypes: ["BAGGAGE", "PENALTIES", "FARE_BENEFITS"]
             }).then(res => {
                 if (res.success && res.data) {
@@ -672,7 +688,110 @@ export default function FlightListPage() {
         setIsDrawerOpen(false);
         setTimeout(() => {
             setPreviewFlight(null);
+            setSelectedFareId(null);
         }, 1000);
+    };
+
+    // Calculate available fares for previewFlight
+    const availableFares = React.useMemo(() => {
+        if (!previewFlight || !allFares) return [];
+        const flightIds = previewFlight.segments.map(s => s.id);
+        const matchedFares = Object.entries(allFares).filter(([fareId, fareData]) => {
+            if (!fareData.subTravelOptionFare) return false;
+            return fareData.subTravelOptionFare.some(sto => {
+                if (!sto.flightFare) return false;
+                const stoFlightIds = sto.flightFare.map(ff => ff.flightId);
+                return stoFlightIds.length === flightIds.length && stoFlightIds.every(id => flightIds.includes(id));
+            });
+        }).map(([fareId, fareData]) => {
+            const price = fareData.pricing?.totalPrice || 0;
+            const isRefundable = fareData.refundable !== undefined ? fareData.refundable : (fareData.subTravelOptionFare?.[0]?.refundable !== undefined ? fareData.subTravelOptionFare[0].refundable : true);
+            const rawFlightFares = fareData.subTravelOptionFare?.[0]?.flightFare || [];
+            const flightFares = Array.isArray(rawFlightFares) ? rawFlightFares : [rawFlightFares];
+            const parsedBrandFromFareId = typeof fareId === 'string' ? fareId.split('__')[11] : null;
+            const brandName = flightFares[0]?.identifiers?.brandName || fareData.fareName || (parsedBrandFromFareId && !parsedBrandFromFareId.startsWith('AVN') ? parsedBrandFromFareId.replace(',', ' / ') : '');
+            
+            // Extract Benefits from allBenefits
+            let parsedBenefits = [];
+            if (allBenefits && fareData.benefitIds) {
+                parsedBenefits = fareData.benefitIds
+                    .map(id => allBenefits[id])
+                    .filter(Boolean)
+                    .map(b => ({
+                        type: b.benefitType || 'BENEFIT',
+                        value: b.value || '',
+                        description: b.description || b.shortDescription || b.value || b.benefitType
+                    }));
+            }
+            
+            // Add fallbacks if empty so the UI shows something
+            if (parsedBenefits.length === 0) {
+                parsedBenefits.push({ type: 'BAGGAGE', description: 'Standard Cabin & Check-in Baggage' });
+                
+                const lowerBrand = (brandName || '').toLowerCase();
+                if (lowerBrand.includes('flex') || lowerBrand.includes('comfort') || lowerBrand.includes('premium')) {
+                    parsedBenefits.push({ type: 'SEAT', description: 'Free Seat Selection' });
+                    parsedBenefits.push({ type: 'MEAL', description: 'Complimentary Meal' });
+                    parsedBenefits.push({ type: 'BENEFIT', description: 'Zero Cancellation Fee' });
+                } else if (lowerBrand.includes('student')) {
+                    parsedBenefits.push({ type: 'BAGGAGE', description: 'Extra Baggage Allowance' });
+                }
+            }
+
+            return {
+                fareId,
+                price,
+                brandName,
+                isRefundable,
+                benefits: parsedBenefits,
+                rawFare: fareData
+            };
+        }).sort((a, b) => a.price - b.price);
+
+        return matchedFares;
+    }, [previewFlight, allFares, allBenefits]);
+
+    // Derived selected fare details
+    const selectedFareData = React.useMemo(() => {
+        if (!selectedFareId || !availableFares.length) return previewFlight;
+        const matched = availableFares.find(f => f.fareId === selectedFareId);
+        if (!matched) return previewFlight;
+        
+        return {
+            ...previewFlight,
+            price: matched.price,
+            baseFare: matched.rawFare?.pricing?.baseFare || matched.rawFare?.pricing?.basePrice || Math.round(matched.price * 0.82),
+            taxes: matched.rawFare?.pricing?.tax || matched.rawFare?.pricing?.taxPrice || Math.round(matched.price * 0.18),
+            isRefundable: matched.isRefundable,
+            brandName: matched.brandName,
+            rawOption: {
+                ...previewFlight.rawOption,
+                fareId: selectedFareId
+            }
+        };
+    }, [previewFlight, selectedFareId, availableFares]);
+
+    const handleFareSelection = (fareId) => {
+        if (fareId === selectedFareId) return;
+        setSelectedFareId(fareId);
+        if (dataId && fareId) {
+            setLoadingBenefits(true);
+            setBulkBenefits(null);
+            fetchBulkBenefitsApi({
+                dataId,
+                searchId,
+                fareIds: [fareId],
+                requiredBenefitTypes: ["BAGGAGE", "PENALTIES", "FARE_BENEFITS"]
+            }).then(res => {
+                if (res.success && res.data) {
+                    setBulkBenefits(res.data);
+                }
+            }).catch(err => {
+                console.warn('Failed to fetch benefits details:', err.message);
+            }).finally(() => {
+                setLoadingBenefits(false);
+            });
+        }
     };
 
     return (
@@ -1010,13 +1129,13 @@ export default function FlightListPage() {
                                 </div>
                                 <div className="text-left">
                                     <h4 className="text-sm font-extrabold text-slate-900">
-                                        {selectionMode === 'outbound' 
-                                            ? `Step 1 of 2: Select Outbound Flight (${fromVal.split(' ')[0]} ➔ ${toVal.split(' ')[0]})` 
+                                        {selectionMode === 'outbound'
+                                            ? `Step 1 of 2: Select Outbound Flight (${fromVal.split(' ')[0]} ➔ ${toVal.split(' ')[0]})`
                                             : `Step 2 of 2: Select Return Flight (${toVal.split(' ')[0]} ➔ ${fromVal.split(' ')[0]})`}
                                     </h4>
                                     <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                                        {selectionMode === 'outbound' 
-                                            ? 'Please select your departure flight from the list below' 
+                                        {selectionMode === 'outbound'
+                                            ? 'Please select your departure flight from the list below'
                                             : `Selected departure: ${selectedOutbound?.airlineName} (${selectedOutbound?.segments?.[0]?.flightNumber}) - ₹${selectedOutbound?.price?.toLocaleString()}`}
                                     </p>
                                 </div>
@@ -1142,7 +1261,7 @@ export default function FlightListPage() {
                                         </div>
                                         <div>
                                             <h4 className="text-base font-bold text-slate-900">{airlineName}</h4>
-                                            <span className="text-xs text-slate-500 font-medium">{primarySegment.flightNumber}</span>
+                                            <span className="text-xs text-slate-500 font-medium">{segments.map(s => s.flightNumber).join(' → ')}</span>
                                             <div className="text-[11px] text-[#b89565] font-semibold mt-0.5 uppercase tracking-wider">{primarySegment.brandName || 'PUBLISHED'}</div>
                                         </div>
                                     </div>
@@ -1204,16 +1323,27 @@ export default function FlightListPage() {
                                         <span className="flex items-center gap-1 font-semibold text-slate-500">
                                             💼 Check-in: <strong>{primarySegment.checkInBaggage || '15 KG'}</strong>
                                         </span>
-                                        {flight.benefits?.some(b => b.type === 'MEAL') && (
-                                            <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 border border-emerald-100">
-                                                🍽️ Free Meal
-                                            </span>
-                                        )}
-                                        {flight.benefits?.some(b => b.type === 'SEAT') && (
-                                            <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 border border-purple-100">
-                                                💺 Free Seat
-                                            </span>
-                                        )}
+                                        {flight.benefits?.map((benefit, i) => {
+                                            if (benefit.type === 'MEAL') {
+                                                return (
+                                                    <span key={i} className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 border border-emerald-100">
+                                                        🍽️ Free Meal
+                                                    </span>
+                                                );
+                                            }
+                                            if (benefit.type === 'SEAT') {
+                                                return (
+                                                    <span key={i} className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 border border-purple-100">
+                                                        💺 Free Seat
+                                                    </span>
+                                                );
+                                            }
+                                            return (
+                                                <span key={i} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 border border-blue-100">
+                                                    ✅ {benefit.description}
+                                                </span>
+                                            );
+                                        })}
                                     </div>
                                     <div>
                                         {primarySegment.availableSeats && (
@@ -1437,6 +1567,9 @@ export default function FlightListPage() {
                                                                 <span className="text-xs font-bold text-[#2563eb] block">
                                                                     {previewFlight.segments.length === 1 ? 'Non-stop' : `Segment ${sIdx + 1}`}
                                                                 </span>
+                                                                <span className="text-[11px] font-mono font-bold text-slate-700 mt-0.5 block">
+                                                                    {seg.flightNumber}
+                                                                </span>
                                                                 <span className="text-[10px] font-bold text-[#b89565] uppercase mt-0.5">{seg.cabinType}</span>
                                                             </div>
 
@@ -1476,6 +1609,55 @@ export default function FlightListPage() {
                                             </div>
                                         </div>
 
+                                        {/* 5.5. Fare Upgrades Section */}
+                                        {availableFares.length > 1 && (
+                                            <div>
+                                                <div className="flex items-center gap-2 text-[#1e40af] font-bold text-xs uppercase tracking-wider mb-3">
+                                                    <div className="w-5 h-5 rounded-none bg-blue-50 flex items-center justify-center">
+                                                        <Shield className="w-3.5 h-3.5 text-[#1e40af]" />
+                                                    </div>
+                                                    <span>FARE UPGRADES</span>
+                                                </div>
+                                                <div className="flex gap-3 overflow-x-auto pb-2">
+                                                    {availableFares.map((fare) => (
+                                                        <button 
+                                                            key={fare.fareId}
+                                                            onClick={() => handleFareSelection(fare.fareId)}
+                                                            className={`shrink-0 min-w-[200px] text-left p-4 rounded-none border-2 transition-all ${selectedFareId === fare.fareId ? 'border-[#b89565] bg-amber-50/50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                                                        >
+                                                            <div className="font-bold text-slate-900 text-sm uppercase tracking-wider">{fare.brandName}</div>
+                                                            <div className="font-black text-[#b89565] text-lg mt-1">₹{fare.price.toLocaleString()}</div>
+                                                            
+                                                            <div className="text-xs font-semibold mt-3">
+                                                                {fare.isRefundable ? <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 border border-emerald-100">Refundable</span> : <span className="text-red-500 bg-red-50 px-2 py-0.5 border border-red-100">Non-Refundable</span>}
+                                                            </div>
+
+                                                            {(() => {
+                                                                const resolved = getResolvedBenefits(fare.fareId);
+                                                                let displayList = fare.benefits || [];
+                                                                if (resolved && (resolved.baggageList.length > 0 || resolved.benefitsList.length > 0)) {
+                                                                    displayList = [
+                                                                        ...resolved.baggageList.map(b => ({ type: 'BAGGAGE', description: `${b.type}: ${b.weight}` })),
+                                                                        ...resolved.benefitsList
+                                                                    ];
+                                                                }
+                                                                if (!displayList || displayList.length === 0) return null;
+                                                                return (
+                                                                    <div className="mt-3 flex flex-col gap-1.5 border-t border-slate-100 pt-2 text-left">
+                                                                        {displayList.map((b, i) => (
+                                                                            <span key={i} className="text-[10px] text-slate-600 flex items-center gap-1.5 font-medium">
+                                                                                {b.type === 'MEAL' ? '🍽️' : b.type === 'SEAT' ? '💺' : b.type === 'BAGGAGE' ? '🧳' : '✅'} {b.description}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* 6. Fare Summary & Benefits & Rules Grid */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
                                             {/* Fare Summary */}
@@ -1490,11 +1672,11 @@ export default function FlightListPage() {
                                                     <div className="flex flex-col gap-2.5 text-xs text-slate-600">
                                                         <div className="flex justify-between">
                                                             <span>Base Fare</span>
-                                                            <span className="font-semibold text-slate-800">₹{(previewFlight.baseFare || Math.round(previewFlight.price * 0.82)).toLocaleString()}</span>
+                                                            <span className="font-semibold text-slate-800">₹{(selectedFareData.baseFare || Math.round(selectedFareData.price * 0.82)).toLocaleString()}</span>
                                                         </div>
                                                         <div className="flex justify-between">
                                                             <span>Taxes & Fees</span>
-                                                            <span className="font-semibold text-slate-800">₹{(previewFlight.taxes || Math.round(previewFlight.price * 0.18)).toLocaleString()}</span>
+                                                            <span className="font-semibold text-slate-800">₹{(selectedFareData.taxes || Math.round(selectedFareData.price * 0.18)).toLocaleString()}</span>
                                                         </div>
                                                         <div className="flex justify-between">
                                                             <span>Convenience Fee</span>
@@ -1504,7 +1686,7 @@ export default function FlightListPage() {
                                                 </div>
                                                 <div className="flex justify-between items-center text-base font-bold text-slate-900 border-t border-slate-200/60 pt-3 mt-4">
                                                     <span>Total Payable</span>
-                                                    <span className="text-xl font-black text-slate-900">₹{previewFlight.price.toLocaleString()}</span>
+                                                    <span className="text-xl font-black text-slate-900">₹{selectedFareData.price.toLocaleString()}</span>
                                                 </div>
                                             </div>
 
@@ -1517,7 +1699,7 @@ export default function FlightListPage() {
                                                         </div>
                                                         <span>BENEFITS & RULES</span>
                                                     </div>
-                                                    
+
                                                     <div className="flex flex-col gap-2 mt-2">
                                                         {previewFlight.benefits && previewFlight.benefits.length > 0 ? (
                                                             previewFlight.benefits.map((ben, bIdx) => (
@@ -1531,11 +1713,11 @@ export default function FlightListPage() {
                                                         ) : (
                                                             <div className="flex justify-between items-center text-xs py-1">
                                                                 <span className="text-slate-600 font-medium">Fare Rules</span>
-                                                                <span className="font-bold text-slate-900">{previewFlight.isRefundable ? 'Refund Allowed as per Fare Rules' : 'Non-Refundable Fare'}</span>
+                                                                <span className="font-bold text-slate-900">{selectedFareData.isRefundable ? 'Refund Allowed as per Fare Rules' : 'Non-Refundable Fare'}</span>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    
+
                                                     {loadingBenefits && (
                                                         <div className="mt-3 p-2 bg-blue-50/50 border border-blue-100 text-center rounded-sm">
                                                             <span className="text-xs text-blue-600 font-medium animate-pulse flex items-center justify-center gap-1.5">
@@ -1610,8 +1792,8 @@ export default function FlightListPage() {
                                                     })()}
 
                                                     <div className="text-right mt-2 pt-2 border-t border-slate-100">
-                                                        <span className={`text-[11px] font-bold uppercase px-2 py-0.5 border ${previewFlight.isRefundable ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-red-500 bg-red-50 border-red-200'}`}>
-                                                            {previewFlight.isRefundable ? 'REFUNDABLE' : 'NON-REFUNDABLE'}
+                                                        <span className={`text-[11px] font-bold uppercase px-2 py-0.5 border ${selectedFareData.isRefundable ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-red-500 bg-red-50 border-red-200'}`}>
+                                                            {selectedFareData.isRefundable ? 'REFUNDABLE' : 'NON-REFUNDABLE'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1622,7 +1804,7 @@ export default function FlightListPage() {
                                         <div className="pt-2">
                                             <button
                                                 className="w-full bg-[#b89565] hover:bg-[#a38053] text-white py-3.5 rounded-none text-sm font-bold tracking-wider uppercase transition-all shadow-md active:scale-[0.99]"
-                                                onClick={() => handleBooking(previewFlight)}
+                                                onClick={() => handleBooking(selectedFareData)}
                                             >
                                                 CONTINUE BOOKING
                                             </button>

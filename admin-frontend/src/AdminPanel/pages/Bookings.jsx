@@ -322,7 +322,7 @@ export default function Bookings() {
             {/* Trip Details Live Modal */}
             {selectedTripDetails && (
                 <div className="fixed inset-0 z-[5000] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white dark:bg-slate-900 max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 p-6 space-y-6 my-8">
+                    <div className="bg-white dark:bg-slate-900 max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 p-6 space-y-6 my-8">
                         {/* Modal Header */}
                         <div className="flex justify-between items-start pb-4 border-b border-slate-100 dark:border-slate-800">
                             <div>
@@ -439,10 +439,35 @@ export default function Bookings() {
                         </div>
 
                         {/* Cancellation Policy Footer */}
-                        {selectedTripDetails.cancellationPolicy?.text && (
-                            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 p-4 rounded-2xl space-y-1.5 text-xs text-red-800 dark:text-red-300">
+                        {(selectedTripDetails.cancellationPolicy?.text || selectedTripDetails.cancellationPolicy?.cancellationPolicySlabs) && (
+                            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 p-4 rounded-2xl space-y-2 text-xs text-red-800 dark:text-red-300">
                                 <h5 className="font-black uppercase text-[10px] tracking-wider">Cancellation Policy</h5>
-                                <p className="leading-relaxed font-semibold">{selectedTripDetails.cancellationPolicy.text}</p>
+                                {selectedTripDetails.cancellationPolicy.text && (
+                                    <p className="leading-relaxed font-semibold">{selectedTripDetails.cancellationPolicy.text}</p>
+                                )}
+                                {selectedTripDetails.cancellationPolicy.cancellationPolicySlabs && selectedTripDetails.cancellationPolicy.cancellationPolicySlabs.length > 0 && (
+                                    <div className="mt-2 space-y-1 pt-2 border-t border-red-200/30">
+                                        <p className="font-bold text-[10px] uppercase">Policy Slabs:</p>
+                                        {selectedTripDetails.cancellationPolicy.cancellationPolicySlabs.map((slab, index) => {
+                                            const startStr = new Date(slab.startTime).toLocaleString('en-IN');
+                                            const endStr = new Date(slab.endTime).toLocaleString('en-IN');
+                                            return (
+                                                <div key={index} className="flex justify-between text-[11px]">
+                                                    <span>{startStr} to {endStr}:</span>
+                                                    <span className="font-black">Penalty: ₹{slab.penaltyAmount}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* PAN Card Number */}
+                        {selectedTripDetails.panCardNumber !== undefined && (
+                            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl text-xs flex justify-between items-center text-slate-700 dark:text-slate-300">
+                                <span className="font-black uppercase text-[10px] tracking-wider">PAN Card Number</span>
+                                <span className="font-bold">{selectedTripDetails.panCardNumber || 'Not Provided'}</span>
                             </div>
                         )}
                     </div>

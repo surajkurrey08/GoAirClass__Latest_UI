@@ -73,16 +73,14 @@ export default function FlightBookingSuccessPage() {
         || bookingData?.data?.bookingId
         || fallbackConfirmId;
 
+    // Bug 5 fix: pnrNumber should NOT fall through to trip_id — that's the booking ID, not airline PNR.
+    // The real airline PNR comes from booking_infos[].pnr in the Cleartrip trip-details response.
+    // If we only have trip_id from navigation state, show 'Pending' — resolveTripDetails will extract the real PNR.
     const pnrNumber = pnr 
-        || bookingData?.booking_details?.trip_id
-        || bookingData?.data?.booking_details?.trip_id
-        || holdData?.booking_details?.trip_id
-        || holdData?.data?.booking_details?.trip_id
         || bookingData?.pnr 
         || bookingData?.data?.pnr 
-        || bookingData?.data?.bookingId 
-        || holdData?.tripId 
-        || fallbackPnr;
+        || holdData?.pnr
+        || '';
 
     const [liveDetails, setLiveDetails] = useState(null);
     const [loadingLive, setLoadingLive] = useState(false);
@@ -107,6 +105,45 @@ export default function FlightBookingSuccessPage() {
 
         loadLiveDetails();
     }, [confirmId]);
+
+    // Bug 3 fix: Format epoch timestamp in a specific timezone (from Cleartrip airport metadata)
+    // instead of relying on browser's local timezone which corrupts airport-local times.
+    const formatTimeInTZ = (epochMs, timeZone, fallback = '') => {
+        if (!epochMs) return fallback;
+        try {
+            const d = new Date(epochMs);
+            if (isNaN(d.getTime())) return fallback;
+            const tz = timeZone || 'Asia/Kolkata'; // Default to IST for Indian domestic flights
+            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz });
+        } catch (e) {
+            return fallback;
+        }
+    };
+
+    const formatDateInTZ = (epochMs, timeZone, fallback = '') => {
+        if (!epochMs) return fallback;
+        try {
+            const d = new Date(epochMs);
+            if (isNaN(d.getTime())) return fallback;
+            const tz = timeZone || 'Asia/Kolkata';
+            return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: tz });
+        } catch (e) {
+            return fallback;
+        }
+    };
+
+    // Bug 4 fix: Calculate flight duration from departure and arrival timestamps
+    const calculateDuration = (depMs, arrMs) => {
+        if (!depMs || !arrMs) return '';
+        const diffMs = arrMs - depMs;
+        if (diffMs <= 0) return '';
+        const totalMinutes = Math.round(diffMs / 60000);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        if (hours === 0) return `${minutes}m`;
+        if (minutes === 0) return `${hours}h`;
+        return `${hours}h ${minutes}m`;
+    };
 
     // Parse dynamic fields from Cleartrip API response
     const resolveTripDetails = (data) => {
@@ -145,49 +182,78 @@ export default function FlightBookingSuccessPage() {
             }
         }
 
-        // 2. PNR
-        const pnrVal = details.pnr ||
-            segments[0]?.booking_infos?.[0]?.pnr ||
-            segments[0]?.booking_infos?.[0]?.gds_pnr ||
+        // Bug 5 fix: Extract REAL airline PNR from booking_infos, not trip_id
+        // Cleartrip returns airline PNR in segment_details[].booking_infos[].pnr
+        const allBookingInfos = segments.flatMap(s => s.booking_infos || []);
+        const pnrVal = allBookingInfos[0]?.pnr ||
+            allBookingInfos[0]?.gds_pnr ||
+            details.pnr ||
             details.pnrNumber ||
             details.airlinePnr ||
-            details.bookingId || '';
+            ''; // DO NOT fall through to trip_id or bookingId
 
-        // 3. Passengers
+        // Bug 6 fix: Build a map of pax_info_id → seat_number from booking_infos
+        const seatMap = {};
+        allBookingInfos.forEach(bi => {
+            if (bi.pax_info_id && bi.seat_number) {
+                seatMap[bi.pax_info_id] = bi.seat_number;
+            }
+        });
+
+        // Bug 2 fix: Extract included baggage allowance from segment_details[].baggage
+        const firstSegBaggage = segments[0]?.baggage || {};
+        const adtBaggage = firstSegBaggage.ADT || firstSegBaggage.adt || {};
+        const includedCabinBag = adtBaggage.cab || adtBaggage.cabin_baggage || '';
+        const includedCheckinBag = adtBaggage.cib || adtBaggage.checkin_baggage || '';
+
+        // 3. Passengers — now includes seat number and baggage
         let mappedPassengers = [];
         if (travellers.length > 0) {
-            mappedPassengers = travellers.map(traveller => {
+            mappedPassengers = travellers.map((traveller, tIdx) => {
                 const paxId = traveller.pax_info_id;
-                const ticketInfo = segments.flatMap(s => s.booking_infos || []).find(b => b.pax_info_id === paxId);
+                const ticketInfo = allBookingInfos.find(b => b.pax_info_id === paxId);
+                // Bug 6: Use actual seat from booking_infos if available, fall back to selected seat from stateToUse
+                const fallbackSeat = stateToUse.passengers?.[tIdx]?.selectedSeat || stateToUse.passengers?.[tIdx]?.seatNumber || (tIdx === 0 ? (stateToUse.passenger?.selectedSeat || stateToUse.passenger?.seatNumber) : '') || '';
+                const seatNumber = seatMap[paxId] || ticketInfo?.seat_number || fallbackSeat || '';
                 return {
                     title: traveller.title || 'Mr.',
                     firstName: traveller.fn || 'Traveller',
                     lastName: traveller.ln || '',
                     type: traveller.type || 'ADT',
                     ticketNumber: ticketInfo?.ticket_number || 'Ticketed',
-                    email: details.user_details?.email || ''
+                    email: details.user_details?.email || '',
+                    seatNumber: seatNumber, // Bug 6: actual seat from Cleartrip/fallback
+                    includedCabinBag, // Bug 2: included baggage
+                    includedCheckinBag // Bug 2: included baggage
                 };
             });
         }
 
-        // 4. Flights / Segments
+        // 4. Flights / Segments — now with timezone-safe times and calculated duration
         let mappedFlights = [];
         if (segments.length > 0) {
             mappedFlights = segments.map(seg => {
-                const depDate = seg.dd ? new Date(seg.dd) : null;
-                const arrDate = seg.ad ? new Date(seg.ad) : null;
+                const depEpoch = seg.dd || null;
+                const arrEpoch = seg.ad || null;
+                // Use airport timezone from Cleartrip metadata if available
+                const depTZ = airportsMeta[seg.dep]?.time_zone || airportsMeta[seg.dep]?.timezone || 'Asia/Kolkata';
+                const arrTZ = airportsMeta[seg.arr]?.time_zone || airportsMeta[seg.arr]?.timezone || 'Asia/Kolkata';
+
                 return {
                     airlineCode: seg.al || 'FL',
                     airlineName: airlinesMeta[seg.al]?.name || seg.al || 'Airline',
                     flightNumber: `${seg.al}-${seg.fn}`,
                     origin: seg.dep || 'BLR',
                     originCity: airportsMeta[seg.dep]?.city || seg.dep || 'Departure',
+                    originAirportName: airportsMeta[seg.dep]?.name || '',
                     destination: seg.arr || 'BOM',
                     destinationCity: airportsMeta[seg.arr]?.city || seg.arr || 'Arrival',
-                    depDate: depDate ? depDate.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : '',
-                    depTime: depDate ? depDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '18:05',
-                    arrDate: arrDate ? arrDate.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) : '',
-                    arrTime: arrDate ? arrDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '20:05'
+                    destinationAirportName: airportsMeta[seg.arr]?.name || '',
+                    depDate: formatDateInTZ(depEpoch, depTZ),
+                    depTime: formatTimeInTZ(depEpoch, depTZ),
+                    arrDate: formatDateInTZ(arrEpoch, arrTZ),
+                    arrTime: formatTimeInTZ(arrEpoch, arrTZ),
+                    duration: calculateDuration(depEpoch, arrEpoch) // Bug 4: real duration
                 };
             });
         }
@@ -203,30 +269,67 @@ export default function FlightBookingSuccessPage() {
 
     const resolved = resolveTripDetails(liveDetails);
 
-    const displayPnr = resolved?.pnr || pnrNumber;
+    // Bug 5: Show resolved airline PNR (from Cleartrip API), fall back to state PNR, never show trip_id as PNR
+    const displayPnr = resolved?.pnr || pnrNumber || 'Pending';
     const displayStatus = resolved?.status || 'Confirmed';
 
-    // Helper for formatting date
-    const getFormattedDate = (dateStr, fallback = 'Tue, 05 Aug 2025') => {
+    // Helper for formatting date — Bug 3 fix: use IST timezone explicitly
+    const getFormattedDate = (dateStr, fallback = '') => {
         if (!dateStr) return fallback;
         try {
             const d = new Date(dateStr);
             if (isNaN(d.getTime())) return fallback;
-            return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+            // Use Asia/Kolkata timezone to match Indian domestic flights
+            return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
         } catch (e) {
             return fallback;
         }
     };
 
-    // Helper for formatting time
-    const getFormattedTime = (dateStr, fallback = '10:00 AM') => {
+    // Helper for formatting time — Bug 3 fix: extract from ISO string directly or use IST timezone
+    const getFormattedTime = (dateStr, fallback = '') => {
         if (!dateStr) return fallback;
         try {
+            // If it's an ISO string with time component, extract the local time directly
+            // This avoids browser timezone conversion on strings like "2026-08-09T20:30:00+05:30"
+            if (typeof dateStr === 'string' && dateStr.includes('T')) {
+                const timePart = dateStr.split('T')[1]; // "20:30:00+05:30" or "20:30:00"
+                const [hourMinSec] = timePart.split(/[+\-Z]/); // "20:30:00"
+                const [hStr, mStr] = hourMinSec.split(':');
+                const h = parseInt(hStr, 10);
+                const m = parseInt(mStr, 10);
+                if (!isNaN(h) && !isNaN(m)) {
+                    const period = h >= 12 ? 'pm' : 'am';
+                    const h12 = h % 12 || 12;
+                    return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
+                }
+            }
+            // Fallback: use Date with explicit timezone
             const d = new Date(dateStr);
             if (isNaN(d.getTime())) return fallback;
-            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
         } catch (e) {
             return fallback;
+        }
+    };
+
+    // Helper: calculate duration from two datetime strings — Bug 4 fix
+    const getStateDuration = (depStr, arrStr) => {
+        if (!depStr || !arrStr) return '';
+        try {
+            const dep = new Date(depStr);
+            const arr = new Date(arrStr);
+            if (isNaN(dep.getTime()) || isNaN(arr.getTime())) return '';
+            const diffMs = arr - dep;
+            if (diffMs <= 0) return '';
+            const totalMin = Math.round(diffMs / 60000);
+            const h = Math.floor(totalMin / 60);
+            const m = totalMin % 60;
+            if (h === 0) return `${m}m`;
+            if (m === 0) return `${h}h`;
+            return `${h}h ${m}m`;
+        } catch (e) {
+            return '';
         }
     };
 
@@ -239,27 +342,33 @@ export default function FlightBookingSuccessPage() {
                 airlineName: seg.airlineName || stateToUse.flight?.airlineName || 'Partner Airline',
                 flightNumber: seg.flightNumber || 'N/A',
                 origin: seg.origin || 'BLR',
-                originCity: seg.originAirportName?.split(',')[0] || seg.origin || 'Departure',
+                originCity: seg.originCity || seg.originAirportName?.split(',')[0] || seg.origin || 'Departure',
+                originAirportName: seg.originAirportName || seg.originAirport || '',
                 destination: seg.destination || 'BOM',
-                destinationCity: seg.destinationAirportName?.split(',')[0] || seg.destination || 'Arrival',
+                destinationCity: seg.destinationCity || seg.destinationAirportName?.split(',')[0] || seg.destination || 'Arrival',
+                destinationAirportName: seg.destinationAirportName || seg.destinationAirport || '',
                 depTime: getFormattedTime(seg.departureDateTime),
-                depDate: getFormattedDate(seg.departureDateTime, 'Tue, 05 Aug 2025'),
+                depDate: getFormattedDate(seg.departureDateTime),
                 arrTime: getFormattedTime(seg.arrivalDateTime),
-                arrDate: getFormattedDate(seg.arrivalDateTime, 'Tue, 05 Aug 2025')
+                arrDate: getFormattedDate(seg.arrivalDateTime),
+                duration: getStateDuration(seg.departureDateTime, seg.arrivalDateTime)
             }))
             : [
                 {
                     airlineCode: flight?.airlineCode || primarySegment?.airlineCode || 'FL',
                     airlineName: flight?.airlineName || primarySegment?.airlineName || 'Partner Airline',
-                    flightNumber: primarySegment?.flightNumber || flight?.flightNumber || 'N/A',
+                    flightNumber: flight?.segments?.map(s => s.flightNumber).join(' → ') || primarySegment?.flightNumber || flight?.flightNumber || 'N/A',
                     origin: primarySegment?.origin || 'BLR',
                     originCity: primarySegment?.originCity || 'Departure',
-                    depTime: primarySegment?.departureTime || '10:00 AM',
-                    depDate: getFormattedDate(primarySegment?.departureDateTime || flight?.departureDate || flight?.date, 'Tue, 05 Aug 2025'),
+                    originAirportName: primarySegment?.originAirportName || primarySegment?.originAirport || '',
+                    depTime: getFormattedTime(primarySegment?.departureDateTime) || primarySegment?.departureTime || '',
+                    depDate: getFormattedDate(primarySegment?.departureDateTime || flight?.departureDate || flight?.date),
                     destination: lastSegment?.destination || 'BOM',
                     destinationCity: lastSegment?.destinationCity || 'Arrival',
-                    arrTime: lastSegment?.arrivalTime || '12:15 PM',
-                    arrDate: getFormattedDate(lastSegment?.arrivalDateTime || flight?.arrivalDate || flight?.date, 'Tue, 05 Aug 2025')
+                    destinationAirportName: lastSegment?.destinationAirportName || lastSegment?.destinationAirport || '',
+                    arrTime: getFormattedTime(lastSegment?.arrivalDateTime) || lastSegment?.arrivalTime || '',
+                    arrDate: getFormattedDate(lastSegment?.arrivalDateTime || flight?.arrivalDate || flight?.date),
+                    duration: getStateDuration(primarySegment?.departureDateTime, lastSegment?.arrivalDateTime) || flight?.duration || ''
                 }
             ]
         );
@@ -383,14 +492,17 @@ export default function FlightBookingSuccessPage() {
                                             {/* Origin */}
                                             <div>
                                                 <p className="text-2.5xl font-black text-slate-800 tracking-tight leading-none">{f.origin}</p>
-                                                <p className="text-[10px] text-slate-450 font-bold mt-1.5 truncate">{f.originCity}</p>
+                                                <p className="text-[11px] text-slate-800 font-black mt-1.5 truncate">{f.originCity}</p>
+                                                {f.originAirportName && (
+                                                    <p className="text-xs text-slate-700 font-bold mt-0.5 leading-snug" title={f.originAirportName}>{f.originAirportName}</p>
+                                                )}
                                                 <p className="text-xs font-black text-emerald-600 mt-2">{f.depTime}</p>
                                                 <p className="text-[9px] text-slate-400 font-semibold mt-0.5">{f.depDate}</p>
                                             </div>
 
                                             {/* Route illustration */}
                                             <div className="flex flex-col items-center justify-center relative">
-                                                <span className="text-[10px] text-slate-450 font-bold mb-1">{f.duration || '2h 15m'}</span>
+                                                <span className="text-[10px] text-slate-450 font-bold mb-1">{f.duration || ''}</span>
                                                 <div className="w-full flex items-center relative py-1">
                                                     <div className="absolute inset-x-0 top-1/2 h-[1px] bg-slate-200"></div>
                                                     <div className="w-1 h-1 rounded-full bg-emerald-600 absolute left-0 top-1/2 -translate-y-1/2 z-10"></div>
@@ -399,13 +511,16 @@ export default function FlightBookingSuccessPage() {
                                                     </div>
                                                     <div className="w-1 h-1 rounded-full bg-emerald-600 absolute right-0 top-1/2 -translate-y-1/2 z-10"></div>
                                                 </div>
-                                                <span className="text-[9px] text-emerald-650 font-extrabold tracking-wider mt-1 uppercase">Direct</span>
+                                                <span className="text-[9px] text-emerald-650 font-extrabold tracking-wider mt-1 uppercase">{displayFlightsList.length <= 1 ? 'Direct' : `${displayFlightsList.length - 1} Stop(s)`}</span>
                                             </div>
 
                                             {/* Destination */}
                                             <div className="text-right">
                                                 <p className="text-2.5xl font-black text-slate-800 tracking-tight leading-none">{f.destination}</p>
-                                                <p className="text-[10px] text-slate-450 font-bold mt-1.5 truncate">{f.destinationCity}</p>
+                                                <p className="text-[11px] text-slate-800 font-black mt-1.5 truncate">{f.destinationCity}</p>
+                                                {f.destinationAirportName && (
+                                                    <p className="text-xs text-slate-700 font-bold mt-0.5 leading-snug" title={f.destinationAirportName}>{f.destinationAirportName}</p>
+                                                )}
                                                 <p className="text-xs font-black text-emerald-600 mt-2">{f.arrTime}</p>
                                                 <p className="text-[9px] text-slate-400 font-semibold mt-0.5">{f.arrDate}</p>
                                             </div>
@@ -429,34 +544,77 @@ export default function FlightBookingSuccessPage() {
                         <div className="space-y-4 py-1 text-left">
                             <div className="border-b border-slate-100 pb-1 flex justify-between items-center">
                                 <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-                                    Passengers & Seats
+                                    Passengers, Seats & Perks
                                 </span>
                                 <span className="text-[9px] text-slate-400 font-bold block">
                                     {displayPassengersList.length} Traveller(s)
                                 </span>
                             </div>
-                            {displayPassengersList.map((p, idx) => (
-                                <div key={idx} className="grid grid-cols-3 gap-2 py-1 items-center border-b border-slate-50 last:border-0 last:pb-0">
-                                    <div>
-                                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Passenger {idx + 1}</span>
-                                        <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
-                                            {p.title || 'Mr.'} {p.firstName} {p.lastName}
-                                        </span>
+                            {displayPassengersList.map((p, idx) => {
+                                const resolvePassengerMealDisplay = () => {
+                                    if (p.confirmedMealTitle) {
+                                        return { text: `🍱 ${p.confirmedMealTitle}`, class: 'text-emerald-600 font-bold' };
+                                    }
+
+                                    const selMealObj = p.selectedMealObj || p.selectedMeals?.[0];
+                                    const selMealTitle = typeof selMealObj === 'object' 
+                                        ? (selMealObj.description || selMealObj.title || selMealObj.mealId) 
+                                        : (p.selectedMeal && p.selectedMeal !== 'None' ? p.selectedMeal : null);
+
+                                    const holdStatus = p.mealHoldStatus || 'PENDING';
+
+                                    if (selMealTitle) {
+                                        const mealPriceStr = (typeof selMealObj === 'object' && selMealObj.price) ? ` (+₹${selMealObj.price})` : '';
+                                        if (holdStatus === 'FAILED') {
+                                            return { text: `🍱 ${selMealTitle}${mealPriceStr} (Not Confirmed)`, class: 'text-rose-600 font-bold' };
+                                        } else {
+                                            return { text: `🍱 ${selMealTitle}${mealPriceStr}`, class: 'text-emerald-600 font-bold' };
+                                        }
+                                    }
+
+                                    const hasFareBenefit = stateToUse.hasFareMealBenefit || stateToUse.flight?.benefits?.some(b => 
+                                        (b.type || b.benefitType || '').toUpperCase() === 'MEAL' ||
+                                        (b.description || b.value || '').toLowerCase().includes('meal')
+                                    );
+
+                                    if (hasFareBenefit) {
+                                        return { text: '🍱 Complimentary Meal Included', class: 'text-emerald-700 font-semibold' };
+                                    }
+
+                                    return { text: '🍱 Not Selected', class: 'text-slate-400 font-normal' };
+                                };
+
+                                const mealDisplay = resolvePassengerMealDisplay();
+
+                                return (
+                                    <div key={idx} className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 items-start border-b border-slate-50 last:border-0 last:pb-0">
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Passenger {idx + 1}</span>
+                                            <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
+                                                {p.title || 'Mr.'} {p.firstName} {p.lastName}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Seat</span>
+                                            <span className={`text-xs font-black mt-0.5 block truncate ${(p.seatNumber || p.selectedSeat) ? 'text-emerald-600' : 'text-slate-400'}`} title={p.seatNumber || p.selectedSeat || 'Pending'}>
+                                                {p.seatNumber || p.selectedSeat || 'Pending'}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Baggage</span>
+                                            <span className="text-xs font-semibold text-slate-700 mt-0.5 block truncate" title={`Cabin: ${p.includedCabinBag || p.cabinBag || 'Included'} • Check-in: ${p.includedCheckinBag || p.checkinBag || 'Included'}`}>
+                                                🧳 {p.includedCabinBag || p.cabinBag || 'Included'} + {p.includedCheckinBag || p.checkinBag || 'Included'}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Meal Selection</span>
+                                            <span className={`text-xs mt-0.5 block truncate ${mealDisplay.class}`} title={mealDisplay.text}>
+                                                {mealDisplay.text}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Seat</span>
-                                        <span className="text-xs font-black text-emerald-600 mt-0.5 block truncate" title={p.seatNumber || p.selectedSeat || 'Assigned'}>
-                                            {p.seatNumber || p.selectedSeat || 'Assigned'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Perks (Meal/Bag)</span>
-                                        <span className="text-xs font-semibold text-slate-700 mt-0.5 block truncate" title={`${p.selectedMeal || p.meal || 'No meal'} • ${p.selectedBaggage || p.baggage || 'No extra baggage'}`}>
-                                            🍱 {p.selectedMeal || p.meal || 'None'} / 🧳 {p.selectedBaggage || p.baggage || 'None'}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Simulated Barcode */}

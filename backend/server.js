@@ -47,3 +47,4 @@ mongoose.connect(process.env.MONGO_URI, {
         console.log("TIP: If this fails, check your internet or white-list your IP in Atlas.");
         console.log("-----------------------------------------");
     });
+// Restart trigger comment for forgot password flow website integration

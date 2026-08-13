@@ -26,20 +26,36 @@ export default function SeatAndAncillarySelectionPage() {
     const primarySegment = flight?.segments?.[0] || {};
     const lastSegment = flight?.segments?.[flight?.segments?.length - 1] || primarySegment;
 
-    // Selections state (array of objects matching each passenger)
+    const hasFareMealBenefit = React.useMemo(() => {
+        const benefitsList = flight?.benefits || flightPreview?.benefits || [];
+        return benefitsList.some(b => 
+            (b.type || b.benefitType || '').toUpperCase() === 'MEAL' ||
+            (b.description || b.value || '').toLowerCase().includes('meal')
+        );
+    }, [flight, flightPreview]);
+
+    // Selections state (array of objects matching each passenger, indexed per segment)
     const [activeTab, setActiveTab] = useState('seats');
     const [activePassengerIdx, setActivePassengerIdx] = useState(0);
     const [activeSegmentIdx, setActiveSegmentIdx] = useState(0);
+
     const [selections, setSelections] = useState(() => {
         return passengers.map(() => ({
             selectedSeats: {}, // maps segmentIndex (e.g. 0 or 1) to seatId
-            selectedMeal: 'None',
+            selectedMeals: {}, // maps segmentIndex to full meal selection object
+            selectedMeal: 'None', // fallback single meal string for legacy compatibility
             selectedBaggage: 'None'
         }));
     });
 
     const selectedSeat = selections[activePassengerIdx]?.selectedSeats?.[activeSegmentIdx] || 'None';
-    const selectedMeal = selections[activePassengerIdx]?.selectedMeal || 'None';
+    
+    // Extract currently selected meal for active passenger & active segment
+    const activeMealSel = selections[activePassengerIdx]?.selectedMeals?.[activeSegmentIdx];
+    const selectedMeal = typeof activeMealSel === 'object'
+        ? (activeMealSel.mealId || activeMealSel.mealCode || 'None')
+        : (selections[activePassengerIdx]?.selectedMeal || 'None');
+
     const selectedBaggage = selections[activePassengerIdx]?.selectedBaggage || 'None';
 
     const setSelectedSeat = (seatId) => {
@@ -61,12 +77,39 @@ export default function SeatAndAncillarySelectionPage() {
         });
     };
 
-    const setSelectedMeal = (mealId) => {
+    const setSelectedMeal = (mealInput, segIdx = activeSegmentIdx) => {
         setSelections(prev => {
             const updated = [...prev];
+            const currentPaxSel = updated[activePassengerIdx] || {};
+            const currentMeals = { ...(currentPaxSel.selectedMeals || {}) };
+
+            if (!mealInput || mealInput === 'None' || (typeof mealInput === 'object' && mealInput.id === 'None')) {
+                currentMeals[segIdx] = 'None';
+            } else {
+                const seg = flight?.segments?.[segIdx] || {};
+                const segFlightId = seg.id || seg.segmentId || `${seg.flightNumber}-${seg.origin}-${seg.destination}`;
+                
+                const mealObj = typeof mealInput === 'object' ? mealInput : (liveMealsData || []).find(m => m.id === mealInput || m.code === mealInput) || { id: mealInput, code: mealInput, title: mealInput, price: 0 };
+                
+                currentMeals[segIdx] = {
+                    flightId: mealObj.flightId || segFlightId,
+                    paxIndex: activePassengerIdx + 1,
+                    ancillaryType: "MEAL",
+                    mealId: mealObj.id || mealObj.code,
+                    mealCode: mealObj.code || mealObj.id,
+                    description: mealObj.title || mealObj.desc || mealObj.description || "In-flight Meal",
+                    price: mealObj.price || 0,
+                    currency: mealObj.currency || "INR"
+                };
+            }
+
+            const firstMeal = currentMeals[0] || currentMeals[segIdx] || 'None';
+            const firstMealId = typeof firstMeal === 'object' ? firstMeal.mealId : firstMeal;
+
             updated[activePassengerIdx] = {
-                ...updated[activePassengerIdx],
-                selectedMeal: mealId
+                ...currentPaxSel,
+                selectedMeals: currentMeals,
+                selectedMeal: firstMealId || 'None'
             };
             return updated;
         });
@@ -283,6 +326,31 @@ export default function SeatAndAncillarySelectionPage() {
         });
     }, [rawAncillariesList]);
 
+    // Dynamic calculation of extra charges for selected meals, seats, and baggage
+    const extraAncillariesCost = React.useMemo(() => {
+        let cost = 0;
+        selections.forEach(sel => {
+            // 1. Selected Meal prices
+            const mealsMap = sel.selectedMeals || {};
+            Object.values(mealsMap).forEach(m => {
+                if (typeof m === 'object' && m.price) {
+                    cost += Number(m.price) || 0;
+                }
+            });
+            // 2. Extra Baggage prices
+            if (sel.selectedBaggage && sel.selectedBaggage !== 'None' && liveBaggageData) {
+                const bObj = liveBaggageData.find(b => b.id === sel.selectedBaggage);
+                if (bObj && bObj.price) {
+                    cost += Number(bObj.price) || 0;
+                }
+            }
+        });
+        return cost;
+    }, [selections, liveBaggageData]);
+
+    const baseFlightFare = flight?.pricing?.totalFare || flight?.fare || flight?.price || 0;
+    const totalFareWithAddons = baseFlightFare + extraAncillariesCost;
+
     // Parse exact Cleartrip Seat Availability & Occupied Seats Map from Live API
     const { dynamicOccupiedSeats, dynamicSeatPrices, firstAvailableSeat, apiSeatsLayout } = React.useMemo(() => {
         let occupied = [];
@@ -467,13 +535,14 @@ export default function SeatAndAncillarySelectionPage() {
             }
 
             // Map passengerInformation according to exact Cleartrip B2B schema
+            // NOTE: Cleartrip Hold API strictly requires empty ancillaries: [] — sending non-empty
+            // objects causes 400 Bad Request "Unable to process JSON". Selections travel in app payload to payment.
             const passengersList = passengers.map((p, idx) => {
                 const pSel = selections[idx] || {};
-                const pSeat = pSel.selectedSeat || 'None';
-                const pMeal = pSel.selectedMeal || 'None';
+                const pSeats = pSel.selectedSeats || {};
+                const pMeals = pSel.selectedMeals || {};
                 const pBaggage = pSel.selectedBaggage || 'None';
 
-                // Build empty flightAncillaries for hold API safety (retains actual seats locally)
                 const passengerFlightAncillaries = formattedFlights.map((f) => {
                     return {
                         flightId: f.id,
@@ -491,8 +560,8 @@ export default function SeatAndAncillarySelectionPage() {
                     dob: p.dob || "1990-01-01",
                     nationalityCode: "IN",
                     address: {
-                        mobileNumber: contact?.phone || p.phone || "9876543210",
-                        countryCode: "91"
+                        mobileNumber: String(contact?.phone || p.phone || "9876543210").replace(/\D/g, ''),
+                        countryCode: String(contact?.countryCode || "91").replace('+', '')
                     },
                     title: (p.title || "MR").toUpperCase() === "MRS" ? "MRS" : ((p.title || "MR").toUpperCase() === "MS" ? "MS" : "MR"),
                     subTravelOptionAncillaries: flight?.isRoundTripCombined
@@ -522,6 +591,18 @@ export default function SeatAndAncillarySelectionPage() {
                 };
             });
 
+            // Safe development debug logging (no sensitive PII or auth header logging)
+            if (process.env.NODE_ENV !== 'production') {
+                passengersList.forEach((pax, pIdx) => {
+                    const subAnc = pax.subTravelOptionAncillaries?.[0]?.flightAncillaries || [];
+                    subAnc.forEach(fa => {
+                        (fa.ancillaries || []).forEach(anc => {
+                            console.log(`[Hold Ancillary Request] paxIndex=${pIdx + 1}, flightId=${fa.flightId}, type=${anc.type}, id=${anc.id}`);
+                        });
+                    });
+                });
+            }
+
             const primaryPassenger = passengers[0] || {};
             const customerInformation = {
                 firstName: primaryPassenger.firstName || "Traveller",
@@ -529,11 +610,11 @@ export default function SeatAndAncillarySelectionPage() {
                 title: (primaryPassenger.title || "MR").toUpperCase() === "MRS" ? "MRS" : ((primaryPassenger.title || "MR").toUpperCase() === "MS" ? "MS" : "MR"),
                 emailId: contact?.email || primaryPassenger.email || "your-email@example.com",
                 address: {
-                    countryCode: "91"
+                    countryCode: String(contact?.countryCode || "91").replace('+', '')
                 },
                 phoneNumberDetails: {
-                    phoneNumber: contact?.phone || primaryPassenger.phone || "9876543210",
-                    countryCode: "91"
+                    phoneNumber: String(contact?.phone || primaryPassenger.phone || "9876543210").replace(/\D/g, ''),
+                    countryCode: String(contact?.countryCode || "91").replace('+', '')
                 }
             };
 
@@ -556,14 +637,14 @@ export default function SeatAndAncillarySelectionPage() {
             ].filter(Boolean);
 
             if (flight?.isRoundTripCombined) {
-                const outOptId = flight.outboundRawOption?.travelOptionId || flight.outboundTravelId;
-                const outSubOptId = flight.outboundRawOption?.subTravelOptionId;
-                const outFareId = flight.outboundRawOption?.fareId;
+                const outOptId = flight.outboundRawOption?.travelOptionId || flight.outboundTravelId || flight.id;
+                const outSubOptId = flight.outboundRawOption?.subTravelOptionId || flight.id;
+                const outFareId = flight.outboundRawOption?.fareId || "";
                 const outPrice = flight.outboundRawOption?.price || 0;
 
-                const retOptId = flight.returnRawOption?.travelOptionId || flight.returnTravelId;
-                const retSubOptId = flight.returnRawOption?.subTravelOptionId;
-                const retFareId = flight.returnRawOption?.fareId;
+                const retOptId = flight.returnRawOption?.travelOptionId || flight.returnTravelId || flight.id;
+                const retSubOptId = flight.returnRawOption?.subTravelOptionId || flight.id;
+                const retFareId = flight.returnRawOption?.fareId || "";
                 const retPrice = flight.returnRawOption?.price || 0;
 
                 holdTravelOptions = [
@@ -619,7 +700,13 @@ export default function SeatAndAncillarySelectionPage() {
                 holdTravelOptions = [
                     {
                         travelOptionId: optionId,
-                        subTravelOptions: [{ subTravelType: "FLIGHT", subTravelOptionId: subOptionId, fareId: fareIdStr }]
+                        subTravelOptions: [
+                            {
+                                subTravelType: "FLIGHT",
+                                subTravelOptionId: subOptionId,
+                                fareId: fareIdStr
+                            }
+                        ]
                     }
                 ];
 
@@ -676,17 +763,74 @@ export default function SeatAndAncillarySelectionPage() {
             if (holdResponse?.success) {
                 toast.success(`Seats & perks reserved! Booking held successfully.`);
 
-                // Calculate total price from flight pricing + ancillaries
-                const baseFare = flight?.pricing?.totalFare || flight?.fare || flight?.price || 4928;
-                const totalAmount = baseFare;
+                // Calculate total price from flight pricing + selected ancillaries (meals/baggage/seats)
+                const totalAmount = totalFareWithAddons;
 
-                const mappedPassengersWithSeats = passengers.map((p, idx) => ({
-                    ...p,
-                    selectedSeat: p.type === 'INF' ? 'None' : (selections[idx]?.selectedSeats?.[0] || 'None'),
-                    selectedReturnSeat: p.type === 'INF' ? 'None' : (selections[idx]?.selectedSeats?.[1] || 'None'),
-                    selectedMeal: selections[idx]?.selectedMeal || 'None',
-                    selectedBaggage: selections[idx]?.selectedBaggage || 'None'
-                }));
+                // Inspect Cleartrip Hold response for meal ancillary confirmation status
+                const checkHoldMealStatus = (hData, paxIdx, mealObj) => {
+                    if (!mealObj || mealObj === 'None') return null;
+                    if (!hData) return 'PENDING';
+
+                    const subOpts = (hData.travelOptionList || []).flatMap(opt => opt.subTravelOptions || []);
+                    let foundStatus = null;
+
+                    for (const sub of subOpts) {
+                        const paxAncs = sub.passengerAncillaries || [];
+                        const paxAnc = paxAncs.find(pa => pa.paxIndex === paxIdx + 1 || pa.paxIndex === paxIdx);
+                        if (paxAnc) {
+                            const flAncs = paxAnc.flightAncillaries || [];
+                            for (const fa of flAncs) {
+                                const matchAnc = (fa.ancillaries || []).find(a => 
+                                    a.id === mealObj.mealId || a.code === mealObj.mealId || a.type === 'MEAL'
+                                );
+                                if (matchAnc) {
+                                    foundStatus = matchAnc.status || matchAnc.holdStatus || 'CONFIRMED';
+                                    break;
+                                }
+                            }
+                            if (!foundStatus && paxAnc.ancillaryHoldStatus && paxAnc.ancillaryHoldStatus.length > 0) {
+                                foundStatus = paxAnc.ancillaryHoldStatus[0]?.status;
+                            }
+                        }
+                    }
+
+                    if (!foundStatus) {
+                        // Cleartrip returned empty passengerAncillaries when meal requested
+                        return 'FAILED';
+                    }
+
+                    const st = String(foundStatus).toUpperCase();
+                    if (st.includes('SUCCESS') || st.includes('CONFIRM') || st.includes('HELD')) {
+                        return 'CONFIRMED';
+                    } else if (st.includes('FAIL') || st.includes('ERROR') || st.includes('REJECT')) {
+                        return 'FAILED';
+                    }
+                    return 'PENDING';
+                };
+
+                const hasFareMealBenefit = (flight?.benefits || flightPreview?.benefits || []).some(b => 
+                    (b.type || b.benefitType || '').toUpperCase() === 'MEAL' ||
+                    (b.description || b.value || '').toLowerCase().includes('meal')
+                );
+
+                const mappedPassengersWithSeats = passengers.map((p, idx) => {
+                    const pSel = selections[idx] || {};
+                    const selectedMealsMap = pSel.selectedMeals || {};
+                    const firstMealObj = selectedMealsMap[0] || selectedMealsMap['0'] || Object.values(selectedMealsMap)[0] || (pSel.selectedMeal && pSel.selectedMeal !== 'None' ? { mealId: pSel.selectedMeal, title: pSel.selectedMeal } : 'None');
+                    const mealStatus = checkHoldMealStatus(holdResponse.data, idx, firstMealObj);
+
+                    return {
+                        ...p,
+                        selectedSeats: pSel.selectedSeats || {},
+                        selectedSeat: p.type === 'INF' ? 'None' : (pSel.selectedSeats?.[0] || 'None'),
+                        selectedReturnSeat: p.type === 'INF' ? 'None' : (pSel.selectedSeats?.[1] || 'None'),
+                        selectedMeals: selectedMealsMap,
+                        selectedMealObj: firstMealObj,
+                        selectedMeal: typeof firstMealObj === 'object' ? (firstMealObj.mealId || firstMealObj.mealCode || 'None') : firstMealObj,
+                        mealHoldStatus: mealStatus,
+                        selectedBaggage: pSel.selectedBaggage || 'None'
+                    };
+                });
 
                 const fullPayload = {
                     flight,
@@ -699,7 +843,8 @@ export default function SeatAndAncillarySelectionPage() {
                     type: 'flight',
                     passengers: mappedPassengersWithSeats,
                     passenger: mappedPassengersWithSeats[0], // fallback compatibility
-                    contact
+                    contact,
+                    hasFareMealBenefit
                 };
 
                 navigate('/payment', { state: fullPayload });
@@ -770,7 +915,7 @@ export default function SeatAndAncillarySelectionPage() {
                             <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold uppercase tracking-wider text-[#b89565]">Step 3: Add-on Perks & Seats</span>
                                 <span className="text-slate-500">•</span>
-                                <span className="text-xs text-slate-400 font-mono">Flight: {flight.airlineName} ({primarySegment.flightNumber})</span>
+                                <span className="text-xs text-slate-400 font-mono">Flight: {flight.airlineName} ({flight.segments?.map(s => s.flightNumber).join(' → ') || primarySegment.flightNumber})</span>
                             </div>
                             <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2 mt-0.5">
                                 {flight?.isRoundTripCombined
@@ -1256,7 +1401,7 @@ export default function SeatAndAncillarySelectionPage() {
 
                             <div className="space-y-4 divide-y divide-slate-800">
                                 {passengers.map((p, idx) => {
-                                    const pSel = selections[idx] || {};
+                                            const pSel = selections[idx] || {};
                                     const seatsList = [];
                                     flight.segments.forEach((seg, sIdx) => {
                                         const seat = pSel.selectedSeats?.[sIdx];
@@ -1264,8 +1409,20 @@ export default function SeatAndAncillarySelectionPage() {
                                             seatsList.push(`${seg.origin}➔${seg.destination}: ${seat}`);
                                         }
                                     });
+
+                                    const firstMealSel = pSel.selectedMeals?.[0];
+                                    let pMeal = 'None';
+                                    if (firstMealSel && firstMealSel !== 'None') {
+                                        pMeal = typeof firstMealSel === 'object' ? (firstMealSel.description || firstMealSel.title || firstMealSel.mealId) : firstMealSel;
+                                    } else if (pSel.selectedMeal && pSel.selectedMeal !== 'None') {
+                                        pMeal = mealOptions.find(m => m.id === pSel.selectedMeal)?.title || pSel.selectedMeal;
+                                    } else if (hasFareMealBenefit) {
+                                        pMeal = 'Complimentary';
+                                    } else {
+                                        pMeal = 'None';
+                                    }
+
                                     const pSeat = seatsList.length > 0 ? seatsList.join(' | ') : 'None';
-                                    const pMeal = mealOptions.find(m => m.id === pSel.selectedMeal)?.title || 'Complimentary';
                                     const pBag = baggageOptions.find(b => b.id === pSel.selectedBaggage)?.title || 'None';
                                     return (
                                         <div key={p.id || idx} className="pt-3 first:pt-0 space-y-2 text-xs">
@@ -1294,11 +1451,20 @@ export default function SeatAndAncillarySelectionPage() {
                         {/* Total Price Card */}
                         <div className="bg-white border border-slate-200 p-6 rounded-none shadow-sm space-y-4">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                                <span className="font-bold text-xs uppercase tracking-wider text-slate-500">TOTAL FARE</span>
-                                <span className="text-2xl font-black text-slate-950">₹{flight.price.toLocaleString()}</span>
+                                <div>
+                                    <span className="font-bold text-xs uppercase tracking-wider text-slate-500 block">TOTAL FARE</span>
+                                    {extraAncillariesCost > 0 && (
+                                        <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">
+                                            Flight: ₹{baseFlightFare.toLocaleString()} + Add-ons: ₹{extraAncillariesCost.toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-2xl font-black text-slate-950">₹{totalFareWithAddons.toLocaleString()}</span>
                             </div>
                             <p className="text-[11px] text-slate-500 leading-relaxed">
-                                Includes Base Fare, Government Taxes, Complimentary Seats & Meal boxes for all passengers.
+                                {hasFareMealBenefit 
+                                    ? "Includes Base Fare, Government Taxes & Complimentary In-flight Meal."
+                                    : "Includes Base Fare, Airline Fuel Surcharges & Applicable Government Taxes."}
                             </p>
                         </div>
 
