@@ -1,17 +1,37 @@
 {
-  "timestamp": "2026-08-11T19:26:49.481Z",
-  "sessionId": "65273301_98b79aba-813a-40be-88a4-0299143b0733-260811202650",
-  "searchId": "DC_Search-19f4b11e-f0c7-4304-b0b7-9eb8aadf8ef2",
+  "timestamp": "2026-08-17T09:19:43.854Z",
+  "sessionId": "65273301_0f176f74-f003-4c07-9374-62d12cfdd460-260817095439",
+  "searchId": "DC_Search-9acf084b-9f64-4d3e-a1b2-5b77bedc338f",
   "payload": {
-    "flightPreviewId": "bdf986b7-5d8c-410c-8bcc-885536353b6f",
+    "flightPreviewId": "0fa6ed96-6351-4f38-a8fd-a507173089b0",
     "travelOptions": [
       {
-        "travelOptionId": "6E-5205-BLR-BOM-1786486500",
+        "travelOptionId": "SG-269-BLR-BOM-1786986300",
         "subTravelOptions": [
           {
             "subTravelType": "FLIGHT",
-            "subTravelOptionId": "6E-5205-BLR-BOM-1786486500",
-            "fareId": "REGULAR__12/08/2026__6E__6E__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z52Lx8/j6BKtblR7QQUZuTro6aSYZT9RUcYtiqUL8RlHjDEPCjNeYyznW5hLbFxnV0vuqs7qP5RATMx78FgCNBiUo623uyXR6Bc2PGAUxIvxt7XiDj9pUadhBH1vAAdO0MeKuX22o7lCO6jr/ciiIw4kTlVQM+/50G4VmJb4Zi9a17v0Z0Ot0yHh3yE+aDy1tExEY4tdBzcMJmS9RyWrDTQ0KXSdUaZydH95PTGebj5EWypL9SQ1Mpj/aRwf/U/SIV3c5f8bABvjNBXVMN5uRNJa7ns=~~V3"
+            "subTravelOptionId": "SG-269-BLR-BOM-1786986300",
+            "fareId": "REGULAR__17/08/2026__SG__SG__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S055__HOLIDAY FARE__AVN+Z50h/dtfqZ2zNpTz+Flx2RX7XEEjaitNqq7YsOR0ILXGegavJp8fAV4fRBjK6jO9Fkr9hxThE8+qCb/GozgavANDce2tIp5C72SLGSOLScbP0qXcFJ8MgGGZKLcL2nPkG851uT7eNO1DGG8BVPcjImpa76sTT/zfeMDG/k4IKj2MONwg1JIb74grhqAoHiyNpw98eyOt4ub7SXAVmDqaGbV7BwdxCAk67KNTmkgnUxuNfuubBjfeQUawEHsIRQFo5Y0tYoNbCOg4fPT/suslT8uhT0nSS1zl2A==~~V3"
+          }
+        ]
+      },
+      {
+        "travelOptionId": "AI-2583-BOM-NAG-1787235900",
+        "subTravelOptions": [
+          {
+            "subTravelType": "FLIGHT",
+            "subTravelOptionId": "AI-2583-BOM-NAG-1787235900",
+            "fareId": "REGULAR__20/08/2026__AI__AI__BOM_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S043__ECO VALUE__AVN+Z50Q9t5MeYEYxB8v6o9Huyw/PdtM/03MBPvokxTB3xH/T0mbo48mix0HKE3w5v9GeR4X7U4qnP7+yQBdIbf51avBiERBS73lFV8tCbbS4S900oB8cIwl3hfKM1bjwey24McyG9Qn0nbKvWXoh7+L/ySxGzlNWUGCT1ilTUIYRw+e2oUa2MNhAOiwD7aplAdfWHg1bZkhe1IgZzihgmRDerfTPm1AxLBUxAW1S/hgMQlp5aOf1uWNavkeuFrz9z8=~~V3"
+          }
+        ]
+      },
+      {
+        "travelOptionId": "6E-6432-NAG-BLR-1787407500",
+        "subTravelOptions": [
+          {
+            "subTravelType": "FLIGHT",
+            "subTravelOptionId": "6E-6432-NAG-BLR-1787407500",
+            "fareId": "REGULAR__22/08/2026__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z52DcJo6h6K7a3b1qNXxoUfRfSBPAYXC1VODoVqd4bGC8ST6HeIMfDDoMpo1c4iaDbAYcRr1HuOTvNCCv4OfZax0PvueMKNQSnmvfxPTAhfIXun+PD8K586zNiALvh9EFJ57ZuP7N0VULrQm6IdrxPyYA7tj5S+qPksxiDl32SKz5dDtQD7P//pxWff9QkDXhkJlesRtUKeoH2g6plBd0mt7kceKki8s95+PsobliHzuZvYd3NkbSwvBxBtRovlL0LRkxsxgWsC1lq5q1xMyS5WozFQ=~~V3"
           }
         ]
       }
@@ -25,21 +45,58 @@
           "gender": "MALE",
           "email": "rdhayatidak@gmail.com",
           "travellerType": "ADT",
-          "dob": "2001-08-11",
+          "dob": "2001-08-17",
           "nationalityCode": "IN",
           "address": {
-            "mobileNumber": "8767605792",
+            "mobileNumber": "1234567891",
             "countryCode": "91"
           },
           "title": "MR",
           "subTravelOptionAncillaries": [
             {
-              "subTravelOptionId": "6E-5205-BLR-BOM-1786486500",
+              "subTravelOptionId": "SG-269-BLR-BOM-1786986300",
               "subTravelType": "FLIGHT",
               "flightAncillaries": [
                 {
-                  "flightId": "6E-5205-BLR-BOM-1786486500",
-                  "ancillaries": []
+                  "flightId": "SG-269-BLR-BOM-1786986300",
+                  "ancillaries": [
+                    {
+                      "id": "5D",
+                      "type": "SEAT"
+                    }
+                  ]
+                }
+              ],
+              "ancillaries": []
+            },
+            {
+              "subTravelOptionId": "AI-2583-BOM-NAG-1787235900",
+              "subTravelType": "FLIGHT",
+              "flightAncillaries": [
+                {
+                  "flightId": "AI-2583-BOM-NAG-1787235900",
+                  "ancillaries": [
+                    {
+                      "id": "5D",
+                      "type": "SEAT"
+                    }
+                  ]
+                }
+              ],
+              "ancillaries": []
+            },
+            {
+              "subTravelOptionId": "6E-6432-NAG-BLR-1787407500",
+              "subTravelType": "FLIGHT",
+              "flightAncillaries": [
+                {
+                  "flightId": "6E-6432-NAG-BLR-1787407500",
+                  "ancillaries": [
+                    {
+                      "id": "5F",
+                      "type": "SEAT"
+                    }
+                  ]
                 }
               ],
               "ancillaries": []
@@ -58,7 +115,7 @@
         "countryCode": "91"
       },
       "phoneNumberDetails": {
-        "phoneNumber": "8767605792",
+        "phoneNumber": "1234567891",
         "countryCode": "91"
       }
     },
@@ -66,13 +123,13 @@
       "currency": "INR",
       "domain": "IN",
       "sectorType": "DOMESTIC",
-      "itineraryId": "65273301_98b79aba-813a-40be-88a4-0299143b0733-260811202650"
+      "itineraryId": "65273301_0f176f74-f003-4c07-9374-62d12cfdd460-260817095439"
     }
   },
-  "error": "Request failed with status code 500",
-  "statusCode": 500,
+  "error": "Request failed with status code 400",
+  "statusCode": 400,
   "response": {
-    "errorMessage": "Hold failed",
-    "errorCode": 531
+    "code": 400,
+    "message": "Unable to process JSON"
   }
 }

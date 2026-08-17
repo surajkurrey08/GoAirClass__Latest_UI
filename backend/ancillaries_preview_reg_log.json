@@ -1,0 +1,8 @@
+{
+  "payload": null,
+  "response": null,
+  "error": {
+    "errorMessage": "Session ID is expired or invalid",
+    "errorCode": 406
+  }
+}

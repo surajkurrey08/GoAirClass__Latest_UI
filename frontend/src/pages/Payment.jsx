@@ -53,10 +53,22 @@ export default function Payment() {
   const handlePay = async () => {
     setProcessing(true);
     const activeSessionId = location.state?.sessionId || sessionStorage.getItem('flight_session_id');
-    const travelIds = location.state?.holdData?.data?.travelOptions?.[0]?.travelOptionId ||
-      location.state?.holdData?.travelOptions?.[0]?.travelOptionId ||
-      location.state?.flight?.rawOption?.travelOptionId ||
-      location.state?.flight?.id;
+    const selectedSectors = location.state?.flight?.selectedSectorsList || [];
+    let travelIds = [];
+    if (selectedSectors.length > 0) {
+      travelIds = selectedSectors.map(s => s.rawOption?.travelOptionId || s.id).filter(Boolean);
+    } else if (location.state?.flight?.isRoundTripCombined) {
+      travelIds = [
+        location.state?.flight?.outboundTravelId || location.state?.flight?.outboundRawOption?.travelOptionId,
+        location.state?.flight?.returnTravelId || location.state?.flight?.returnRawOption?.travelOptionId
+      ].filter(Boolean);
+    } else {
+      const singleId = location.state?.holdData?.data?.travelOptions?.[0]?.travelOptionId ||
+        location.state?.holdData?.travelOptions?.[0]?.travelOptionId ||
+        location.state?.flight?.rawOption?.travelOptionId ||
+        location.state?.flight?.id;
+      travelIds = singleId ? [singleId] : [];
+    }
 
     console.log('[Payment Debug] activeSessionId:', activeSessionId);
     console.log('[Payment Debug] location.state:', location.state);

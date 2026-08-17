@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-08-15T14:22:43.612Z",
+  "requestBody": {
+    "sessionId": "65273301_d54ae874-1259-4f73-a983-1a15e419df60-260815152303",
+    "searchId": "DC_Search-375ae758-f6a2-4206-b88d-38eab9cae7a1",
+    "dataId": "AVN+Z5288A6Jhy7tI1Akb/uNQMRJTfnG3qIJUBEnYStz/NXPDQyJ6W6Jsq7cxeXzHXEhKTVPSAWN7T3qMYVmIexOtF7hLE4qTnQUUJbwSZZHPMMJE34jUwwuXL2Xasc/u1bfRe2+FHV15b4c1zG91TyQqiwlG+XsKwG0qMaLn6kKk5hIyqmwMZsvHbwtglBmZRIyQirnkQCrj6ZTgsGGiGT9jlOp+3k8hvIGFccLWzM9bmaigS2vzG/ag7kUFddKTSYgSmIwdDhgEgmiLjd6I3jjPtUnG2DnfEzfwaIUKNf1MqMxws+CO0jgC/WD1qerMOeOmSZNNg2t",
+    "flightPreviewCriteria": {
+      "isMultiFareRequest": false,
+      "maxFareCount": 0,
+      "sellingCountryCode": "IN",
+      "sellingCurrencyCode": "INR"
+    },
+    "searchIntents": {
+      "sectors": [
+        {
+          "index": 1,
+          "origin": "BLR",
+          "destination": "BOM",
+          "departDate": "15/08/2026",
+          "cabinType": "ECONOMY",
+          "paxInfos": [
+            {
+              "paxType": "ADT",
+              "paxCount": 1,
+              "paxFareType": "DEFAULT"
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "origin": "BOM",
+          "destination": "NAG",
+          "departDate": "18/08/2026",
+          "cabinType": "ECONOMY",
+          "paxInfos": [
+            {
+              "paxType": "ADT",
+              "paxCount": 1,
+              "paxFareType": "DEFAULT"
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "origin": "NAG",
+          "destination": "BLR",
+          "departDate": "20/08/2026",
+          "cabinType": "ECONOMY",
+          "paxInfos": [
+            {
+              "paxType": "ADT",
+              "paxCount": 1,
+              "paxFareType": "DEFAULT"
+            }
+          ]
+        }
+      ]
+    },
+    "travelOptions": {
+      "J1": {
+        "travelOptionId": "SG-269-BLR-BOM-1786813500",
+        "price": 3486,
+        "subTravelOptions": [
+          {
+            "subTravelOptionId": "SG-269-BLR-BOM-1786813500",
+            "fareId": "REGULAR__15/08/2026__SG__SG__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S055__HOLIDAY FARE__AVN+Z52j8yF7RX4NZ29Zpc/ul8/IqWwNPrnp1zmPoBrSl5CDSBBeSO4zSK4MaxM4XWM+Go0MD6rOAg50fVyk/UITsfvfjTFIw6ChELjZm37E4l+x9IqsnivQeDegBYD/zX80HAyzMgvUqyYHBWI6aTRGCv3R5DBvpfAaqweOaoJMT6j0sX40LOMdTkf2J/FvCR1tZLijAuLOAf3l1dBHmHbuJmAoMYJmA1n+q0C4ebTWYe4aTwxdWzBfCxCjlNs0TJxATIsg6QSPIDVT3dh++bOc53cuNDRSR3nV8w==~~V3"
+          }
+        ]
+      },
+      "J2": {
+        "travelOptionId": "AI-2581-BOM-NAG-1787012700",
+        "price": 6396,
+        "subTravelOptions": [
+          {
+            "subTravelOptionId": "AI-2581-BOM-NAG-1787012700",
+            "fareId": "REGULAR__18/08/2026__AI__AI__BOM_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S043__ECO VALUE__AVN+Z509ydlNe8uHW+iVDKepmeQhsnvUg5ijTwjkbHaQPpk1kfVw8gIIxn0jgl+R3X25s8HeXr/BXL2rhufU6DzHEWhh3aBKKqz6G3A5RUEuScWStm6R2WaCEi43lDr8Ysf/u5uzwZtY69H3itBd3moIgU+Imp2h8yBWaN5MYkRR2m54LwC1bqChaCc/6aw+8wDYYYTSImOci/eOzXbOXC7tybJgdUyg+IGmazGovWHLAUpidWmYbT9bAu4uqQ+HhXQ=~~V3"
+          }
+        ]
+      },
+      "J3": {
+        "travelOptionId": "6E-6864-NAG-BLR-1787201700",
+        "price": 5611,
+        "subTravelOptions": [
+          {
+            "subTravelOptionId": "6E-6864-NAG-BLR-1787201700",
+            "fareId": "REGULAR__20/08/2026__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z50TiSGcIU3tzGERfxAsrBw/Ol/3vYRgVa230Ua6RJHxUNXolK3UFOOad7CTjSGuCVwtlA/vcJBv0cLpTzl4zId+VGQDgsks0XVxjoyVG3U4QERTA97MCI3F1sroziDz1oWUeVczn1mtyNzxTt7eca3e+MUVOPCtR+e7i+8AJ5/lU0CZs5GTCVDZ/KW17MQSyR4TWDC/c4aVRzFS15heteJ+dIzb7/TxmTXtL19ipvao/WGT0QZjkEQItPcyXsa6sC8D9VKfOPArrwqpWGkYEFAsYGY=~~V3"
+          }
+        ]
+      }
+    }
+  },
+  "cleartripError": {
+    "errorMessage": "Bad Request",
+    "errorCode": 400
+  }
+}

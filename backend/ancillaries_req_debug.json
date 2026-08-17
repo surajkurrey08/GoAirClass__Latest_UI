@@ -1,0 +1,55 @@
+{
+  "headers": {
+    "host": "localhost:5000",
+    "connection": "keep-alive",
+    "content-length": "1008",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNzg4YmFjMmYzYzI1MTFlZDgzOGQ2OCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg2Mjg0OTcyLCJleHAiOjE3ODg4NzY5NzJ9.idobzEq7sk58E1Jx8_9aQxLVS4vLRgk7QePAx6LOLpA",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+    "accept": "application/json, text/plain, */*",
+    "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+    "content-type": "application/json",
+    "sec-ch-ua-mobile": "?0",
+    "origin": "http://localhost:5173",
+    "sec-fetch-site": "same-site",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-dest": "empty",
+    "referer": "http://localhost:5173/",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8"
+  },
+  "body": {
+    "sessionId": "65273301_e28925b4-3347-4a06-951a-11d1dfe7190a-260817111857",
+    "flightPreviewId": "cc210876-d98d-415f-8bba-242893afedbd",
+    "travelOptions": [
+      {
+        "id": "AI-2584-NAG-BOM-1787416800__AI-2812-BOM-BLR-1787430900",
+        "searchIntent": "NAG_BLR",
+        "subTravelOptions": [
+          {
+            "id": "AI-2584-NAG-BOM-1787416800__AI-2812-BOM-BLR-1787430900",
+            "fareId": "REGULAR__22/08/2026__AI^AI__AI^AI__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S043__ECO VALUE,ECO VALUE__AVN+Z52wH6dokQGDTI+N8I80qIihSy3kDiQ0OlEHhFIn6luVnPQFqHxlYD/ZVgVoS1SYiUVdU42Pm+Gdzeja7DS3DdEWpDSqQw/2HUR9TtGm4HFdheanemfGQ238+NrBRSLtVIQ9jmHg1uoJvSdtJltKIhcR8dAjXEofQlNapcM7mjqHeVj0fZij4Ee/Ugqf2XZ8hY50GD7e8OV11Wf1u1DGnaDjUhSx3E3wA0yihMYo96bUHsz259yf0x3xjO3645wyHtyhSSnUb6vfrbE+oE2c0sU/vNqmDST7~~V3",
+            "flights": [
+              {
+                "id": "AI-2584-NAG-BOM-1787416800",
+                "departureCode": "NAG",
+                "arrivalCode": "BOM"
+              },
+              {
+                "id": "AI-2812-BOM-BLR-1787430900",
+                "departureCode": "BOM",
+                "arrivalCode": "BLR"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "ancillaryTypes": [
+      "SEAT",
+      "MEAL",
+      "BAGGAGE"
+    ],
+    "searchId": "DC_Search-80e02fb7-1298-477a-bdd2-b3df3aa543a7"
+  }
+}

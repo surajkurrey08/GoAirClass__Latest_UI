@@ -1,0 +1,736 @@
+{
+  "timestamp": "2026-08-15T19:46:51.593Z",
+  "sessionId": "65273301_6c41b01f-b393-4caa-a838-8971efed05a4-260815203453",
+  "requestPayload": {
+    "searchId": "DC_Search-c7df5bd6-57cc-4bb5-b766-ab48b3e02ab6",
+    "dataId": "AVN+Z53algZliM9oKApuDgWCAfcngrZtMQnP3J6egoSAY4EgyzmDt+AQgKnXRhF80Q1WY6ZZK2Qlu+2Jbbaz+e6DrL4uE5wZ8OQN7r/GVC4b2k7CGkJiawqpcWbI5s69f5cnIjchFfBreK7wwpAfnnd10fKrOKHZtBezwLbgbVLJy1kHoCj09zJgF/NSMXGqMhEcElAuyebUyMY01htS476YaajFHEFFxxQ2J2naVqa2FHTdyPWy5W4rzjc0w04tdT90P0VV3V47/7usnnLOyEzK3h/b4qcoi7Iur0ovhbF8j6B6tVhvYjRtMzmxEhA5SwZsGc3W+zs+",
+    "flightPreviewCriteria": {
+      "isMultiFareRequest": false,
+      "maxFareCount": 0,
+      "sellingCountryCode": "IN",
+      "sellingCurrencyCode": "INR"
+    },
+    "searchIntents": {
+      "sectors": [
+        {
+          "index": 1,
+          "origin": "NAG",
+          "destination": "BLR",
+          "departDate": "20/08/2026",
+          "cabinType": "ECONOMY",
+          "paxInfos": [
+            {
+              "paxType": "ADT",
+              "paxCount": 1,
+              "paxFareType": "DEFAULT"
+            }
+          ]
+        }
+      ]
+    },
+    "travelOptions": {
+      "J1": {
+        "travelOptionId": "6E-6864-NAG-BLR-1787201700",
+        "price": 5611,
+        "subTravelOptions": [
+          {
+            "subTravelOptionId": "6E-6864-NAG-BLR-1787201700",
+            "fareId": "REGULAR__20/08/2026__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z50TiSGcIU3tzGERfxAsrBw/Ol/3vYRgVa230Ua6RJHxUNXolK3UFOOad7CTjSGuCVwtlA/vcJBv0cLpTzl4zId+VGQDgsks0XVxjoyVG3U4QERTA97MCI3F1sroziDz1oWUeVczn1mtyNzxTt7eca3e+MUVOPCtR+e7i+8AJ5/lU0CZs5GTCVDZ/KW17MQSyR4TWDC/c4aVRzFS15heteJ+dIzb7/TxmTXtL19ipvao/WGT0QZjkEQItPcyXsa6sC8D9VKfOPArrwqpWGkYEFAsYGY=~~V3"
+          }
+        ]
+      }
+    }
+  },
+  "responseData": {
+    "flightPreviewId": "c71b28b8-d8f5-49f9-9754-d68016d1485f",
+    "searchId": "DC_Search-dede08a8-bf74-4dce-8196-a619abfaccac",
+    "flightPreviewStatus": "SUCCESS",
+    "benefits": {},
+    "baggageAllowances": {},
+    "penalties": {},
+    "constraintAssociations": {
+      "ageRestrictions": {
+        "f88bf05f-4790-32c8-8a85-d5e7f85ed9ee": {
+          "includeMinAge": 12
+        }
+      },
+      "nameValidations": {
+        "8af38545-f848-3a9d-b248-48d22d34483c": {
+          "firstNameRegex": "^[a-zA-Z ]{1,32}$",
+          "lastNameRegex": "^[a-zA-Z ]{1,32}$",
+          "firstMissingNamePolicy": {
+            "policy": "COPY",
+            "value": "LAST_NAME"
+          },
+          "lastMissingNamePolicy": {
+            "policy": "COPY",
+            "value": "FIRST_NAME"
+          }
+        }
+      },
+      "fieldValidations": {
+        "GST_NUMBER": "((0[1-9])|([1-2][0-9])|(3[0-8]))[A-Za-z]{5}\\d{4}[A-Za-z]\\d[A-Za-z][A-Za-z0-9]",
+        "NATIONALITY": "^[A-Za-z]{2}$",
+        "GST_HOLDER_NAME": "^[0-9A-Za-z\\s&._,'\"/\\-]*$",
+        "PASSPORT_NUMBER": "^[A-Za-z0-9]+$",
+        "STUDENT_ID": "^[A-Za-z0-9]*$",
+        "ARMED_FORCES_ID": "^[A-Za-z0-9]*$"
+      }
+    },
+    "fieldAssociations": {
+      "47adbe85-0ebf-3619-804c-a935c240d1d1": [
+        {
+          "field": "GST_NUMBER",
+          "mandatory": false
+        },
+        {
+          "field": "GST_HOLDER_NAME",
+          "mandatory": false
+        }
+      ],
+      "5daee025-1bfd-36fd-ba25-dfae1680992d": [
+        {
+          "field": "FIRST_NAME",
+          "mandatory": true
+        },
+        {
+          "field": "LAST_NAME",
+          "mandatory": true
+        },
+        {
+          "field": "GENDER",
+          "mandatory": true
+        }
+      ]
+    },
+    "travelOptions": {
+      "J1": [
+        {
+          "travelOptionId": "6E-6864-NAG-BLR-1787201700",
+          "travelOptionKey": "NAG_BLR",
+          "subTravelOptionIds": [
+            "6E-6864-NAG-BLR-1787201700"
+          ],
+          "defaultFare": {
+            "associations": [
+              {
+                "subTravelOptionId": "6E-6864-NAG-BLR-1787201700",
+                "fareId": "REGULAR__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z50TiSGcIU3tzGERfxAsrBw/Ol/3vYRgVa230Ua6RJHxUNXolK3UFOOad7CTjSGuCVwtlA/vcJBv0cLpTzl4zId+VGQDgsks0XVxjoyVG3U4QERTA97MCI3F1sroziDz1oWUeVczn1mtyNzxTt7eca3e+MUVOPCtR+e7i+8AJ5/lU0CZs5GTCVDZ/KW17MQSyR4TWDC/c4aVRzFS15heteJ+dIzb7/TxmTXtL19ipvao/WGT0QZjkEQItPcyXsa6sC8D9VKfOPArrwqpWGkYEFAsYGY=~~V3"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "flights": {
+      "6E-6864-NAG-BLR-1787201700": {
+        "id": "6E-6864-NAG-BLR-1787201700",
+        "fltNo": "6864",
+        "aircraftType": "",
+        "airlineCode": "6E",
+        "marketingAirlineCode": "6E",
+        "operatingAirlineCode": "6E",
+        "departureAirport": {
+          "code": "NAG",
+          "terminal": {
+            "name": "",
+            "gate": ""
+          },
+          "zoneId": "Asia/Kolkata",
+          "time": "2026-08-20T10:25:00+05:30"
+        },
+        "arrivalAirport": {
+          "code": "BLR",
+          "terminal": {
+            "name": "1",
+            "gate": ""
+          },
+          "zoneId": "Asia/Kolkata",
+          "time": "2026-08-20T12:10:00+05:30"
+        },
+        "stops": []
+      }
+    },
+    "subTravelOptions": {
+      "6E-6864-NAG-BLR-1787201700": {
+        "subTravelOptionId": "6E-6864-NAG-BLR-1787201700",
+        "type": "flight",
+        "subTravelOptionKey": "NAG_BLR",
+        "sequenceToFlightIdMap": {
+          "1": "6E-6864-NAG-BLR-1787201700"
+        },
+        "fareAssocId": "NAG_BLR-6E-6864-NAG-BLR-1787201700",
+        "metaData": {
+          "layoverInformation": []
+        }
+      }
+    },
+    "fares": {
+      "REGULAR__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z50TiSGcIU3tzGERfxAsrBw/Ol/3vYRgVa230Ua6RJHxUNXolK3UFOOad7CTjSGuCVwtlA/vcJBv0cLpTzl4zId+VGQDgsks0XVxjoyVG3U4QERTA97MCI3F1sroziDz1oWUeVczn1mtyNzxTt7eca3e+MUVOPCtR+e7i+8AJ5/lU0CZs5GTCVDZ/KW17MQSyR4TWDC/c4aVRzFS15heteJ+dIzb7/TxmTXtL19ipvao/WGT0QZjkEQItPcyXsa6sC8D9VKfOPArrwqpWGkYEFAsYGY=~~V3": {
+        "fareId": "REGULAR__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z50TiSGcIU3tzGERfxAsrBw/Ol/3vYRgVa230Ua6RJHxUNXolK3UFOOad7CTjSGuCVwtlA/vcJBv0cLpTzl4zId+VGQDgsks0XVxjoyVG3U4QERTA97MCI3F1sroziDz1oWUeVczn1mtyNzxTt7eca3e+MUVOPCtR+e7i+8AJ5/lU0CZs5GTCVDZ/KW17MQSyR4TWDC/c4aVRzFS15heteJ+dIzb7/TxmTXtL19ipvao/WGT0QZjkEQItPcyXsa6sC8D9VKfOPArrwqpWGkYEFAsYGY=~~V3",
+        "fareGroup": "REGULAR_FARE",
+        "fareCategory": "RETAIL",
+        "benefitIds": [],
+        "pricing": {
+          "totalPrice": 5611,
+          "totalTax": 2011,
+          "totalBaseFare": 3600,
+          "totalPricePerAdult": 5611,
+          "fee": 0,
+          "discount": 0,
+          "otherCharges": 0
+        },
+        "subTravelOptionFare": [
+          {
+            "subTravelOptionKey": "NAG_BLR",
+            "benefitIds": [],
+            "paxFare": [
+              {
+                "paxType": "ADT",
+                "paxCount": 1,
+                "priceComponents": [
+                  {
+                    "category": "BF",
+                    "code": "",
+                    "amount": 3600,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "YQ",
+                    "amount": 400,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "CUTE",
+                    "amount": 50,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "RCF",
+                    "amount": 50,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "UDF",
+                    "amount": 923,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "AIRLINE-MSC",
+                    "amount": 236,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "SGST",
+                    "amount": 212,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "TTF",
+                    "amount": 140,
+                    "currency": "INR"
+                  }
+                ],
+                "otherCharges": 0
+              }
+            ],
+            "flightFare": [
+              {
+                "flightId": "6E-6864-NAG-BLR-1787201700",
+                "baggageAllowances": [],
+                "benefitIds": [],
+                "paxFares": [
+                  {
+                    "paxType": "ADT",
+                    "paxCount": 1,
+                    "priceComponents": [
+                      {
+                        "category": "BF",
+                        "code": "",
+                        "amount": 3600,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "YQ",
+                        "amount": 400,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "CUTE",
+                        "amount": 50,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "RCF",
+                        "amount": 50,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "UDF",
+                        "amount": 923,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "AIRLINE-MSC",
+                        "amount": 236,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "SGST",
+                        "amount": 212,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "TTF",
+                        "amount": 140,
+                        "currency": "INR"
+                      }
+                    ],
+                    "otherCharges": 0
+                  }
+                ],
+                "identifiers": {
+                  "cabinType": "ECONOMY",
+                  "fareClass": "R",
+                  "fareBasisCode": "R0IP",
+                  "rbd": "R",
+                  "availableSeatCount": 3,
+                  "brandName": "REGULAR",
+                  "brand": "REGULAR"
+                }
+              }
+            ],
+            "revenue": 0
+          }
+        ],
+        "data": {
+          "AGENT_PCC": "1430772",
+          "isBaggageAvailable": true,
+          "isMealAvailable": true,
+          "SUPPLIER": "S050",
+          "isSeatAvailable": true
+        },
+        "transitVisaRequired": false,
+        "refundable": true,
+        "checkInBaggageAllowed": true,
+        "requested": true,
+        "constraints": {
+          "travellerRequirements": {
+            "ADT": {
+              "ageRestriction": "f88bf05f-4790-32c8-8a85-d5e7f85ed9ee",
+              "nameValidation": "8af38545-f848-3a9d-b248-48d22d34483c",
+              "requiredFields": "5daee025-1bfd-36fd-ba25-dfae1680992d"
+            }
+          },
+          "fareRequirements": {
+            "gst": "47adbe85-0ebf-3619-804c-a935c240d1d1"
+          }
+        }
+      },
+      "FARE_FAMILY__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z520sMmnXL/V1jRvTbIzHzzFFEqg1gemDuabY8NLgp4ijjeIefHcU8+8bEVgGdFaOs8rQgphvsf/WvtspPrvcGr7GBcKJ5u0iPWWkFpijvnjeAC2lVo17SUZsMjU5Hom5f65KB0AzOZ5lLYoXt5wy7FimczEFC6EWpFu6CRkNcNvK42Ob0KjgcZobmgrnpjbfi4SpaERN4Y0rNrviyl0QYCRem2kvKD7Tb7Qa5/Ijm86Vw3Xc30GI6G8aBmcneHVdDwL7szGD+9nYp0pTJxso42njCY=~~V3": {
+        "fareId": "FARE_FAMILY__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z520sMmnXL/V1jRvTbIzHzzFFEqg1gemDuabY8NLgp4ijjeIefHcU8+8bEVgGdFaOs8rQgphvsf/WvtspPrvcGr7GBcKJ5u0iPWWkFpijvnjeAC2lVo17SUZsMjU5Hom5f65KB0AzOZ5lLYoXt5wy7FimczEFC6EWpFu6CRkNcNvK42Ob0KjgcZobmgrnpjbfi4SpaERN4Y0rNrviyl0QYCRem2kvKD7Tb7Qa5/Ijm86Vw3Xc30GI6G8aBmcneHVdDwL7szGD+9nYp0pTJxso42njCY=~~V3",
+        "fareGroup": "FARE_FAMILY",
+        "fareCategory": "RETAIL",
+        "benefitIds": [],
+        "pricing": {
+          "totalPrice": 9741,
+          "totalTax": 2341,
+          "totalBaseFare": 7400,
+          "totalPricePerAdult": 9741,
+          "fee": 0,
+          "discount": 0,
+          "otherCharges": 0
+        },
+        "subTravelOptionFare": [
+          {
+            "subTravelOptionKey": "NAG_BLR",
+            "benefitIds": [],
+            "paxFare": [
+              {
+                "paxType": "ADT",
+                "paxCount": 1,
+                "priceComponents": [
+                  {
+                    "category": "BF",
+                    "code": "",
+                    "amount": 7400,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "YQ",
+                    "amount": 400,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "CUTE",
+                    "amount": 50,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "RCF",
+                    "amount": 50,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "UDF",
+                    "amount": 923,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "AIRLINE-MSC",
+                    "amount": 236,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "SGST",
+                    "amount": 409,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "TTF",
+                    "amount": 273,
+                    "currency": "INR"
+                  }
+                ],
+                "otherCharges": 0
+              }
+            ],
+            "flightFare": [
+              {
+                "flightId": "6E-6864-NAG-BLR-1787201700",
+                "baggageAllowances": [],
+                "benefitIds": [],
+                "paxFares": [
+                  {
+                    "paxType": "ADT",
+                    "paxCount": 1,
+                    "priceComponents": [
+                      {
+                        "category": "BF",
+                        "code": "",
+                        "amount": 7400,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "YQ",
+                        "amount": 400,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "CUTE",
+                        "amount": 50,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "RCF",
+                        "amount": 50,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "UDF",
+                        "amount": 923,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "AIRLINE-MSC",
+                        "amount": 236,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "SGST",
+                        "amount": 409,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "TTF",
+                        "amount": 273,
+                        "currency": "INR"
+                      }
+                    ],
+                    "otherCharges": 0
+                  }
+                ],
+                "identifiers": {
+                  "cabinType": "ECONOMY",
+                  "fareClass": "O",
+                  "fareBasisCode": "RLIP",
+                  "rbd": "R",
+                  "availableSeatCount": 0,
+                  "brandName": "INDIGO UPFRONT",
+                  "brand": "INDIGO UPFRONT"
+                }
+              }
+            ],
+            "revenue": 0
+          }
+        ],
+        "data": {
+          "AGENT_PCC": "1430772",
+          "isBaggageAvailable": true,
+          "isMealAvailable": true,
+          "SUPPLIER": "S050",
+          "isSeatAvailable": true
+        },
+        "transitVisaRequired": false,
+        "refundable": true,
+        "checkInBaggageAllowed": true,
+        "requested": false,
+        "constraints": {
+          "travellerRequirements": {
+            "ADT": {
+              "ageRestriction": "f88bf05f-4790-32c8-8a85-d5e7f85ed9ee",
+              "nameValidation": "8af38545-f848-3a9d-b248-48d22d34483c",
+              "requiredFields": "5daee025-1bfd-36fd-ba25-dfae1680992d"
+            }
+          },
+          "fareRequirements": {
+            "gst": "47adbe85-0ebf-3619-804c-a935c240d1d1"
+          }
+        }
+      },
+      "FARE_FAMILY__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z50dQ8LL1ga9nYxe2nD1ruZTem4PrQ8cVDalljHgoCTXlpsHxVOGu+zMmXA7Ac5cYioinCz8CV3fNJloQi7M2/jqLcTzxNUrwdvBMwIMySZybSb8whYm5lBcuU43AIlfgxU0hgJzY+KGfSY/UI4eOIF9R28L7Zs5i/vjYfehbPBc+/Nx4a8I+UmHM9Sl6mLzoOd+IJk4UJJylxMqJfKZ4uRC6kL46zTO85r/X5oVA4djtuZ4bC4PHcDRU9VvwBK461y3zSOzNUcg3FhOyjOZ29pB86w=~~V3": {
+        "fareId": "FARE_FAMILY__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z50dQ8LL1ga9nYxe2nD1ruZTem4PrQ8cVDalljHgoCTXlpsHxVOGu+zMmXA7Ac5cYioinCz8CV3fNJloQi7M2/jqLcTzxNUrwdvBMwIMySZybSb8whYm5lBcuU43AIlfgxU0hgJzY+KGfSY/UI4eOIF9R28L7Zs5i/vjYfehbPBc+/Nx4a8I+UmHM9Sl6mLzoOd+IJk4UJJylxMqJfKZ4uRC6kL46zTO85r/X5oVA4djtuZ4bC4PHcDRU9VvwBK461y3zSOzNUcg3FhOyjOZ29pB86w=~~V3",
+        "fareGroup": "FARE_FAMILY",
+        "fareCategory": "RETAIL",
+        "benefitIds": [],
+        "pricing": {
+          "totalPrice": 5883,
+          "totalTax": 2033,
+          "totalBaseFare": 3850,
+          "totalPricePerAdult": 5883,
+          "fee": 0,
+          "discount": 0,
+          "otherCharges": 0
+        },
+        "subTravelOptionFare": [
+          {
+            "subTravelOptionKey": "NAG_BLR",
+            "benefitIds": [],
+            "paxFare": [
+              {
+                "paxType": "ADT",
+                "paxCount": 1,
+                "priceComponents": [
+                  {
+                    "category": "BF",
+                    "code": "",
+                    "amount": 3850,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "SGST",
+                    "amount": 225,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "YQ",
+                    "amount": 400,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "TTF",
+                    "amount": 149,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "AIRLINE-MSC",
+                    "amount": 236,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "RCF",
+                    "amount": 50,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "CUTE",
+                    "amount": 50,
+                    "currency": "INR"
+                  },
+                  {
+                    "category": "TAX",
+                    "code": "UDF",
+                    "amount": 923,
+                    "currency": "INR"
+                  }
+                ],
+                "otherCharges": 0
+              }
+            ],
+            "flightFare": [
+              {
+                "flightId": "6E-6864-NAG-BLR-1787201700",
+                "baggageAllowances": [],
+                "benefitIds": [],
+                "paxFares": [
+                  {
+                    "paxType": "ADT",
+                    "paxCount": 1,
+                    "priceComponents": [
+                      {
+                        "category": "BF",
+                        "code": "",
+                        "amount": 3850,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "SGST",
+                        "amount": 225,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "YQ",
+                        "amount": 400,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "TTF",
+                        "amount": 149,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "AIRLINE-MSC",
+                        "amount": 236,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "RCF",
+                        "amount": 50,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "CUTE",
+                        "amount": 50,
+                        "currency": "INR"
+                      },
+                      {
+                        "category": "TAX",
+                        "code": "UDF",
+                        "amount": 923,
+                        "currency": "INR"
+                      }
+                    ],
+                    "otherCharges": 0
+                  }
+                ],
+                "identifiers": {
+                  "cabinType": "ECONOMY",
+                  "fareClass": "J",
+                  "fareBasisCode": "RUIP",
+                  "rbd": "R",
+                  "availableSeatCount": 3,
+                  "brandName": "FLEXI",
+                  "brand": "FLEXI"
+                }
+              }
+            ],
+            "revenue": 0
+          }
+        ],
+        "data": {
+          "AGENT_PCC": "1430772",
+          "isBaggageAvailable": true,
+          "isMealAvailable": true,
+          "SUPPLIER": "S050",
+          "isSeatAvailable": true
+        },
+        "transitVisaRequired": false,
+        "refundable": true,
+        "checkInBaggageAllowed": true,
+        "requested": false,
+        "constraints": {
+          "travellerRequirements": {
+            "ADT": {
+              "ageRestriction": "f88bf05f-4790-32c8-8a85-d5e7f85ed9ee",
+              "nameValidation": "8af38545-f848-3a9d-b248-48d22d34483c",
+              "requiredFields": "5daee025-1bfd-36fd-ba25-dfae1680992d"
+            }
+          },
+          "fareRequirements": {
+            "gst": "47adbe85-0ebf-3619-804c-a935c240d1d1"
+          }
+        }
+      }
+    },
+    "fareAssociations": {
+      "NAG_BLR-6E-6864-NAG-BLR-1787201700": {
+        "fareAssocId": "NAG_BLR-6E-6864-NAG-BLR-1787201700",
+        "totalFareAvailable": 0,
+        "fareIds": [
+          "REGULAR__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z50TiSGcIU3tzGERfxAsrBw/Ol/3vYRgVa230Ua6RJHxUNXolK3UFOOad7CTjSGuCVwtlA/vcJBv0cLpTzl4zId+VGQDgsks0XVxjoyVG3U4QERTA97MCI3F1sroziDz1oWUeVczn1mtyNzxTt7eca3e+MUVOPCtR+e7i+8AJ5/lU0CZs5GTCVDZ/KW17MQSyR4TWDC/c4aVRzFS15heteJ+dIzb7/TxmTXtL19ipvao/WGT0QZjkEQItPcyXsa6sC8D9VKfOPArrwqpWGkYEFAsYGY=~~V3",
+          "FARE_FAMILY__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z50dQ8LL1ga9nYxe2nD1ruZTem4PrQ8cVDalljHgoCTXlpsHxVOGu+zMmXA7Ac5cYioinCz8CV3fNJloQi7M2/jqLcTzxNUrwdvBMwIMySZybSb8whYm5lBcuU43AIlfgxU0hgJzY+KGfSY/UI4eOIF9R28L7Zs5i/vjYfehbPBc+/Nx4a8I+UmHM9Sl6mLzoOd+IJk4UJJylxMqJfKZ4uRC6kL46zTO85r/X5oVA4djtuZ4bC4PHcDRU9VvwBK461y3zSOzNUcg3FhOyjOZ29pB86w=~~V3",
+          "FARE_FAMILY__UNKNOWN__6E__6E__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z520sMmnXL/V1jRvTbIzHzzFFEqg1gemDuabY8NLgp4ijjeIefHcU8+8bEVgGdFaOs8rQgphvsf/WvtspPrvcGr7GBcKJ5u0iPWWkFpijvnjeAC2lVo17SUZsMjU5Hom5f65KB0AzOZ5lLYoXt5wy7FimczEFC6EWpFu6CRkNcNvK42Ob0KjgcZobmgrnpjbfi4SpaERN4Y0rNrviyl0QYCRem2kvKD7Tb7Qa5/Ijm86Vw3Xc30GI6G8aBmcneHVdDwL7szGD+9nYp0pTJxso42njCY=~~V3"
+        ]
+      }
+    },
+    "travelOptionIdsToFareIdsMap": {},
+    "metaData": {
+      "airlineDetail": {
+        "airlines": {
+          "6E": {
+            "code": "6E",
+            "name": "IndiGo"
+          }
+        }
+      },
+      "airportDetail": {
+        "airports": {
+          "NAG": {
+            "code": "NAG",
+            "name": "Dr. Babasaheb Ambedkar",
+            "city": "Nagpur",
+            "country": "India",
+            "countryCode": "IN"
+          },
+          "BLR": {
+            "code": "BLR",
+            "name": "Kempegowda International Airport",
+            "city": "Bangalore",
+            "country": "India",
+            "countryCode": "IN"
+          }
+        }
+      }
+    }
+  }
+}

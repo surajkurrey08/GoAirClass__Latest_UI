@@ -1,0 +1,41 @@
+{
+  "sessionId": "65273301_e28925b4-3347-4a06-951a-11d1dfe7190a-260817111857",
+  "searchId": "DC_Search-80e02fb7-1298-477a-bdd2-b3df3aa543a7",
+  "dataId": "AVN+Z519aR2oeG6yQEfxPNWva6prtHF8J/tJRSPKyfTOctXI8s7OzQuIYayKf0esSHlyXiXLhdbPjoFCXL+CHcf7nCFULX30y7L1eQylgV6dm09BXLP2PejoRCuVUgL+1OYXp7sEfJKEy3XZ1BxyUHmniqkF7w7afsZ/b6ygGAk7XV/dZ37dNLBDC8KiH5px3qs/gC3W8KbxTx42WyEaqOHSYWSSi2oBvQSD9zoBw7MM8cGWuyt8DStv1Fq0P8+66FgHFScx8Mr/2X0lOACPRYh6X7SY+E1dxNC6pFYonWdMxnp2+Yt+ikF0e8ctn1dqAMxSqMFWoIMJ",
+  "flightPreviewCriteria": {
+    "isMultiFareRequest": false,
+    "maxFareCount": 0,
+    "sellingCountryCode": "IN",
+    "sellingCurrencyCode": "INR"
+  },
+  "searchIntents": {
+    "sectors": [
+      {
+        "index": 3,
+        "origin": "NAG",
+        "destination": "BLR",
+        "departDate": "22/08/2026",
+        "cabinType": "ECONOMY",
+        "paxInfos": [
+          {
+            "paxType": "ADT",
+            "paxCount": 1,
+            "paxFareType": "DEFAULT"
+          }
+        ]
+      }
+    ]
+  },
+  "travelOptions": {
+    "J3": {
+      "travelOptionId": "AI-2584-NAG-BOM-1787416800__AI-2812-BOM-BLR-1787430900",
+      "price": 9150,
+      "subTravelOptions": [
+        {
+          "subTravelOptionId": "AI-2584-NAG-BOM-1787416800__AI-2812-BOM-BLR-1787430900",
+          "fareId": "REGULAR__22/08/2026__AI^AI__AI^AI__NAG_BLR__true__RETAIL__E__DOM__OW__UNKNOWN__S043__ECO VALUE,ECO VALUE__AVN+Z52wH6dokQGDTI+N8I80qIihSy3kDiQ0OlEHhFIn6luVnPQFqHxlYD/ZVgVoS1SYiUVdU42Pm+Gdzeja7DS3DdEWpDSqQw/2HUR9TtGm4HFdheanemfGQ238+NrBRSLtVIQ9jmHg1uoJvSdtJltKIhcR8dAjXEofQlNapcM7mjqHeVj0fZij4Ee/Ugqf2XZ8hY50GD7e8OV11Wf1u1DGnaDjUhSx3E3wA0yihMYo96bUHsz259yf0x3xjO3645wyHtyhSSnUb6vfrbE+oE2c0sU/vNqmDST7~~V3"
+        }
+      ]
+    }
+  }
+}

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Plane, Calendar, Users, Briefcase, ArrowLeft, ArrowLeftRight, Clock, Shield, AlertCircle, Compass, HelpCircle, Check, Filter, RotateCcw, Luggage, ChevronLeft, ChevronRight, MapPin, Receipt, Info } from 'lucide-react';
+import { Plane, Calendar, Users, Briefcase, ArrowLeft, ArrowLeftRight, Clock, Shield, AlertCircle, Compass, HelpCircle, Check, Filter, RotateCcw, Luggage, ChevronLeft, ChevronRight, ChevronDown, MapPin, Receipt, Info } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { searchFlights, createFlightSession, previewFlightApi, fetchAncillariesApi, fetchBulkBenefitsApi } from '../services/flightApi';
 import { toast } from 'react-toastify';
+import FlightItineraryTimeline from './FlightItineraryTimeline';
 
 export default function FlightListPage() {
     const [searchParams] = useSearchParams();
@@ -41,6 +42,12 @@ export default function FlightListPage() {
     const [allFares, setAllFares] = useState({});
     const [allBenefits, setAllBenefits] = useState(null);
     const [selectedFareId, setSelectedFareId] = useState(null);
+    const [expandedFlightIds, setExpandedFlightIds] = useState({});
+    // Multi-City states
+    const [multiCitySectors, setMultiCitySectors] = useState([]);
+    const [activeSectorKey, setActiveSectorKey] = useState('J1');
+    const [selectedMultiCityFlights, setSelectedMultiCityFlights] = useState({});
+    const [allSectorFlights, setAllSectorFlights] = useState({});
     const fetchedRef = useRef('');
 
 
@@ -108,27 +115,58 @@ export default function FlightListPage() {
                 infants > 0 ? { paxType: "INF", paxCount: infants, paxFareType: "DEFAULT" } : null
             ].filter(Boolean);
 
-            const sectors = [
-                {
+            let sectors = [];
+
+            if (tripTypeVal === 'multiCity') {
+                const sectorsParam = searchParams.get('sectors');
+                if (sectorsParam) {
+                    try {
+                        const parsedSectors = JSON.parse(decodeURIComponent(sectorsParam));
+                        if (Array.isArray(parsedSectors)) {
+                            setMultiCitySectors(parsedSectors);
+                            sectors = parsedSectors.map((sec, idx) => ({
+                                index: idx + 1,
+                                origin: getAirportCode(sec.fromCity),
+                                destination: getAirportCode(sec.toCity),
+                                departDate: formatDateToDDMMYYYY(sec.date),
+                                cabinType: cabinType,
+                                paxInfos
+                            }));
+                        }
+                    } catch (e) {
+                        console.error("Error parsing multiCity sectors:", e);
+                    }
+                }
+            }
+
+            if (sectors.length === 0) {
+                sectors.push({
                     index: 1,
                     origin: originCode,
                     destination: destCode,
                     departDate: formattedDate || new Date().toLocaleDateString('en-GB'),
                     cabinType: cabinType,
                     paxInfos
-                }
-            ];
-
-            const returnDateFormatted = formatDateToDDMMYYYY(returnDateVal);
-            if (tripTypeVal === 'roundTrip' && returnDateFormatted) {
-                sectors.push({
-                    index: 2,
-                    origin: destCode,
-                    destination: originCode,
-                    departDate: returnDateFormatted,
-                    cabinType: cabinType,
-                    paxInfos
                 });
+
+                const returnDateFormatted = formatDateToDDMMYYYY(returnDateVal);
+                if (tripTypeVal === 'roundTrip' && returnDateFormatted) {
+                    sectors.push({
+                        index: 2,
+                        origin: destCode,
+                        destination: originCode,
+                        departDate: returnDateFormatted,
+                        cabinType: cabinType,
+                        paxInfos
+                    });
+                }
+            }
+
+            // Clear old cached session preview properties to prevent cache mismatch in next flights
+            sessionStorage.removeItem('multi_city_previews_map');
+            sessionStorage.removeItem('flight_preview_id');
+            for (let i = 0; i < 10; i++) {
+                sessionStorage.removeItem(`flight_preview_id_${i}`);
             }
 
             // Cleartrip search payload format
@@ -359,22 +397,50 @@ export default function FlightListPage() {
 
                 let rawJ1 = [];
                 let rawJ2 = [];
+                const sectorFlightsMap = {};
 
                 if (apiData.travelOptions && typeof apiData.travelOptions === 'object' && !Array.isArray(apiData.travelOptions)) {
+                    Object.keys(apiData.travelOptions).forEach(key => {
+                        const rawOptions = apiData.travelOptions[key] || [];
+                        const upperKey = key.toUpperCase();
+                        const sectorIndex = Number(upperKey.replace('J', '')) || 1;
+                        const parsed = parseOptionsList(rawOptions);
+                        parsed.forEach(f => {
+                            f.searchSectorKey = upperKey;
+                            f.searchSectorIndex = sectorIndex;
+                            f.searchId = apiData.searchId;
+                        });
+                        sectorFlightsMap[upperKey] = parsed;
+                    });
                     rawJ1 = apiData.travelOptions.J1 || apiData.travelOptions.j1 || [];
                     rawJ2 = apiData.travelOptions.J2 || apiData.travelOptions.j2 || [];
                 } else if (Array.isArray(apiData.travelOptions)) {
                     rawJ1 = apiData.travelOptions;
+                    const parsed = parseOptionsList(rawJ1);
+                    parsed.forEach(f => {
+                        f.searchSectorKey = 'J1';
+                        f.searchSectorIndex = 1;
+                        f.searchId = apiData.searchId;
+                    });
+                    sectorFlightsMap['J1'] = parsed;
                 }
 
-                const processedJ1 = parseOptionsList(rawJ1);
-                const processedJ2 = parseOptionsList(rawJ2);
+                const processedJ1 = sectorFlightsMap['J1'] || [];
+                const processedJ2 = sectorFlightsMap['J2'] || [];
 
                 setAllFares(faresDict);
                 setAllBenefits(apiData.benefits || null);
                 setAllOutboundFlights(processedJ1);
                 setAllReturnFlights(processedJ2);
-                setFlights(processedJ1);
+                setAllSectorFlights(sectorFlightsMap);
+
+                if (tripTypeVal === 'multiCity') {
+                    const firstKey = Object.keys(sectorFlightsMap).sort()[0] || 'J1';
+                    setActiveSectorKey(firstKey);
+                    setFlights(sectorFlightsMap[firstKey] || []);
+                } else {
+                    setFlights(processedJ1);
+                }
 
                 if (tripTypeVal === 'roundTrip' && processedJ2.length > 0) {
                     setSelectionMode('outbound');
@@ -382,7 +448,7 @@ export default function FlightListPage() {
                     setSelectionMode('oneWay');
                 }
 
-                const prices = processedJ1.map(f => f.price);
+                const prices = (tripTypeVal === 'multiCity' ? (sectorFlightsMap['J1'] || []) : processedJ1).map(f => f.price);
                 if (prices.length > 0) {
                     const minP = Math.min(...prices);
                     const maxP = Math.max(...prices);
@@ -417,6 +483,21 @@ export default function FlightListPage() {
         fetchedRef.current = searchKey;
         fetchFlightsData();
     }, [searchParams]);
+
+    useEffect(() => {
+        if (tripTypeVal === 'multiCity' && allSectorFlights && Object.keys(allSectorFlights).length > 0) {
+            const currentFlights = allSectorFlights[activeSectorKey] || [];
+            setFlights(currentFlights);
+            const prices = currentFlights.map(f => f.price);
+            if (prices.length > 0) {
+                const minP = Math.min(...prices);
+                const maxP = Math.max(...prices);
+                setMinPrice(minP);
+                setMaxPrice(maxP);
+                setMaxPriceLimit(maxP);
+            }
+        }
+    }, [activeSectorKey, allSectorFlights, tripTypeVal]);
 
     // Unique airlines for filters
     const uniqueAirlines = [...new Set(flights.map(f => f.airlineName || 'Airline'))];
@@ -507,8 +588,155 @@ export default function FlightListPage() {
         }
     };
 
-    const handleBooking = (flight) => {
-        if (selectionMode === 'outbound') {
+    const handleBooking = async (flight) => {
+        const targetSearchId = flight.searchId || searchId;
+        let createdLegSessionId = null;
+        if (targetSearchId) {
+            try {
+                console.log(`[handleBooking] Creating dedicated Cleartrip session for ticket selection (${activeSectorKey}) with searchId: ${targetSearchId}...`);
+                const sessRes = await createFlightSession(targetSearchId);
+                if (sessRes.success && sessRes.data?.sessionId) {
+                    createdLegSessionId = sessRes.data.sessionId;
+                    console.log(`[handleBooking] Session created for ${activeSectorKey}:`, createdLegSessionId);
+                }
+            } catch (sErr) {
+                console.warn('[handleBooking] Session creation note:', sErr.message);
+            }
+        }
+
+        const flightWithSession = {
+            ...flight,
+            searchId: targetSearchId,
+            sessionId: createdLegSessionId
+        };
+
+        if (tripTypeVal === 'multiCity') {
+            const nextSelected = { ...selectedMultiCityFlights, [activeSectorKey]: flightWithSession };
+            setSelectedMultiCityFlights(nextSelected);
+
+            const sectorKeys = multiCitySectors.map((_, i) => `J${i + 1}`);
+            const currentIdx = sectorKeys.indexOf(activeSectorKey);
+
+            if (createdLegSessionId) {
+                sessionStorage.setItem(`flight_session_id_${currentIdx}`, createdLegSessionId);
+            }
+            if (targetSearchId) {
+                sessionStorage.setItem(`flight_search_id_${currentIdx}`, targetSearchId);
+            }
+
+            if (currentIdx !== -1 && currentIdx < sectorKeys.length - 1) {
+                const nextKey = sectorKeys[currentIdx + 1];
+                const nextSectorObj = multiCitySectors[currentIdx + 1];
+
+                toast.info(`Session created! Fetching fresh Search ID for Flight ${currentIdx + 2}...`);
+                setLoading(true);
+
+                try {
+                    const adults = Number(searchParams.get('adults')) || 1;
+                    const children = Number(searchParams.get('children')) || 0;
+                    const infants = Number(searchParams.get('infants')) || 0;
+                    const cabinType = getCabinType(cabinVal);
+                    const paxInfosList = [
+                        { paxType: "ADT", paxCount: adults, paxFareType: "DEFAULT" },
+                        children > 0 ? { paxType: "CHD", paxCount: children, paxFareType: "DEFAULT" } : null,
+                        infants > 0 ? { paxType: "INF", paxCount: infants, paxFareType: "DEFAULT" } : null
+                    ].filter(Boolean);
+
+                    const nextLegPayload = {
+                        searchCriteria: {
+                            sellingCountryCode: "IN",
+                            sellingCurrencyCode: "INR",
+                            maxRequiredFlightOptions: 25,
+                            fareLimitingStrategyList: ["PRICE"],
+                            flightOptionFilter: [],
+                            responseVersion: "VERSION_V6",
+                            fareTypes: ["RETAIL"]
+                        },
+                        searchIntents: {
+                            sectors: [{
+                                index: 1,
+                                origin: getAirportCode(nextSectorObj.fromCity),
+                                destination: getAirportCode(nextSectorObj.toCity),
+                                departDate: formatDateToDDMMYYYY(nextSectorObj.date),
+                                cabinType: cabinType,
+                                paxInfos: paxInfosList
+                            }]
+                        }
+                    };
+
+                    const nextRes = await searchFlights(nextLegPayload);
+                    if (nextRes && nextRes.success && nextRes.data) {
+                        const apiData = nextRes.data.data || nextRes.data || {};
+                        const newLegSearchId = apiData.searchId || "";
+                        if (newLegSearchId) {
+                            setSearchId(newLegSearchId);
+                            sessionStorage.setItem(`flight_search_id_${currentIdx + 1}`, newLegSearchId);
+                        }
+
+                        const rawOptions = (apiData.travelOptions && typeof apiData.travelOptions === 'object' && !Array.isArray(apiData.travelOptions))
+                            ? (apiData.travelOptions.J1 || Object.values(apiData.travelOptions)[0] || [])
+                            : (Array.isArray(apiData.travelOptions) ? apiData.travelOptions : []);
+
+                        const parsedNext = parseOptionsList(rawOptions);
+                        parsedNext.forEach(f => {
+                            f.searchId = newLegSearchId;
+                            f.searchSectorKey = 'J1';
+                            f.searchSectorIndex = 1;
+                            f.legIndex = currentIdx + 1;
+                        });
+
+                        setAllSectorFlights(prev => ({ ...prev, [nextKey]: parsedNext }));
+                        setFlights(parsedNext);
+                    }
+                } catch (err) {
+                    console.error("Error fetching fresh searchId for next leg:", err);
+                } finally {
+                    setLoading(false);
+                }
+
+                setActiveSectorKey(nextKey);
+                setIsDrawerOpen(false);
+                setPreviewFlight(null);
+                toast.success(`Flight ${currentIdx + 1} selected! Session created. Now choose Flight ${currentIdx + 2}.`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                const adultsCount = Number(searchParams.get('adults')) || 1;
+                const childrenCount = Number(searchParams.get('children')) || 0;
+                const infantsCount = Number(searchParams.get('infants')) || 0;
+
+                const selectedFlightsList = sectorKeys.map(k => nextSelected[k]).filter(Boolean);
+
+                if (selectedFlightsList.length < multiCitySectors.length) {
+                    toast.error("Please select flights for all legs before continuing.");
+                    return;
+                }
+
+                const combinedFlight = {
+                    id: selectedFlightsList.map(f => f.id).join('_'),
+                    segments: selectedFlightsList.flatMap(f => f.segments),
+                    price: selectedFlightsList.reduce((sum, f) => sum + (f.price || 0), 0),
+                    baseFare: selectedFlightsList.reduce((sum, f) => sum + (f.baseFare || 0), 0),
+                    taxes: selectedFlightsList.reduce((sum, f) => sum + (f.taxes || 0), 0),
+                    airlineCode: selectedFlightsList[0].airlineCode,
+                    airlineName: selectedFlightsList.map(f => f.airlineName).join(' / '),
+                    benefits: selectedFlightsList.flatMap(f => f.benefits || []),
+                    isRefundable: selectedFlightsList.every(f => f.isRefundable),
+                    isMultiCityCombined: true,
+                    selectedSectorsList: selectedFlightsList
+                };
+
+                navigate('/flight/booking-details', {
+                    state: {
+                        flight: combinedFlight,
+                        searchId,
+                        dataId,
+                        adultsCount,
+                        childrenCount,
+                        infantsCount
+                    }
+                });
+            }
+        } else if (selectionMode === 'outbound') {
             setSelectedOutbound(flight);
             // Switch to return flights list
             setFlights(allReturnFlights);
@@ -710,7 +938,7 @@ export default function FlightListPage() {
             const flightFares = Array.isArray(rawFlightFares) ? rawFlightFares : [rawFlightFares];
             const parsedBrandFromFareId = typeof fareId === 'string' ? fareId.split('__')[11] : null;
             const brandName = flightFares[0]?.identifiers?.brandName || fareData.fareName || (parsedBrandFromFareId && !parsedBrandFromFareId.startsWith('AVN') ? parsedBrandFromFareId.replace(',', ' / ') : '');
-            
+
             // Extract Benefits from allBenefits
             let parsedBenefits = [];
             if (allBenefits && fareData.benefitIds) {
@@ -723,11 +951,11 @@ export default function FlightListPage() {
                         description: b.description || b.shortDescription || b.value || b.benefitType
                     }));
             }
-            
+
             // Add fallbacks if empty so the UI shows something
             if (parsedBenefits.length === 0) {
                 parsedBenefits.push({ type: 'BAGGAGE', description: 'Standard Cabin & Check-in Baggage' });
-                
+
                 const lowerBrand = (brandName || '').toLowerCase();
                 if (lowerBrand.includes('flex') || lowerBrand.includes('comfort') || lowerBrand.includes('premium')) {
                     parsedBenefits.push({ type: 'SEAT', description: 'Free Seat Selection' });
@@ -756,7 +984,7 @@ export default function FlightListPage() {
         if (!selectedFareId || !availableFares.length) return previewFlight;
         const matched = availableFares.find(f => f.fareId === selectedFareId);
         if (!matched) return previewFlight;
-        
+
         return {
             ...previewFlight,
             price: matched.price,
@@ -774,24 +1002,6 @@ export default function FlightListPage() {
     const handleFareSelection = (fareId) => {
         if (fareId === selectedFareId) return;
         setSelectedFareId(fareId);
-        if (dataId && fareId) {
-            setLoadingBenefits(true);
-            setBulkBenefits(null);
-            fetchBulkBenefitsApi({
-                dataId,
-                searchId,
-                fareIds: [fareId],
-                requiredBenefitTypes: ["BAGGAGE", "PENALTIES", "FARE_BENEFITS"]
-            }).then(res => {
-                if (res.success && res.data) {
-                    setBulkBenefits(res.data);
-                }
-            }).catch(err => {
-                console.warn('Failed to fetch benefits details:', err.message);
-            }).finally(() => {
-                setLoadingBenefits(false);
-            });
-        }
     };
 
     return (
@@ -839,15 +1049,27 @@ export default function FlightListPage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div>
-                            <h2 className="font-serif text-xl md:text-2xl font-bold uppercase tracking-wider text-slate-100 flex items-center gap-2">
-                                {fromVal} <span className="text-[#b89565] font-normal">⇆</span> {toVal}
+                            <h2 className="font-serif text-xl md:text-2xl font-bold uppercase tracking-wider text-slate-100 flex items-center gap-2 flex-wrap">
+                                {tripTypeVal === 'multiCity' && multiCitySectors.length > 0 ? (
+                                    multiCitySectors.map((sec, sIdx) => (
+                                        <React.Fragment key={sIdx}>
+                                            <span>{getAirportCode(sec.fromCity)}</span>
+                                            <span className="text-[#b89565] font-normal">➔</span>
+                                            {sIdx === multiCitySectors.length - 1 && <span>{getAirportCode(sec.toCity)}</span>}
+                                        </React.Fragment>
+                                    ))
+                                ) : (
+                                    <>
+                                        {fromVal} <span className="text-[#b89565] font-normal">⇆</span> {toVal}
+                                    </>
+                                )}
                             </h2>
                         </div>
 
                         {/* Shifted to Right Side */}
                         <div className="flex gap-2 flex-wrap items-center md:justify-end">
                             <span className="bg-[#121b2d] border border-[#b89565]/40 text-slate-300 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-xs">
-                                <Calendar size={13} className="text-[#b89565]" /> Depart: {dateVal}
+                                <Calendar size={13} className="text-[#b89565]" /> {tripTypeVal === 'multiCity' && multiCitySectors[parseInt(activeSectorKey.substring(1)) - 1] ? `Depart: ${multiCitySectors[parseInt(activeSectorKey.substring(1)) - 1].date}` : `Depart: ${dateVal}`}
                             </span>
                             {returnDateVal && (
                                 <span className="bg-[#121b2d] border border-[#b89565]/40 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-xs">
@@ -865,13 +1087,48 @@ export default function FlightListPage() {
                 </div>
             </div>
 
+            {/* Multi-City Journey Tab Selector */}
+            {tripTypeVal === 'multiCity' && multiCitySectors.length > 0 && (
+                <div className="bg-slate-100 border-b border-slate-200 py-3 px-4">
+                    <div className="max-w-[1200px] mx-auto flex flex-wrap gap-3">
+                        {multiCitySectors.map((sec, sIdx) => {
+                            const key = `J${sIdx + 1}`;
+                            const isActive = activeSectorKey === key;
+                            const isSelected = !!selectedMultiCityFlights[key];
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setActiveSectorKey(key)}
+                                    className={`flex items-center gap-2 px-4 py-2.5 border font-semibold text-xs transition-all uppercase tracking-wider ${isActive
+                                        ? 'bg-[#0b0f19] border-[#0b0f19] text-white shadow-md'
+                                        : 'bg-white border-slate-300 text-slate-700 hover:border-[#b89565]'
+                                        }`}
+                                >
+                                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${isActive ? 'bg-[#b89565] text-[#0b0f19]' : 'bg-slate-200 text-slate-650'}`}>
+                                        {sIdx + 1}
+                                    </span>
+                                    <span>{getAirportCode(sec.fromCity)} ➔ {getAirportCode(sec.toCity)}</span>
+                                    {isSelected && <span className="text-emerald-600 font-bold ml-1">✓ Selected</span>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* ── Horizontal Lowest Fare Date Calendar Strip (Only this part is sticky over Navbar) ── */}
             <div className="bg-white border-b border-slate-200 py-3 shadow-md sticky top-0 z-[1001]">
                 <div className="max-w-[1200px] mx-auto px-4 relative">
                     <div className="flex items-center justify-between mb-2.5">
                         <div className="flex items-center space-x-2">
                             <Calendar className="h-4 w-4 text-[#b89565]" />
-                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Lowest Fare Calendar ({fromVal} ➔ {toVal})</span>
+                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                {tripTypeVal === 'multiCity' && multiCitySectors[parseInt(activeSectorKey.substring(1)) - 1] ? (
+                                    `Lowest Fare Calendar (${getAirportCode(multiCitySectors[parseInt(activeSectorKey.substring(1)) - 1].fromCity)} ➔ ${getAirportCode(multiCitySectors[parseInt(activeSectorKey.substring(1)) - 1].toCity)})`
+                                ) : (
+                                    `Lowest Fare Calendar (${fromVal} ➔ {toVal})`
+                                )}
+                            </span>
                         </div>
                         <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Click any date to compare & update results</span>
                     </div>
@@ -896,7 +1153,9 @@ export default function FlightListPage() {
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                         >
                             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((offset) => {
-                                const baseDate = new Date(dateVal || Date.now());
+                                const activeSector = tripTypeVal === 'multiCity' ? multiCitySectors[parseInt(activeSectorKey.substring(1)) - 1] : null;
+                                const activeDateStr = activeSector ? activeSector.date : dateVal;
+                                const baseDate = new Date(activeDateStr || Date.now());
                                 const dateObj = new Date(baseDate);
                                 dateObj.setDate(baseDate.getDate() + offset);
 
@@ -904,7 +1163,7 @@ export default function FlightListPage() {
                                 const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
                                 const monthDay = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 
-                                const isSelected = dateVal === formattedDate;
+                                const isSelected = activeDateStr === formattedDate;
 
                                 // Calculate dynamic simulated fare
                                 const estFare = Math.round(3200 + ((dateObj.getDate() * 180) % 2100));
@@ -913,9 +1172,18 @@ export default function FlightListPage() {
                                     <button
                                         key={formattedDate}
                                         onClick={() => {
-                                            const newParams = new URLSearchParams(searchParams);
-                                            newParams.set('date', formattedDate);
-                                            navigate(`/flights/list?${newParams.toString()}`);
+                                            if (tripTypeVal === 'multiCity') {
+                                                const currentIdx = parseInt(activeSectorKey.substring(1)) - 1;
+                                                const updatedSectors = [...multiCitySectors];
+                                                updatedSectors[currentIdx].date = formattedDate;
+                                                const newParams = new URLSearchParams(searchParams);
+                                                newParams.set('sectors', JSON.stringify(updatedSectors));
+                                                navigate(`/flights/list?${newParams.toString()}`);
+                                            } else {
+                                                const newParams = new URLSearchParams(searchParams);
+                                                newParams.set('date', formattedDate);
+                                                navigate(`/flights/list?${newParams.toString()}`);
+                                            }
                                         }}
                                         className={`shrink-0 min-w-[115px] py-2.5 px-3 rounded-none border text-center transition-all cursor-pointer ${isSelected
                                             ? 'bg-[#0b0f19] border-[#0b0f19] text-white shadow-lg ring-1 ring-[#b89565]'
@@ -1353,6 +1621,29 @@ export default function FlightListPage() {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* View Detailed Information Toggle Button */}
+                                <div className="bg-white border-t border-slate-100 py-2.5 px-6 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const fKey = flight.id || idx;
+                                            setExpandedFlightIds(prev => ({ ...prev, [fKey]: !prev[fKey] }));
+                                        }}
+                                        className="text-[#2563eb] hover:text-blue-800 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    >
+                                        <span>{expandedFlightIds[flight.id || idx] ? 'Hide detailed information' : 'View detailed information'}</span>
+                                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedFlightIds[flight.id || idx] ? 'rotate-180' : ''}`} />
+                                    </button>
+                                </div>
+
+                                {/* Collapsible Detailed Itinerary Timeline */}
+                                {expandedFlightIds[flight.id || idx] && (
+                                    <div className="p-4 bg-slate-50 border-t border-slate-200" onClick={(e) => e.stopPropagation()}>
+                                        <FlightItineraryTimeline segments={flight.segments} />
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
@@ -1417,8 +1708,11 @@ export default function FlightListPage() {
                                         {/* 2. Flight Timeline Summary Card */}
                                         <div className="bg-slate-50/60 p-5 border border-slate-100 rounded-none flex items-center justify-between shadow-2xs">
                                             <div className="text-left flex-1">
-                                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                                                <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                                                     {new Date(previewFlight.segments?.[0]?.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm">
+                                                        {new Date(previewFlight.segments?.[0]?.departureDateTime).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                                    </span>
                                                 </h3>
                                                 <span className="text-sm font-black text-slate-900 uppercase block mt-0.5">{previewFlight.segments?.[0]?.origin}</span>
                                                 <span className="text-[11px] text-slate-500 font-medium block mt-0.5 line-clamp-1">{previewFlight.segments?.[0]?.originAirportName}</span>
@@ -1441,13 +1735,19 @@ export default function FlightListPage() {
                                             </div>
 
                                             <div className="text-right flex-1">
-                                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                                                <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-end gap-2">
+                                                    <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm">
+                                                        {new Date(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                                    </span>
                                                     {new Date(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </h3>
                                                 <span className="text-sm font-black text-slate-900 uppercase block mt-0.5">{previewFlight.segments?.[previewFlight.segments.length - 1]?.destination}</span>
                                                 <span className="text-[11px] text-slate-500 font-medium block mt-0.5 line-clamp-1">{previewFlight.segments?.[previewFlight.segments.length - 1]?.destinationAirportName}</span>
                                             </div>
                                         </div>
+
+                                        {/* Step-by-step Connecting Flight & Layover Timeline */}
+                                        <FlightItineraryTimeline segments={previewFlight.segments} />
 
                                         {/* 3. Flight Information Section */}
                                         <div>
@@ -1620,14 +1920,14 @@ export default function FlightListPage() {
                                                 </div>
                                                 <div className="flex gap-3 overflow-x-auto pb-2">
                                                     {availableFares.map((fare) => (
-                                                        <button 
+                                                        <button
                                                             key={fare.fareId}
                                                             onClick={() => handleFareSelection(fare.fareId)}
                                                             className={`shrink-0 min-w-[200px] text-left p-4 rounded-none border-2 transition-all ${selectedFareId === fare.fareId ? 'border-[#b89565] bg-amber-50/50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300'}`}
                                                         >
                                                             <div className="font-bold text-slate-900 text-sm uppercase tracking-wider">{fare.brandName}</div>
                                                             <div className="font-black text-[#b89565] text-lg mt-1">₹{fare.price.toLocaleString()}</div>
-                                                            
+
                                                             <div className="text-xs font-semibold mt-3">
                                                                 {fare.isRefundable ? <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 border border-emerald-100">Refundable</span> : <span className="text-red-500 bg-red-50 px-2 py-0.5 border border-red-100">Non-Refundable</span>}
                                                             </div>

@@ -13,6 +13,7 @@ import './FlightsPage.css'
 gsap.registerPlugin(ScrollTrigger)
 
 // Import assets
+import bgVideo from '../../assets/is_flight_ka_video_banao_vidoa.mp4'
 import bgImg from '../../assets/Flight img 3.png'
 import planeImg from '../../assets/ChatGPT Image Jul 30, 2026, 04_32_04 PM.png'
 import roadmapBg from '../../assets/background img flight .png'
@@ -116,6 +117,93 @@ export default function FlightsPage() {
     const [adultsCount, setAdultsCount] = useState(1)
     const [childrenCount, setChildrenCount] = useState(0)
     const [infantsCount, setInfantsCount] = useState(0)
+
+    // Multi-City States
+    const [multiCitySectors, setMultiCitySectors] = useState([
+        { fromCity: 'Bangalore (BLR)', fromAirport: 'Kempegowda Intl. Airport', toCity: 'Mumbai (BOM)', toAirport: 'Chhatrapati Shivaji Maharaj Intl.', date: getTodayDateString() },
+        { fromCity: 'Mumbai (BOM)', fromAirport: 'Chhatrapati Shivaji Maharaj Intl.', toCity: 'Delhi (DEL)', toAirport: 'Indira Gandhi Intl. Airport', date: getFutureDateString(3) }
+    ]);
+    const [activeSectorIndex, setActiveSectorIndex] = useState(null); // index of sector being edited
+    const [activeSectorField, setActiveSectorField] = useState(null); // 'from' or 'to'
+    const [sectorSuggestions, setSectorSuggestions] = useState([]);
+    const [loadingSectorSuggest, setLoadingSectorSuggest] = useState(false);
+
+    const updateSector = (index, fieldOrFields, value) => {
+        setMultiCitySectors(prev => {
+            const updated = [...prev];
+            if (typeof fieldOrFields === 'object') {
+                updated[index] = { ...updated[index], ...fieldOrFields };
+            } else {
+                updated[index] = { ...updated[index], [fieldOrFields]: value };
+            }
+            return updated;
+        });
+    };
+
+    const addSector = () => {
+        if (multiCitySectors.length >= 5) {
+            toast.warn("Maximum 5 flights allowed in Multi-City");
+            return;
+        }
+        const lastSector = multiCitySectors[multiCitySectors.length - 1];
+        const nextDate = new Date(lastSector.date || getTodayDateString());
+        nextDate.setDate(nextDate.getDate() + 2);
+        const yyyy = nextDate.getFullYear();
+        const mm = String(nextDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(nextDate.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        setMultiCitySectors([
+            ...multiCitySectors,
+            {
+                fromCity: lastSector.toCity || '',
+                fromAirport: lastSector.toAirport || '',
+                toCity: '',
+                toAirport: 'Destination Airport',
+                date: dateStr
+            }
+        ]);
+    };
+
+    const removeSector = (index) => {
+        if (multiCitySectors.length <= 2) {
+            toast.warn("Minimum 2 flights are required for Multi-City");
+            return;
+        }
+        const updated = multiCitySectors.filter((_, idx) => idx !== index);
+        setMultiCitySectors(updated);
+    };
+
+    useEffect(() => {
+        if (activeSectorIndex === null || !activeSectorField) {
+            setSectorSuggestions([]);
+            return;
+        }
+        const sector = multiCitySectors[activeSectorIndex];
+        const query = activeSectorField === 'from' ? sector.fromCity : sector.toCity;
+
+        if (!query || query.length < 2) {
+            setSectorSuggestions([]);
+            return;
+        }
+        if (query.includes('(')) return;
+
+        const delayDebounceFn = setTimeout(async () => {
+            setLoadingSectorSuggest(true);
+            try {
+                const res = await searchAirports(query);
+                if (res.success && res.data) {
+                    setSectorSuggestions(res.data);
+                }
+            } catch (e) {
+                console.error("Error fetching sector suggestions:", e);
+            } finally {
+                setLoadingSectorSuggest(false);
+            }
+        }, 400);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [multiCitySectors, activeSectorIndex, activeSectorField]);
 
     // UI Toggles
     const [showFromSuggestions, setShowFromSuggestions] = useState(false)
@@ -366,14 +454,26 @@ export default function FlightsPage() {
         e.preventDefault()
         const totalPax = adultsCount + childrenCount + infantsCount;
         const paxStr = `${totalPax} Traveller${totalPax > 1 ? 's' : ''}`;
-        const fromParam = encodeURIComponent(fromCity)
-        const toParam = encodeURIComponent(toCity)
-        const dateParam = encodeURIComponent(departureDate)
-        const returnParam = encodeURIComponent(returnDate)
-        const tripParam = encodeURIComponent(tripType)
         const cabinParam = encodeURIComponent(cabinClass)
         const travellersParam = encodeURIComponent(paxStr)
-        navigate(`/flights/list?from=${fromParam}&to=${toParam}&date=${dateParam}&returnDate=${returnParam}&tripType=${tripParam}&cabin=${cabinParam}&travellers=${travellersParam}&adults=${adultsCount}&children=${childrenCount}&infants=${infantsCount}`)
+        const tripParam = encodeURIComponent(tripType)
+
+        if (tripType === 'multiCity') {
+            for (let i = 0; i < multiCitySectors.length; i++) {
+                if (!multiCitySectors[i].fromCity || !multiCitySectors[i].toCity) {
+                    toast.error(`Please select departure and destination cities for Flight ${i + 1}`);
+                    return;
+                }
+            }
+            const sectorsParam = encodeURIComponent(JSON.stringify(multiCitySectors))
+            navigate(`/flights/list?tripType=${tripParam}&sectors=${sectorsParam}&cabin=${cabinParam}&travellers=${travellersParam}&adults=${adultsCount}&children=${childrenCount}&infants=${infantsCount}`)
+        } else {
+            const fromParam = encodeURIComponent(fromCity)
+            const toParam = encodeURIComponent(toCity)
+            const dateParam = encodeURIComponent(departureDate)
+            const returnParam = encodeURIComponent(returnDate)
+            navigate(`/flights/list?from=${fromParam}&to=${toParam}&date=${dateParam}&returnDate=${returnParam}&tripType=${tripParam}&cabin=${cabinParam}&travellers=${travellersParam}&adults=${adultsCount}&children=${childrenCount}&infants=${infantsCount}`)
+        }
     }
 
     const swapLocations = () => {
@@ -390,12 +490,15 @@ export default function FlightsPage() {
             <Navbar />
 
             {/* Hero Header */}
-            <header className="flights-hero" style={{ position: 'relative', overflow: 'hidden', height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a0e14' }}>
-                {/* Background Image */}
-                <img
-                    src={bgImg}
-                    alt="Background"
-                    className="hero-bg-img"
+            <header className="flights-hero" style={{ position: 'relative', overflow: 'hidden', height: '520px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0a0e14' }}>
+                {/* Background Video */}
+                <video
+                    src={bgVideo}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="hero-bg-video"
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1, pointerEvents: 'none', opacity: 1 }}
                 />
 
@@ -408,14 +511,7 @@ export default function FlightsPage() {
                 />
 
                 <div className="flights-hero-content">
-                    <span className="flights-hero-tag">FLY SMART WITH GOAIRCLASS</span>
-                    <h1 className="flights-hero-title">Explore the World with GoAirClass</h1>
-                    <p className="flights-hero-desc">
-                        Book one-way, round-trip, and multi-city flights with the best deals from leading airlines. Travel smarter with GoAirClass.
-                    </p>
-                    <a href="#charter-enquiry-form" className="btn-flynext-primary">
-                        <Plane size={18} /> Search Flights Now
-                    </a>
+                    {/* Hero text and search button removed as requested */}
                 </div>
             </header>
 
@@ -461,7 +557,7 @@ export default function FlightsPage() {
                             {/* Full MakeMyTrip / Cleartrip Style Modal Dropdown */}
                             {showTravellersDropdown && (
                                 <div className="absolute top-[110%] right-0 z-[999999] bg-white border border-slate-300 rounded-none shadow-2xl p-3.5 w-[330px]" onClick={(e) => e.stopPropagation()}>
-                                    
+
                                     {/* Adults Counter */}
                                     <div className="flex justify-between items-center mb-2.5 pb-2 border-b border-slate-100">
                                         <div>
@@ -538,8 +634,8 @@ export default function FlightsPage() {
                                                     type="button"
                                                     onClick={() => setCabinClass(cls)}
                                                     className={`px-2.5 py-1 rounded-none text-xs font-semibold border transition-all ${cabinClass === cls
-                                                            ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
-                                                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
+                                                        ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
+                                                        : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
                                                         }`}
                                                 >
                                                     {cls}
@@ -562,233 +658,331 @@ export default function FlightsPage() {
                 </div>
 
                 <form onSubmit={handleSearch}>
-                    {/* Fields Grid */}
-                    <div className="search-fields-grid">
+                    {tripType === 'multiCity' ? (
+                        <div className="flex flex-col gap-4 mb-4">
+                            {multiCitySectors.map((sector, idx) => (
+                                <div key={idx} className="flex flex-col md:flex-row items-center gap-3 bg-slate-50/50 p-4 border border-slate-200/60 rounded-xl relative" style={{ zIndex: activeSectorIndex === idx ? 9999 : 1 }}>
+                                    <div className="absolute -left-2 top-4 bg-[#b89565] text-white text-[10px] font-bold px-2 py-0.5 rounded-r">
+                                        Flight {idx + 1}
+                                    </div>
+                                    {/* From Field */}
+                                    <div className="flex-1 w-full search-field-box md:mt-2" onClick={() => { setActiveSectorIndex(idx); setActiveSectorField('from'); setShowFromSuggestions(false); setShowToSuggestions(false); }}>
+                                        <label>From</label>
+                                        <input
+                                            type="text"
+                                            value={sector.fromCity}
+                                            onChange={(e) => updateSector(idx, 'fromCity', e.target.value)}
+                                            placeholder="Departure City"
+                                        />
+                                        <div className="field-sub">{sector.fromAirport}</div>
+                                        {activeSectorIndex === idx && activeSectorField === 'from' && (
+                                            <div className="city-suggestions-dropdown">
+                                                {loadingSectorSuggest && <div className="p-3 text-xs text-[#b89565] font-semibold animate-pulse">Searching airports...</div>}
+                                                {sectorSuggestions.length > 0 ? (
+                                                    sectorSuggestions.map((ap, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="city-suggestion-item"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                updateSector(idx, {
+                                                                    fromCity: `${ap.airportCity} (${ap.airportCode})`,
+                                                                    fromAirport: ap.airportName
+                                                                });
+                                                                setActiveSectorIndex(null);
+                                                                setActiveSectorField(null);
+                                                            }}
+                                                        >
+                                                            <span className="city-name-bold">{ap.airportCity} ({ap.airportCode})</span>
+                                                            <span className="city-airport-sub">{ap.airportName}</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    !loadingSectorSuggest && AIRPORTS.filter(ap =>
+                                                        ap.city.toLowerCase().includes((sector.fromCity || '').toLowerCase()) ||
+                                                        ap.name.toLowerCase().includes((sector.fromCity || '').toLowerCase())
+                                                    ).map((ap, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="city-suggestion-item"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                updateSector(idx, {
+                                                                    fromCity: ap.city,
+                                                                    fromAirport: ap.name
+                                                                });
+                                                                setActiveSectorIndex(null);
+                                                                setActiveSectorField(null);
+                                                            }}
+                                                        >
+                                                            <span className="city-name-bold">{ap.city}</span>
+                                                            <span className="city-airport-sub">{ap.name}</span>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
 
-                        {/* From Field */}
-                        <div className="search-field-box" onClick={() => { setShowFromSuggestions(true); setShowToSuggestions(false); }}>
-                            <label>From</label>
-                            <input
-                                type="text"
-                                value={fromCity}
-                                onChange={(e) => setFromCity(e.target.value)}
-                                placeholder="Departure City"
-                            />
-                            <div className="field-sub">{fromAirport}</div>
-                            {showFromSuggestions && (
-                                <div className="city-suggestions-dropdown">
-                                    {loadingFrom && <div className="p-3 text-xs text-[#b89565] font-semibold animate-pulse">Searching airports...</div>}
-                                    {fromSuggestions.length > 0 ? (
-                                        fromSuggestions.map((ap, i) => (
-                                            <div
-                                                key={i}
-                                                className="city-suggestion-item"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setFromCity(`${ap.airportCity} (${ap.airportCode})`);
-                                                    setFromAirport(ap.airportName);
-                                                    setShowFromSuggestions(false);
-                                                }}
-                                            >
-                                                <span className="city-name-bold">{ap.airportCity} ({ap.airportCode})</span>
-                                                <span className="city-airport-sub">{ap.airportName}</span>
+                                    {/* Swap Button for sector */}
+                                    <button
+                                        type="button"
+                                        className="swap-btn-circle w-8 h-8 md:mt-2 shrink-0"
+                                        onClick={() => {
+                                            updateSector(idx, {
+                                                fromCity: sector.toCity,
+                                                fromAirport: sector.toAirport,
+                                                toCity: sector.fromCity,
+                                                toAirport: sector.fromAirport
+                                            });
+                                        }}
+                                    >
+                                        ⇄
+                                    </button>
+
+                                    {/* To Field */}
+                                    <div className="flex-1 w-full search-field-box md:mt-2" onClick={() => { setActiveSectorIndex(idx); setActiveSectorField('to'); setShowFromSuggestions(false); setShowToSuggestions(false); }}>
+                                        <label>To</label>
+                                        <input
+                                            type="text"
+                                            value={sector.toCity}
+                                            onChange={(e) => updateSector(idx, 'toCity', e.target.value)}
+                                            placeholder="Destination City"
+                                        />
+                                        <div className="field-sub">{sector.toAirport}</div>
+                                        {activeSectorIndex === idx && activeSectorField === 'to' && (
+                                            <div className="city-suggestions-dropdown">
+                                                {loadingSectorSuggest && <div className="p-3 text-xs text-[#b89565] font-semibold animate-pulse">Searching airports...</div>}
+                                                {sectorSuggestions.length > 0 ? (
+                                                    sectorSuggestions.map((ap, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="city-suggestion-item"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                updateSector(idx, {
+                                                                    toCity: `${ap.airportCity} (${ap.airportCode})`,
+                                                                    toAirport: ap.airportName
+                                                                });
+                                                                setActiveSectorIndex(null);
+                                                                setActiveSectorField(null);
+                                                            }}
+                                                        >
+                                                            <span className="city-name-bold">{ap.airportCity} ({ap.airportCode})</span>
+                                                            <span className="city-airport-sub">{ap.airportName}</span>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    !loadingSectorSuggest && AIRPORTS.filter(ap =>
+                                                        ap.city.toLowerCase().includes((sector.toCity || '').toLowerCase()) ||
+                                                        ap.name.toLowerCase().includes((sector.toCity || '').toLowerCase())
+                                                    ).map((ap, i) => (
+                                                        <div
+                                                            key={i}
+                                                            className="city-suggestion-item"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                updateSector(idx, {
+                                                                    toCity: ap.city,
+                                                                    toAirport: ap.name
+                                                                });
+                                                                setActiveSectorIndex(null);
+                                                                setActiveSectorField(null);
+                                                            }}
+                                                        >
+                                                            <span className="city-name-bold">{ap.city}</span>
+                                                            <span className="city-airport-sub">{ap.name}</span>
+                                                        </div>
+                                                    ))
+                                                )}
                                             </div>
-                                        ))
-                                    ) : (
-                                        !loadingFrom && AIRPORTS.filter(ap =>
-                                            ap.city.toLowerCase().includes(fromCity.toLowerCase()) ||
-                                            ap.name.toLowerCase().includes(fromCity.toLowerCase())
-                                        ).map((ap, i) => (
-                                            <div
-                                                key={i}
-                                                className="city-suggestion-item"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setFromCity(ap.city);
-                                                    setFromAirport(ap.name);
-                                                    setShowFromSuggestions(false);
-                                                }}
-                                            >
-                                                <span className="city-name-bold">{ap.city}</span>
-                                                <span className="city-airport-sub">{ap.name}</span>
-                                            </div>
-                                        ))
+                                        )}
+                                    </div>
+
+                                    {/* Date Field */}
+                                    <div className="flex-1 w-full search-field-box md:mt-2">
+                                        <label>Departure Date</label>
+                                        <input
+                                            type="date"
+                                            value={sector.date}
+                                            min={idx > 0 ? multiCitySectors[idx - 1].date : getTodayDateString()}
+                                            onChange={(e) => updateSector(idx, 'date', e.target.value)}
+                                            style={{ color: '#1a2744', fontWeight: 750, fontSize: '15px' }}
+                                        />
+                                    </div>
+
+                                    {/* Remove Flight Button */}
+                                    {multiCitySectors.length > 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeSector(idx)}
+                                            className="text-red-650 hover:text-red-800 text-[10px] font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded md:mt-2 shrink-0"
+                                        >
+                                            Remove
+                                        </button>
                                     )}
                                 </div>
-                            )}
-                        </div>
+                            ))}
 
-                        {/* Swap Button */}
-                        <div className="swap-btn-container">
-                            <button type="button" className="swap-btn-circle" onClick={swapLocations}>
-                                <ArrowLeftRight size={18} />
-                            </button>
-                        </div>
-
-                        {/* To Field */}
-                        <div className="search-field-box" onClick={() => { setShowToSuggestions(true); setShowFromSuggestions(false); }}>
-                            <label>To</label>
-                            <input
-                                type="text"
-                                value={toCity}
-                                onChange={(e) => setToCity(e.target.value)}
-                                placeholder="Destination City"
-                            />
-                            <div className="field-sub">{toAirport}</div>
-                            {showToSuggestions && (
-                                <div className="city-suggestions-dropdown">
-                                    {loadingTo && <div className="p-3 text-xs text-[#b89565] font-semibold animate-pulse">Searching airports...</div>}
-                                    {toSuggestions.length > 0 ? (
-                                        toSuggestions.map((ap, i) => (
-                                            <div
-                                                key={i}
-                                                className="city-suggestion-item"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setToCity(`${ap.airportCity} (${ap.airportCode})`);
-                                                    setToAirport(ap.airportName);
-                                                    setShowToSuggestions(false);
-                                                }}
-                                            >
-                                                <span className="city-name-bold">{ap.airportCity} ({ap.airportCode})</span>
-                                                <span className="city-airport-sub">{ap.airportName}</span>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        !loadingTo && AIRPORTS.filter(ap =>
-                                            ap.city.toLowerCase().includes(toCity.toLowerCase()) ||
-                                            ap.name.toLowerCase().includes(toCity.toLowerCase())
-                                        ).map((ap, i) => (
-                                            <div
-                                                key={i}
-                                                className="city-suggestion-item"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setToCity(ap.city);
-                                                    setToAirport(ap.name);
-                                                    setShowToSuggestions(false);
-                                                }}
-                                            >
-                                                <span className="city-name-bold">{ap.city}</span>
-                                                <span className="city-airport-sub">{ap.name}</span>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Custom Interactive DatePicker with Cleartrip Prices inside Calendar Grid */}
-                        <div className="search-field-box relative cursor-pointer" onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}>
-                            <label>Departure Date</label>
-                            <div className="text-base font-bold text-slate-800 flex items-center justify-between mt-0.5">
-                                <span>{new Date(departureDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-                                <Calendar size={16} className="text-[#b89565]" />
+                            {/* Actions Row */}
+                            <div className="flex justify-start">
+                                <button
+                                    type="button"
+                                    onClick={addSector}
+                                    className="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold py-2.5 px-5 rounded-lg transition-all"
+                                >
+                                    + Add Flight
+                                </button>
                             </div>
-                            <div className="flex items-center justify-between mt-1">
-                                <span className="field-sub text-[11px] font-semibold text-slate-500">
-                                    {new Date(departureDate).toLocaleDateString('en-IN', { weekday: 'long' })}
-                                </span>
-                                {fareCalendar && fareCalendar[departureDate] && (
-                                    <span className="text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                                        ₹{fareCalendar[departureDate].price ? fareCalendar[departureDate].price.toLocaleString('en-IN') : '3,200'}
-                                    </span>
+                        </div>
+                    ) : (
+                        <div className="search-fields-grid">
+                            {/* From Field */}
+                            <div className="search-field-box" onClick={() => { setShowFromSuggestions(true); setShowToSuggestions(false); }}>
+                                <label>From</label>
+                                <input
+                                    type="text"
+                                    value={fromCity}
+                                    onChange={(e) => setFromCity(e.target.value)}
+                                    placeholder="Departure City"
+                                />
+                                <div className="field-sub">{fromAirport}</div>
+                                {showFromSuggestions && (
+                                    <div className="city-suggestions-dropdown">
+                                        {loadingFrom && <div className="p-3 text-xs text-[#b89565] font-semibold animate-pulse">Searching airports...</div>}
+                                        {fromSuggestions.length > 0 ? (
+                                            fromSuggestions.map((ap, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="city-suggestion-item"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFromCity(`${ap.airportCity} (${ap.airportCode})`);
+                                                        setFromAirport(ap.airportName);
+                                                        setShowFromSuggestions(false);
+                                                    }}
+                                                >
+                                                    <span className="city-name-bold">{ap.airportCity} ({ap.airportCode})</span>
+                                                    <span className="city-airport-sub">{ap.airportName}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            !loadingFrom && AIRPORTS.filter(ap =>
+                                                ap.city.toLowerCase().includes(fromCity.toLowerCase()) ||
+                                                ap.name.toLowerCase().includes(fromCity.toLowerCase())
+                                            ).map((ap, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="city-suggestion-item"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFromCity(ap.city);
+                                                        setFromAirport(ap.name);
+                                                        setShowFromSuggestions(false);
+                                                    }}
+                                                >
+                                                    <span className="city-name-bold">{ap.city}</span>
+                                                    <span className="city-airport-sub">{ap.name}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
                                 )}
                             </div>
 
-                            {/* Cleartrip Custom Calendar Modal Grid */}
-                            {showCustomDatePicker && (
-                                <div className="absolute top-[105%] left-0 z-[999999] bg-white border border-slate-300 rounded-lg shadow-2xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
-                                    <div className="flex justify-between items-center mb-3 border-b pb-2 border-slate-100">
-                                        <span className="font-bold text-slate-800 text-sm">
-                                            {new Date(departureDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
-                                        </span>
-                                        <button type="button" onClick={() => setShowCustomDatePicker(false)} className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 bg-slate-100 rounded">Close</button>
-                                    </div>
-                                    <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
-                                        <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
-                                    </div>
-                                    <div className="grid grid-cols-7 gap-1">
-                                        {(() => {
-                                            const baseDate = new Date(departureDate);
-                                            const year = baseDate.getFullYear();
-                                            const monthIndex = baseDate.getMonth();
-                                            const firstDayWeekday = new Date(year, monthIndex, 1).getDay();
-                                            const offset = (firstDayWeekday + 6) % 7;
-                                            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-                                            const monthStr = String(monthIndex + 1).padStart(2, '0');
+                            {/* Swap Button */}
+                            <div className="swap-btn-container">
+                                <button type="button" className="swap-btn-circle" onClick={swapLocations}>
+                                    <ArrowLeftRight size={18} />
+                                </button>
+                            </div>
 
-                                            return [
-                                                ...Array.from({ length: offset }).map((_, idx) => (
-                                                    <div key={`empty-${idx}`} className="p-1.5" />
-                                                )),
-                                                ...Array.from({ length: daysInMonth }).map((_, i) => {
-                                                    const dayNum = i + 1;
-                                                    const curDateStr = `${year}-${monthStr}-${dayNum < 10 ? '0' + dayNum : dayNum}`;
-                                                    const fareItem = fareCalendar ? fareCalendar[curDateStr] : null;
-                                                    const priceVal = fareItem ? fareItem.price : null;
-                                                    const isSelected = departureDate === curDateStr;
-
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            onClick={() => {
-                                                                setDepartureDate(curDateStr);
-                                                                setShowCustomDatePicker(false);
-                                                            }}
-                                                            className={`p-1.5 text-center rounded border transition-all cursor-pointer ${isSelected
-                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                                                    : 'bg-white border-slate-100 hover:border-[#b89565] hover:bg-amber-50/40 text-slate-700'
-                                                                }`}
-                                                        >
-                                                            <div className="font-bold text-xs">{dayNum}</div>
-                                                            <div className={`text-[9px] font-semibold leading-tight ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
-                                                                {priceVal ? `₹${priceVal.toLocaleString('en-IN')}` : '-'}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })
-                                            ];
-                                        })()}
+                            {/* To Field */}
+                            <div className="search-field-box" onClick={() => { setShowToSuggestions(true); setShowFromSuggestions(false); }}>
+                                <label>To</label>
+                                <input
+                                    type="text"
+                                    value={toCity}
+                                    onChange={(e) => setToCity(e.target.value)}
+                                    placeholder="Destination City"
+                                />
+                                <div className="field-sub">{toAirport}</div>
+                                {showToSuggestions && (
+                                    <div className="city-suggestions-dropdown">
+                                        {loadingTo && <div className="p-3 text-xs text-[#b89565] font-semibold animate-pulse">Searching airports...</div>}
+                                        {toSuggestions.length > 0 ? (
+                                            toSuggestions.map((ap, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="city-suggestion-item"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setToCity(`${ap.airportCity} (${ap.airportCode})`);
+                                                        setToAirport(ap.airportName);
+                                                        setShowToSuggestions(false);
+                                                    }}
+                                                >
+                                                    <span className="city-name-bold">{ap.airportCity} ({ap.airportCode})</span>
+                                                    <span className="city-airport-sub">{ap.airportName}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            !loadingTo && AIRPORTS.filter(ap =>
+                                                ap.city.toLowerCase().includes(toCity.toLowerCase()) ||
+                                                ap.name.toLowerCase().includes(toCity.toLowerCase())
+                                            ).map((ap, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="city-suggestion-item"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setToCity(ap.city);
+                                                        setToAirport(ap.name);
+                                                        setShowToSuggestions(false);
+                                                    }}
+                                                >
+                                                    <span className="city-name-bold">{ap.city}</span>
+                                                    <span className="city-airport-sub">{ap.name}</span>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
 
-                        {/* Return Date with Cleartrip Prices inside Calendar Grid */}
-                        {tripType === 'roundTrip' && (
-                            <div className="search-field-box relative cursor-pointer" onClick={() => setShowReturnDatePicker(!showReturnDatePicker)}>
-                                <label>Return Date</label>
+                            {/* Custom Interactive DatePicker with Cleartrip Prices inside Calendar Grid */}
+                            <div className="search-field-box relative cursor-pointer" onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}>
+                                <label>Departure Date</label>
                                 <div className="text-base font-bold text-slate-800 flex items-center justify-between mt-0.5">
-                                    <span>{returnDate ? new Date(returnDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Select Date'}</span>
+                                    <span>{new Date(departureDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                     <Calendar size={16} className="text-[#b89565]" />
                                 </div>
                                 <div className="flex items-center justify-between mt-1">
                                     <span className="field-sub text-[11px] font-semibold text-slate-500">
-                                        {returnDate ? new Date(returnDate).toLocaleDateString('en-IN', { weekday: 'long' }) : 'Select return date'}
+                                        {new Date(departureDate).toLocaleDateString('en-IN', { weekday: 'long' })}
                                     </span>
-                                    {fareCalendar && fareCalendar[returnDate] && (
-                                        <span className="text-[11px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
-                                            ₹{fareCalendar[returnDate].price ? fareCalendar[returnDate].price.toLocaleString('en-IN') : '3,480'}
+                                    {fareCalendar && fareCalendar[departureDate] && (
+                                        <span className="text-[11px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                            ₹{fareCalendar[departureDate].price ? fareCalendar[departureDate].price.toLocaleString('en-IN') : '3,200'}
                                         </span>
                                     )}
                                 </div>
 
-                                {/* Cleartrip Custom Return Calendar Modal Grid */}
-                                {showReturnDatePicker && (
-                                    <div className="absolute top-[105%] right-0 z-[999999] bg-white border border-slate-300 rounded-lg shadow-2xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
+                                {/* Cleartrip Custom Calendar Modal Grid */}
+                                {showCustomDatePicker && (
+                                    <div className="absolute top-[105%] left-0 z-[999999] bg-white border border-slate-300 rounded-lg shadow-2xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
                                         <div className="flex justify-between items-center mb-3 border-b pb-2 border-slate-100">
                                             <span className="font-bold text-slate-800 text-sm">
-                                                {new Date(returnDate || departureDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                                                {new Date(departureDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
                                             </span>
-                                            <button type="button" onClick={() => setShowReturnDatePicker(false)} className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 bg-slate-100 rounded">Close</button>
+                                            <button type="button" onClick={() => setShowCustomDatePicker(false)} className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 bg-slate-100 rounded">Close</button>
                                         </div>
                                         <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
                                             <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
                                         </div>
                                         <div className="grid grid-cols-7 gap-1">
                                             {(() => {
-                                                const baseDate = new Date(returnDate || departureDate);
+                                                const baseDate = new Date(departureDate);
                                                 const year = baseDate.getFullYear();
                                                 const monthIndex = baseDate.getMonth();
                                                 const firstDayWeekday = new Date(year, monthIndex, 1).getDay();
@@ -805,22 +999,22 @@ export default function FlightsPage() {
                                                         const curDateStr = `${year}-${monthStr}-${dayNum < 10 ? '0' + dayNum : dayNum}`;
                                                         const fareItem = fareCalendar ? fareCalendar[curDateStr] : null;
                                                         const priceVal = fareItem ? fareItem.price : null;
-                                                        const isSelected = returnDate === curDateStr;
+                                                        const isSelected = departureDate === curDateStr;
 
                                                         return (
                                                             <div
                                                                 key={i}
                                                                 onClick={() => {
-                                                                    setReturnDate(curDateStr);
-                                                                    setShowReturnDatePicker(false);
+                                                                    setDepartureDate(curDateStr);
+                                                                    setShowCustomDatePicker(false);
                                                                 }}
                                                                 className={`p-1.5 text-center rounded border transition-all cursor-pointer ${isSelected
-                                                                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
-                                                                        : 'bg-white border-slate-100 hover:border-[#b89565] hover:bg-amber-50/40 text-slate-700'
+                                                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                                                    : 'bg-white border-slate-100 hover:border-[#b89565] hover:bg-amber-50/40 text-slate-700'
                                                                     }`}
                                                             >
                                                                 <div className="font-bold text-xs">{dayNum}</div>
-                                                                <div className={`text-[9px] font-semibold leading-tight ${isSelected ? 'text-amber-100' : 'text-slate-400'}`}>
+                                                                <div className={`text-[9px] font-semibold leading-tight ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
                                                                     {priceVal ? `₹${priceVal.toLocaleString('en-IN')}` : '-'}
                                                                 </div>
                                                             </div>
@@ -832,11 +1026,87 @@ export default function FlightsPage() {
                                     </div>
                                 )}
                             </div>
-                        )}
 
+                            {/* Return Date with Cleartrip Prices inside Calendar Grid */}
+                            {tripType === 'roundTrip' && (
+                                <div className="search-field-box relative cursor-pointer" onClick={() => setShowReturnDatePicker(!showReturnDatePicker)}>
+                                    <label>Return Date</label>
+                                    <div className="text-base font-bold text-slate-800 flex items-center justify-between mt-0.5">
+                                        <span>{returnDate ? new Date(returnDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Select Date'}</span>
+                                        <Calendar size={16} className="text-[#b89565]" />
+                                    </div>
+                                    <div className="flex items-center justify-between mt-1">
+                                        <span className="field-sub text-[11px] font-semibold text-slate-500">
+                                            {returnDate ? new Date(returnDate).toLocaleDateString('en-IN', { weekday: 'long' }) : 'Select return date'}
+                                        </span>
+                                        {fareCalendar && fareCalendar[returnDate] && (
+                                            <span className="text-[11px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                                                ₹{fareCalendar[returnDate].price ? fareCalendar[returnDate].price.toLocaleString('en-IN') : '3,480'}
+                                            </span>
+                                        )}
+                                    </div>
 
+                                    {/* Cleartrip Custom Return Calendar Modal Grid */}
+                                    {showReturnDatePicker && (
+                                        <div className="absolute top-[105%] right-0 z-[999999] bg-white border border-slate-300 rounded-lg shadow-2xl p-4 w-[340px]" onClick={(e) => e.stopPropagation()}>
+                                            <div className="flex justify-between items-center mb-3 border-b pb-2 border-slate-100">
+                                                <span className="font-bold text-slate-800 text-sm">
+                                                    {new Date(returnDate || departureDate).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+                                                </span>
+                                                <button type="button" onClick={() => setShowReturnDatePicker(false)} className="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 bg-slate-100 rounded">Close</button>
+                                            </div>
+                                            <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
+                                                <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                                            </div>
+                                            <div className="grid grid-cols-7 gap-1">
+                                                {(() => {
+                                                    const baseDate = new Date(returnDate || departureDate);
+                                                    const year = baseDate.getFullYear();
+                                                    const monthIndex = baseDate.getMonth();
+                                                    const firstDayWeekday = new Date(year, monthIndex, 1).getDay();
+                                                    const offset = (firstDayWeekday + 6) % 7;
+                                                    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                                                    const monthStr = String(monthIndex + 1).padStart(2, '0');
 
-                    </div>
+                                                    return [
+                                                        ...Array.from({ length: offset }).map((_, idx) => (
+                                                            <div key={`empty-${idx}`} className="p-1.5" />
+                                                        )),
+                                                        ...Array.from({ length: daysInMonth }).map((_, i) => {
+                                                            const dayNum = i + 1;
+                                                            const curDateStr = `${year}-${monthStr}-${dayNum < 10 ? '0' + dayNum : dayNum}`;
+                                                            const fareItem = fareCalendar ? fareCalendar[curDateStr] : null;
+                                                            const priceVal = fareItem ? fareItem.price : null;
+                                                            const isSelected = returnDate === curDateStr;
+
+                                                            return (
+                                                                <div
+                                                                    key={i}
+                                                                    onClick={() => {
+                                                                        setReturnDate(curDateStr);
+                                                                        setShowReturnDatePicker(false);
+                                                                    }}
+                                                                    className={`p-1.5 text-center rounded border transition-all cursor-pointer ${isSelected
+                                                                        ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+                                                                        : 'bg-white border-slate-100 hover:border-[#b89565] hover:bg-amber-50/40 text-slate-700'
+                                                                        }`}
+                                                                >
+                                                                    <div className="font-bold text-xs">{dayNum}</div>
+                                                                    <div className={`text-[9px] font-semibold leading-tight ${isSelected ? 'text-amber-100' : 'text-slate-400'}`}>
+                                                                        {priceVal ? `₹${priceVal.toLocaleString('en-IN')}` : '-'}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    ];
+                                                })()}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
 
 
