@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, User, Bell, ChevronDown, Briefcase } from 'lucide-react'
+import { Menu, X, Briefcase } from 'lucide-react'
 import logo from "../assets/logo_new4.png"
 import OperatorLoginModal from './OperatorLoginModal'
 import './Navbar.css'
@@ -45,12 +45,13 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`gac-navbar ${scrolled ? 'gac-navbar--scrolled' : ''}`}>
+      <nav className={`gac-navbar ${scrolled ? 'gac-navbar--scrolled' : ''} ${isHome && !scrolled ? 'gac-navbar--transparent' : ''}`}>
         <div className="gac-navbar__inner">
 
           {/* LOGO */}
           <Link to="/" className="gac-navbar__logo">
-            <img src={logo} alt="GoAirClass" className="gac-navbar__logo-img" />
+            <img src={logo} alt="GoAirClass" className="gac-navbar__logo-img gac-navbar__logo-img--base" />
+            <img src={logo} alt="" aria-hidden="true" className="gac-navbar__logo-img gac-navbar__logo-img--gold" />
           </Link>
 
           {/* LINKS */}
@@ -62,25 +63,13 @@ export default function Navbar() {
             >
               Home
             </Link>
-
-            <div className="gac-navbar__dropdown">
-              <span className="gac-navbar__link">
-                Services <ChevronDown size={13} />
-              </span>
-              <div className="gac-navbar__dropdown-menu">
-                <div className="navbar__dropdown-menu">
-                  <Link to="/flights" className="gac-dropdown-item">✈️ Flights</Link>
-                  <Link to="/hotels" className="gac-dropdown-item">🏨 Hotels</Link>
-                  <Link to="/trains" className="gac-dropdown-item">🚆 Trains</Link>
-                  <Link to="/buses" className="gac-dropdown-item">🚌 Buses</Link>
-                </div>
-              </div>
-            </div>
-
-            <a href="#destinations" className="gac-navbar__link">Destinations</a>
-            <a href="#" className="gac-navbar__link premium-link">Premium Class</a>
-            <a href="#offers" className="gac-navbar__link">Offers</a>
-            <Link to="/inquiry" className="gac-navbar__link">Contact</Link>
+            <Link to="/flights" className="gac-navbar__link">Flights</Link>
+            <Link to="/hotels" className="gac-navbar__link">Hotels</Link>
+            <a href="#offers" className="gac-navbar__link" onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })}>Holidays</a>
+            <a href="#offers" className="gac-navbar__link" onClick={() => document.getElementById('offers')?.scrollIntoView({ behavior: 'smooth' })}>Offers</a>
+            <button className="gac-navbar__link" onClick={handleProfileClick}>Manage Booking</button>
+            <Link to="/inquiry" className="gac-navbar__link">Travel Info</Link>
+            <Link to="/inquiry" className="gac-navbar__link">About Us</Link>
           </div>
 
           {/* ACTIONS */}
@@ -95,18 +84,15 @@ export default function Navbar() {
               </button>
             )}
 
-            <button className="gac-icon-btn" title="Notifications">
-              <Bell size={17} />
-            </button>
-
-            <button className="gac-icon-btn" onClick={handleProfileClick} title="Profile">
-              <User size={17} />
-            </button>
-
             {!isLoggedIn ? (
-              <button className="gac-login-btn" onClick={() => navigate('/login')}>
-                Login
-              </button>
+              <>
+                <button className="gac-getstarted-btn" onClick={() => navigate('/register')}>
+                  Get Started
+                </button>
+                <button className="gac-login-btn" onClick={() => navigate('/login')}>
+                  Login
+                </button>
+              </>
             ) : (
               <button className="gac-logout-btn" onClick={handleLogout}>
                 Logout

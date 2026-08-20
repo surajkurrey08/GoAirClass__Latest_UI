@@ -22,7 +22,23 @@ export default function SeatAndAncillarySelectionPage() {
     const [isLoadingAncillaries, setIsLoadingAncillaries] = useState(false);
     const [ancillariesUnavailable, setAncillariesUnavailable] = useState(false);
     const [isHolding, setIsHolding] = useState(false);
+    const [sessionExpired, setSessionExpired] = useState(false);
     const ancillaryRanRef = useRef(false);
+
+    // Cleartrip B2B sessions expire after a few minutes. A hard refresh keeps
+    // the same (now-dead) session/preview IDs in sessionStorage, so refreshing
+    // never fixes it — the only real fix is a fresh search, which mints a new
+    // session. This clears the stale keys and sends the user back to search.
+    const handleSearchAgain = () => {
+        [
+            'flight_session_id', 'flight_preview_id', 'multi_city_previews_map',
+        ].forEach(key => sessionStorage.removeItem(key));
+        for (let i = 0; i < 10; i++) {
+            sessionStorage.removeItem(`flight_session_id_${i}`);
+            sessionStorage.removeItem(`flight_preview_id_${i}`);
+        }
+        navigate('/flights');
+    };
 
     const primarySegment = flight?.segments?.[0] || {};
     const lastSegment = flight?.segments?.[flight?.segments?.length - 1] || primarySegment;
@@ -730,11 +746,13 @@ export default function SeatAndAncillarySelectionPage() {
         console.log('[Hold Debug] fareIdStr:', fareIdStr);
 
         if (!activeSessionId) {
+            setSessionExpired(true);
             toast.error("Session expired. Please restart the booking process.");
             return;
         }
 
         if (!pId) {
+            setSessionExpired(true);
             toast.error("Flight Preview ID missing. Please go back and try again.");
             return;
         }
@@ -1171,6 +1189,9 @@ export default function SeatAndAncillarySelectionPage() {
                 errDetail = error.message;
             } else {
                 errDetail = "Airline could not hold the fare. Please retry.";
+            }
+            if (/session/i.test(errDetail) && /(expired|invalid)/i.test(errDetail)) {
+                setSessionExpired(true);
             }
             toast.error(`Hold Booking Failed: ${errDetail}`);
         } finally {
@@ -1657,18 +1678,37 @@ export default function SeatAndAncillarySelectionPage() {
 
                         {/* Continue to Payment Button */}
                         <div className="pt-2">
-                            <button
-                                type="button"
-                                onClick={handleProceedToPayment}
-                                disabled={isHolding}
-                                className={`w-full text-white py-4 font-bold text-sm tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.99] ${isHolding ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#b89565] hover:bg-[#a38053]'
-                                    }`}
-                            >
-                                <Lock className="w-4 h-4" /> {isHolding ? 'Holding Booking...' : `Confirm Seat${passengers.length > 1 ? 's' : ` (${selectedSeat})`} & Proceed to Pay`}
-                            </button>
-                            <p className="text-[11px] text-center text-slate-400 mt-2 font-medium">
-                                🔒 Cleartrip Verified Seat Reservation • Fare locked for 15 minutes
-                            </p>
+                            {sessionExpired ? (
+                                <div className="border-2 border-red-200 bg-red-50 p-5 text-center">
+                                    <h4 className="font-black text-sm text-red-700 uppercase tracking-wide">Your Search Session Has Expired</h4>
+                                    <p className="text-xs text-red-600 mt-1.5 leading-relaxed">
+                                        The airline only holds a fare session for a few minutes. Refreshing this page won't help —
+                                        please start a fresh search to get a live fare and continue booking.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleSearchAgain}
+                                        className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-3 px-8 rounded-none transition-all shadow-md"
+                                    >
+                                        Search Again
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleProceedToPayment}
+                                        disabled={isHolding}
+                                        className={`w-full text-white py-4 font-bold text-sm tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.99] ${isHolding ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#b89565] hover:bg-[#a38053]'
+                                            }`}
+                                    >
+                                        <Lock className="w-4 h-4" /> {isHolding ? 'Holding Booking...' : `Confirm Seat${passengers.length > 1 ? 's' : ` (${selectedSeat})`} & Proceed to Pay`}
+                                    </button>
+                                    <p className="text-[11px] text-center text-slate-400 mt-2 font-medium">
+                                        🔒 Cleartrip Verified Seat Reservation • Fare locked for 15 minutes
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
 

@@ -12,7 +12,7 @@
     --color-text-gray: #6B7280;
     
     --font-display: 'Clash Display', sans-serif;
-    --font-body: 'Sora', sans-serif;
+    --font-body: 'Inter', sans-serif;
     
     --radius-xl: 28px;
     --radius-2xl: 32px;
@@ -43,6 +43,10 @@
   html {
     scroll-behavior: smooth;
     height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   body {
@@ -52,6 +56,13 @@
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     min-height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   /* Headings */
@@ -62,13 +73,14 @@
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 0;
+  height: 0;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary-light);
+  background: transparent;
   border-radius: 99px;
 }
 

@@ -1,7 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react'
-import logo from "../assets/logo_new.jpg"
 import './Footer.css'
 
 export default function Footer() {
@@ -14,12 +13,12 @@ export default function Footer() {
         {/* BRAND */}
         <div className="footer__brand">
           <div className="footer__logo">
-            <img src={logo} alt="GoAirClass Logo" className="footer__logo-img" />
+            <img src="/logo_new2.png" alt="GoAirClass Logo" className="footer__logo-img" />
           </div>
 
           <p>
-            Your trusted travel partner for flights, hotels, trains and buses.
-            Making every journey memorable.
+            Your trusted travel partner for flights, hotels and holiday
+            packages worldwide.
           </p>
 
           <div className="footer__social">
@@ -33,12 +32,11 @@ export default function Footer() {
         {/* SERVICES */}
         <div className="footer__col">
           <h4>Services</h4>
-          <Link to="/search?type=flights">Flight Booking</Link>
-          <Link to="/search?type=hotels">Hotel Booking</Link>
-          <Link to="/search?type=trains">Train Tickets</Link>
-          <Link to="/search?type=buses">Bus Tickets</Link>
-          <a href="#">Holiday Packages</a>
-          <a href="#">Visa Assistance</a>
+          <Link to="/search?type=flights">Flights</Link>
+          <Link to="/search?type=hotels">Hotels</Link>
+          <a href="#offers">Holidays</a>
+          <a href="#">Manage Booking</a>
+          <a href="#">Travel Insurance</a>
         </div>
 
         {/* COMPANY */}
@@ -46,21 +44,19 @@ export default function Footer() {
           <h4>Company</h4>
           <a href="#">About Us</a>
           <a href="#">Careers</a>
-          <a href="#">Press & Media</a>
-          <a href="#">Partner Program</a>
-          <a href="#">Investor Relations</a>
+          <a href="#">Press</a>
           <a href="#">Blog</a>
+          <Link to="/inquiry">Contact Us</Link>
         </div>
 
         {/* SUPPORT */}
         <div className="footer__col">
           <h4>Support</h4>
-          <Link to="/inquiry">Contact / Inquiry</Link>
           <a href="#">Help Center</a>
+          <a href="#">FAQs</a>
           <a href="#">Cancellation Policy</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
           <a href="#">Refund Policy</a>
+          <a href="#">Terms & Conditions</a>
         </div>
 
         {/* CONTACT */}
@@ -68,23 +64,15 @@ export default function Footer() {
           <h4>Contact Us</h4>
 
           <div className="footer__contact">
-            <Mail size={15}/> worknai009@gmail.com
+            <Phone size={15}/> +91 98765 43210
           </div>
 
           <div className="footer__contact">
-            <Phone size={15}/> +91 12345 67890
+            <Mail size={15}/> support@goairclass.com
           </div>
 
           <div className="footer__contact">
-            <MapPin size={15}/> Pune, India
-          </div>
-
-          <div className="footer__app">
-            <p>Download App</p>
-            <div className="app__buttons">
-              <a href="#" className="app-btn">🍎 App Store</a>
-              <a href="#" className="app-btn">▶ Play Store</a>
-            </div>
+            <MapPin size={15}/> Raipur, Chattisgarh, India
           </div>
         </div>
 
@@ -92,11 +80,11 @@ export default function Footer() {
 
       {/* BOTTOM */}
       <div className="footer__bottom container">
-        <p>© 2026 GoAirClass. All rights reserved. Made with ❤️ in India</p>
+        <p>&copy; 2024 GoAirClass. All Rights Reserved.</p>
 
         <div className="footer__payments">
           <span>We accept:</span>
-          {['VISA', 'MC', 'UPI', 'PayTm', 'GPay'].map(p => (
+          {['VISA', 'Mastercard', 'RuPay', 'UPI'].map(p => (
             <span key={p} className="payment-tag">{p}</span>
           ))}
         </div>

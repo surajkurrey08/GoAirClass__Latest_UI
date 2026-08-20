@@ -1,59 +1,150 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Star, SlidersHorizontal, ArrowUpDown, AlertCircle, Bus, ChevronRight } from 'lucide-react'
+import {
+  Star, SlidersHorizontal, AlertCircle, Bus, ChevronRight,
+  MapPin, Heart, CheckCircle2, Sparkles, Navigation2,
+} from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { searchResults } from '../data/mockData'
 import { searchBusSchedules } from '../services/busService'
-import { getHeroImages } from '../services/heroImageService'
 import './Search.css'
 
 const TYPE_CONFIG = {
   flights: { label: 'Flights', emoji: '✈️', color: '#1d4ed8' },
+  hotels:  { label: 'Hotels',  emoji: '🏨', color: '#c8972a' },
   trains:  { label: 'Trains',  emoji: '🚆', color: '#065f46' },
   buses:   { label: 'Buses',   emoji: '🚌', color: '#92400e' },
 }
 
-/* ── Hero ── */
-function SearchHero({ type, params, isSmartMode }) {
-  const [bgImage, setBgImage] = useState(null)
-  const config = TYPE_CONFIG[type] || { label: 'Travel', emoji: '🌍', color: '#1d4ed8' }
+const SORT_OPTIONS = [
+  { key: 'popularity', label: 'Popularity' },
+  { key: 'price',      label: 'Price: Low to High' },
+  { key: 'price_desc', label: 'Price: High to Low' },
+  { key: 'rating',     label: 'Rating: High to Low' },
+]
 
-  useEffect(() => {
-    const typeMap = { flights: 'flight', hotels: 'hotel', trains: 'train', buses: 'bus' }
-    getHeroImages(typeMap[type] || 'flight').then(imgs => {
-      if (imgs?.length > 0) setBgImage(imgs[0].url)
-    })
-  }, [type])
+const formatDate = (d) => {
+  if (!d) return '—'
+  const date = new Date(d)
+  if (isNaN(date.getTime())) return d
+  return date.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
+}
 
-  const title = params.get('from') && params.get('to')
-    ? `${params.get('from')} → ${params.get('to')}`
-    : isSmartMode ? 'Smart Travel Search' : `Search ${config.label}`
+const sortResults = (list, sortBy) => {
+  const arr = [...list]
+  if (sortBy === 'price') arr.sort((a, b) => a.price - b.price)
+  else if (sortBy === 'price_desc') arr.sort((a, b) => b.price - a.price)
+  else if (sortBy === 'rating') arr.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+  return arr
+}
+
+/* ── Sticky Search Summary Bar ── */
+function SearchSummaryBar({ type, params, navigate, isSmartMode }) {
+  const to = params.get('to') || ''
+  const from = params.get('from') || ''
+  const guests = params.get('guests') || '1'
+
+  let pills
+  if (isSmartMode) {
+    pills = [
+      { label: 'From', value: from || 'Anywhere' },
+      { label: 'To', value: to || 'Anywhere' },
+    ]
+  } else if (type === 'hotels') {
+    pills = [
+      { label: 'City, Area or Property', value: to || '—' },
+      { label: 'Check-in', value: formatDate(params.get('checkin')) },
+      { label: 'Check-out', value: formatDate(params.get('checkout')) },
+      { label: 'Rooms & Guests', value: `1 Room, ${guests} Guest${guests > 1 ? 's' : ''}` },
+    ]
+  } else if (type === 'flights') {
+    pills = [
+      { label: 'From', value: from || '—' },
+      { label: 'To', value: to || '—' },
+      { label: 'Depart', value: formatDate(params.get('date')) },
+      { label: 'Travelers & Class', value: `${params.get('travelers') || '1'} · ${params.get('class') || 'Economy'}` },
+    ]
+  } else {
+    pills = [
+      { label: 'From', value: from || '—' },
+      { label: 'To', value: to || '—' },
+      { label: 'Date', value: formatDate(params.get('date')) },
+    ]
+  }
 
   return (
-    <div className="search-hero">
-      {bgImage ? (
-        <div className="search-hero__bg">
-          <img src={bgImage} alt={config.label} className="search-hero__img" />
-          <div className="search-hero__overlay" />
+    <div className="search-bar">
+      <div className="search-bar__inner container">
+        <div className="search-bar__pills">
+          {pills.map((p, i) => (
+            <div className="search-bar__pill" key={i}>
+              <span className="search-bar__pill-label">{p.label}</span>
+              <span className="search-bar__pill-value">{p.value}</span>
+            </div>
+          ))}
         </div>
-      ) : (
-        <div className="search-hero__fallback" style={{ background: `linear-gradient(135deg, ${config.color} 0%, #0a1628 100%)` }} />
-      )}
-      <div className="search-hero__content container">
-        <p className="search-hero__breadcrumb">
-          Home / {isSmartMode ? 'All Options' : config.label}
-        </p>
-        <div className="search-hero__title-row">
-          <span className="search-hero__emoji">{isSmartMode ? '🌍' : config.emoji}</span>
-          <h1 className="search-hero__title">{title}</h1>
-        </div>
+        <button className="search-bar__modify" onClick={() => navigate('/')}>
+          <SlidersHorizontal size={14} /> Modify Search
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ── Title Row ── */
+function SearchTitleBar({ type, params, isSmartMode, count }) {
+  const config = TYPE_CONFIG[type] || { label: 'Travel', emoji: '🌍' }
+  const to = params.get('to')
+  const from = params.get('from')
+  const title = from && to
+    ? `${from} → ${to}`
+    : isSmartMode ? 'Smart Travel Search' : `${config.label}${to ? ` in ${to}` : ''}`
+
+  return (
+    <div className="search-titlebar container">
+      <p className="search-titlebar__crumb">
+        Home <ChevronRight size={12} /> {isSmartMode ? 'All Options' : config.label}{to && !from ? ` in ${to}` : ''}
+      </p>
+      <div className="search-titlebar__row">
+        <h1 className="search-titlebar__title">
+          {!isSmartMode && typeof count === 'number' && <span className="search-titlebar__count">{count} </span>}
+          {title}
+        </h1>
         {isSmartMode && params.get('budget') && (
-          <div className="search-hero__budget-tag">
-            💰 Budget: ₹{parseInt(params.get('budget')).toLocaleString()}
-          </div>
+          <span className="search-titlebar__budget">💰 Budget: ₹{parseInt(params.get('budget')).toLocaleString()}</span>
         )}
       </div>
+    </div>
+  )
+}
+
+/* ── Rewards banner ── */
+function RewardsBanner() {
+  return (
+    <div className="rewards-banner">
+      <span className="rewards-banner__icon"><Sparkles size={20} /></span>
+      <div>
+        <strong>GoAirClass Rewards</strong>
+        <p>Earn reward points on this booking and redeem them for instant discounts next time.</p>
+      </div>
+    </div>
+  )
+}
+
+/* ── Sort tabs ── */
+function SortTabs({ sortBy, setSortBy }) {
+  return (
+    <div className="sort-tabs">
+      {SORT_OPTIONS.map(opt => (
+        <button
+          key={opt.key}
+          className={`sort-tabs__btn ${sortBy === opt.key ? 'active' : ''}`}
+          onClick={() => setSortBy(opt.key)}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -69,9 +160,9 @@ function SmartSearchResults({ params, navigate }) {
   const buses   = searchResults.buses.filter(b   => b.price <= budget).map(b => ({ ...b, from, to }))
 
   const sections = [
-    { key: 'flights', label: 'Flights', emoji: '✈️', color: '#2563eb', data: flights },
-    { key: 'trains',  label: 'Trains',  emoji: '🚆', color: '#059669', data: trains  },
-    { key: 'buses',   label: 'Buses',   emoji: '🚌', color: '#d97706', data: buses   },
+    { key: 'flights', label: 'Flights', emoji: '✈️', color: '#00206B', data: flights },
+    { key: 'trains',  label: 'Trains',  emoji: '🚆', color: '#0d9488', data: trains  },
+    { key: 'buses',   label: 'Buses',   emoji: '🚌', color: '#c8972a', data: buses   },
   ]
 
   return (
@@ -179,6 +270,106 @@ function SmartCard({ item, type, navigate, color }) {
   )
 }
 
+/* ── Flight result card ── */
+function FlightCard({ item, navigate }) {
+  return (
+    <div className="flight-card2" onClick={() => navigate(`/detail/${item.id}?type=flight`)}>
+      <div className="flight-card2__top">
+        <div className="flight-card2__airline">
+          <span className="flight-card2__logo">{item.airline[0]}</span>
+          <div>
+            <div className="flight-card2__name">{item.airline}</div>
+            <div className="flight-card2__code">{item.code}</div>
+          </div>
+        </div>
+        <span className="flight-card2__stops">{item.stops}</span>
+      </div>
+
+      <div className="flight-card2__times">
+        <div className="flight-card2__time">
+          <strong>{item.depart}</strong>
+          <span>{(item.from || '').split('(')[0].trim()}</span>
+        </div>
+        <div className="flight-card2__line">
+          <i />
+          <em>{item.duration}</em>
+          <i />
+        </div>
+        <div className="flight-card2__time flight-card2__time--end">
+          <strong>{item.arrive}</strong>
+          <span>{(item.to || '').split('(')[0].trim()}</span>
+        </div>
+      </div>
+
+      <div className="flight-card2__footer">
+        <span className="flight-card2__rating"><Star size={13} fill="#f0aa38" color="#f0aa38" /> {item.rating}</span>
+        <span className="flight-card2__seats">{item.seats} seats left</span>
+        <div className="flight-card2__priceblock">
+          <span className="flight-card2__price">₹{item.price.toLocaleString()}</span>
+          <button
+            className="flight-card2__btn"
+            onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=flight`) }}
+          >
+            Book Now
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Hotel result card ── */
+function HotelCard({ item, navigate }) {
+  const [liked, setLiked] = useState(false)
+  const ratingLabel = item.rating >= 4.6 ? 'Excellent' : item.rating >= 4.2 ? 'Very Good' : item.rating >= 3.5 ? 'Good' : 'Fair'
+
+  return (
+    <div className="hotel-card2" onClick={() => navigate(`/detail/${item.id}?type=hotel`)}>
+      <div className="hotel-card2__imgwrap">
+        <img src={item.image} alt={item.name} />
+        <button
+          className="hotel-card2__like"
+          onClick={e => { e.stopPropagation(); setLiked(l => !l) }}
+          aria-label="Save hotel"
+        >
+          <Heart size={16} fill={liked ? '#e11d48' : 'none'} color={liked ? '#e11d48' : '#fff'} />
+        </button>
+      </div>
+
+      <div className="hotel-card2__body">
+        <div className="hotel-card2__stars">
+          {Array.from({ length: item.stars }).map((_, i) => (
+            <Star key={i} size={13} fill="#f0aa38" color="#f0aa38" />
+          ))}
+        </div>
+        <h3 className="hotel-card2__name">{item.name}</h3>
+        <p className="hotel-card2__loc"><MapPin size={13} /> {item.location}</p>
+        <div className="hotel-card2__checks">
+          {item.amenities.slice(0, 3).map(a => (
+            <span key={a} className="hotel-card2__check"><CheckCircle2 size={13} /> {a}</span>
+          ))}
+        </div>
+      </div>
+
+      <div className="hotel-card2__aside">
+        <span className="hotel-card2__ratingbadge">
+          {ratingLabel} <strong>{item.rating}</strong>
+        </span>
+        <span className="hotel-card2__reviews">({item.reviews.toLocaleString()} Ratings)</span>
+        <div className="hotel-card2__price">
+          ₹{item.price.toLocaleString()}<span> /night</span>
+        </div>
+        <button
+          className="hotel-card2__btn"
+          onClick={e => { e.stopPropagation(); navigate(`/booking/${item.id}?type=hotel`) }}
+        >
+          Book Now
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ── Main ── */
 export default function Search() {
   const [params] = useSearchParams()
@@ -188,8 +379,10 @@ export default function Search() {
   const isSmartMode = !type || type === 'all'
   const womenOnly   = params.get('women') === 'true'
 
-  const [sortBy, setSortBy]         = useState('price')
+  const [sortBy, setSortBy]         = useState('popularity')
   const [priceRange, setPriceRange] = useState([0, 50000])
+  const [selectedAirlines, setSelectedAirlines] = useState([])
+  const [selectedStars, setSelectedStars]       = useState([])
   const [loading, setLoading]       = useState(!isSmartMode)
   const [results, setResults]       = useState([])
   const [error, setError]           = useState(null)
@@ -254,10 +447,33 @@ export default function Search() {
     fetchData()
   }, [type, params, isSmartMode])
 
+  // Reset filter selections whenever a fresh result set comes in
+  useEffect(() => {
+    if (type === 'flights') setSelectedAirlines([...new Set(results.map(r => r.airline))])
+    if (type === 'hotels') setSelectedStars([...new Set(results.map(r => r.stars))])
+  }, [results, type])
+
+  const toggleAirline = (a) => setSelectedAirlines(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])
+  const toggleStar    = (s) => setSelectedStars(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
+
+  const airlineCounts = type === 'flights'
+    ? results.reduce((acc, f) => { acc[f.airline] = (acc[f.airline] || 0) + 1; return acc }, {})
+    : {}
+  const starCounts = type === 'hotels'
+    ? results.reduce((acc, h) => { acc[h.stars] = (acc[h.stars] || 0) + 1; return acc }, {})
+    : {}
+
+  let filtered = results.filter(r => r.price <= priceRange[1])
+  if (type === 'flights') filtered = filtered.filter(r => selectedAirlines.length === 0 || selectedAirlines.includes(r.airline))
+  if (type === 'hotels') filtered = filtered.filter(r => selectedStars.length === 0 || selectedStars.includes(r.stars))
+  const displayResults = sortResults(filtered, sortBy)
+
   return (
     <div className="search-page">
       <Navbar />
-      <SearchHero type={type || 'flights'} params={params} isSmartMode={isSmartMode} />
+
+      <SearchSummaryBar type={type || 'flights'} params={params} navigate={navigate} isSmartMode={isSmartMode} />
+      <SearchTitleBar type={type} params={params} isSmartMode={isSmartMode} count={isSmartMode ? undefined : displayResults.length} />
 
       <div className="container">
         {isSmartMode ? (
@@ -265,6 +481,13 @@ export default function Search() {
         ) : (
           <div className="search-page__body">
             <aside className="filters">
+              {type === 'hotels' && (
+                <div className="filters__map">
+                  <span className="filters__map-icon"><Navigation2 size={20} /></span>
+                  <span>Explore on Map</span>
+                </div>
+              )}
+
               <div className="filters__header">
                 <SlidersHorizontal size={18} color="var(--primary)" />
                 <h3>Filters</h3>
@@ -280,17 +503,21 @@ export default function Search() {
               {type === 'flights' && (
                 <div className="filter-group">
                   <h4>Airlines</h4>
-                  {['IndiGo', 'Air India', 'Vistara', 'SpiceJet'].map(a => (
-                    <label key={a} className="filter-check"><input type="checkbox" defaultChecked /> {a}</label>
+                  {Object.keys(airlineCounts).map(a => (
+                    <label key={a} className="filter-check">
+                      <input type="checkbox" checked={selectedAirlines.includes(a)} onChange={() => toggleAirline(a)} />
+                      {a} <span className="filter-check__count">({airlineCounts[a]})</span>
+                    </label>
                   ))}
                 </div>
               )}
               {type === 'hotels' && (
                 <div className="filter-group">
                   <h4>Star Rating</h4>
-                  {[5,4,3,2,1].map(s => (
+                  {Object.keys(starCounts).sort((a, b) => b - a).map(s => (
                     <label key={s} className="filter-check">
-                      <input type="checkbox" defaultChecked={s >= 4} />{'⭐'.repeat(s)} ({s} Star)
+                      <input type="checkbox" checked={selectedStars.includes(Number(s))} onChange={() => toggleStar(Number(s))} />
+                      {'⭐'.repeat(Number(s))} ({s} Star) <span className="filter-check__count">({starCounts[s]})</span>
                     </label>
                   ))}
                 </div>
@@ -304,19 +531,9 @@ export default function Search() {
             </aside>
 
             <div className="results">
-              <div className="results__header">
-                <p className="results__count">{results.length} {type} found</p>
-                <div className="results__sort">
-                  <ArrowUpDown size={14} />
-                  <span>Sort by:</span>
-                  <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                    <option value="price">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="rating">Rating</option>
-                    <option value="duration">Duration</option>
-                  </select>
-                </div>
-              </div>
+              <SortTabs sortBy={sortBy} setSortBy={setSortBy} />
+
+              <RewardsBanner />
 
               <div className="results__list">
                 {loading ? (
@@ -334,14 +551,18 @@ export default function Search() {
                     <p>{error}</p>
                     <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry</button>
                   </div>
-                ) : results.length === 0 ? (
+                ) : displayResults.length === 0 ? (
                   <div className="search-empty">
                     <Bus size={64}/>
                     <h3>No results found</h3>
-                    <p>Try changing dates or route.</p>
+                    <p>Try changing dates, route or filters.</p>
                   </div>
+                ) : type === 'flights' ? (
+                  displayResults.map(item => <FlightCard key={item.id} item={item} navigate={navigate} />)
+                ) : type === 'hotels' ? (
+                  displayResults.map(item => <HotelCard key={item.id} item={item} navigate={navigate} />)
                 ) : (
-                  results.map(item => (
+                  displayResults.map(item => (
                     <ResultCard key={item.id} item={item} type={type} navigate={navigate} travelDate={params.get('date')} params={params} />
                   ))
                 )}
@@ -355,55 +576,8 @@ export default function Search() {
   )
 }
 
-/* ── Result Cards ── */
+/* ── Train / Bus result cards (unchanged layout, rebranded via CSS vars) ── */
 function ResultCard({ item, type, navigate, travelDate, params }) {
-  if (type === 'flights') return (
-    <div className="result-card" onClick={() => navigate(`/detail/${item.id}?type=flight`)}>
-      <div className="result-card__main">
-        <div className="flight-airline">
-          <div className="airline-logo">{item.airline[0]}</div>
-          <div><div className="flight-name">{item.airline}</div><div className="flight-code">{item.code}</div></div>
-        </div>
-        <div className="flight-times">
-          <div className="flight-time"><span className="time-value">{item.depart}</span><span className="time-city">{(item.from||'').split('(')[0]}</span></div>
-          <div className="flight-duration">
-            <div className="duration-line"><div/><span>✈</span><div/></div>
-            <span>{item.duration} · {item.stops}</span>
-          </div>
-          <div className="flight-time"><span className="time-value">{item.arrive}</span><span className="time-city">{(item.to||'').split('(')[0]}</span></div>
-        </div>
-        <div className="result-card__rating"><Star size={14} fill="#F59E0B" color="#F59E0B"/><span>{item.rating}</span></div>
-      </div>
-      <div className="result-card__aside">
-        <div className="result-card__price">₹{item.price.toLocaleString()}</div>
-        <div className="result-card__seats">{item.seats} seats left</div>
-        <button className="btn btn-primary" style={{padding:'10px 20px',fontSize:14}}
-          onClick={e=>{e.stopPropagation();navigate(`/booking/${item.id}?type=flight`)}}>Book Now</button>
-      </div>
-    </div>
-  )
-
-  if (type === 'hotels') return (
-    <div className="result-card result-card--hotel" onClick={() => navigate(`/detail/${item.id}?type=hotel`)}>
-      <img src={item.image} alt={item.name} className="hotel-img"/>
-      <div className="result-card__main">
-        <div>
-          <div className="hotel-stars">{'⭐'.repeat(item.stars)}</div>
-          <h3 className="hotel-name">{item.name}</h3>
-          <p className="hotel-loc">📍 {item.location}</p>
-          <div className="hotel-amenities">{item.amenities.map(a=><span key={a} className="amenity-tag">{a}</span>)}</div>
-        </div>
-        <div className="hotel-reviews"><Star size={14} fill="#F59E0B" color="#F59E0B"/><span>{item.rating}</span><span className="review-count">({item.reviews} reviews)</span></div>
-      </div>
-      <div className="result-card__aside">
-        <div className="result-card__price">₹{item.price.toLocaleString()}</div>
-        <div className="result-card__seats">per night</div>
-        <button className="btn btn-primary" style={{padding:'10px 20px',fontSize:14}}
-          onClick={e=>{e.stopPropagation();navigate(`/booking/${item.id}?type=hotel`)}}>Book Now</button>
-      </div>
-    </div>
-  )
-
   if (type === 'trains') return (
     <div className="result-card" onClick={() => navigate(`/detail/${item.id}?type=train`)}>
       <div className="result-card__main">

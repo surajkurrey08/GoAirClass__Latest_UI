@@ -1,699 +1,2014 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Plane, Download, Home, User, Mail, Ticket, ShieldCheck, BookOpen, FileText, Armchair, Headphones, Smartphone, Users } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { fetchTripDetailsApi } from '../services/flightApi';
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Armchair,
+  BriefcaseBusiness,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  Clock3,
+  Download,
+  FileText,
+  Globe2,
+  Headphones,
+  Home,
+  Mail,
+  Phone,
+  Plane,
+  ShieldCheck,
+  Utensils,
+  UserRound,
+} from "lucide-react";
+
+import { fetchTripDetailsApi } from "../services/flightApi";
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+const normalizeEpoch = (value) => {
+  if (!value) return null;
+
+  const num = Number(value);
+
+  if (!Number.isFinite(num)) return null;
+
+  return num < 1000000000000 ? num * 1000 : num;
+};
+
+const formatEpochTime = (
+  value,
+  timeZone = "Asia/Kolkata",
+  fallback = ""
+) => {
+  const epoch = normalizeEpoch(value);
+
+  if (!epoch) return fallback;
+
+  try {
+    return new Date(epoch).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone,
+    });
+  } catch {
+    return fallback;
+  }
+};
+
+const formatEpochDate = (
+  value,
+  timeZone = "Asia/Kolkata",
+  fallback = ""
+) => {
+  const epoch = normalizeEpoch(value);
+
+  if (!epoch) return fallback;
+
+  try {
+    return new Date(epoch).toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone,
+    });
+  } catch {
+    return fallback;
+  }
+};
+
+const formatNormalDate = (value, fallback = "") => {
+  if (!value) return fallback;
+
+  try {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return fallback;
+
+    return date.toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    });
+  } catch {
+    return fallback;
+  }
+};
+
+const formatNormalTime = (value, fallback = "") => {
+  if (!value) return fallback;
+
+  try {
+    if (typeof value === "string" && value.includes("T")) {
+      const timePart = value.split("T")[1];
+
+      const match = timePart.match(/^(\d{2}):(\d{2})/);
+
+      if (match) {
+        const h = Number(match[1]);
+        const m = Number(match[2]);
+
+        const period = h >= 12 ? "PM" : "AM";
+        const h12 = h % 12 || 12;
+
+        return `${String(h12).padStart(2, "0")}:${String(m).padStart(
+          2,
+          "0"
+        )} ${period}`;
+      }
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return fallback;
+
+    return date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata",
+    });
+  } catch {
+    return fallback;
+  }
+};
+
+const calculateDuration = (departure, arrival) => {
+  if (!departure || !arrival) return "";
+
+  let dep;
+  let arr;
+
+  if (typeof departure === "number") {
+    dep = normalizeEpoch(departure);
+  } else {
+    dep = new Date(departure).getTime();
+  }
+
+  if (typeof arrival === "number") {
+    arr = normalizeEpoch(arrival);
+  } else {
+    arr = new Date(arrival).getTime();
+  }
+
+  if (!dep || !arr || arr <= dep) return "";
+
+  const totalMinutes = Math.round((arr - dep) / 60000);
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (!hours) return `${minutes}m`;
+
+  if (!minutes) return `${hours}h`;
+
+  return `${hours}h ${minutes}m`;
+};
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+};
+
+const getIssueDate = () => {
+  return new Date().toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+};
+
+/* =========================================================
+   AIRLINE LOGO
+   ========================================================= */
+
+function AirlineLogo({ code }) {
+  return (
+    <div className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-[8px] border border-[#d3cec4] bg-gradient-to-br from-white to-[#e5e5e3] shadow-sm">
+      <div className="relative flex h-full w-full items-center justify-center">
+        <Plane
+          size={30}
+          strokeWidth={1.8}
+          className="-rotate-45 text-[#152e68]"
+        />
+
+        <span className="absolute bottom-[3px] right-[4px] text-[7px] font-black text-[#152e68]">
+          {code || "FL"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   COMPASS
+   ========================================================= */
+
+function CompassDecoration() {
+  return (
+    <svg
+      viewBox="0 0 200 200"
+      className="pointer-events-none absolute left-[21%] top-1/2 h-[150px] w-[150px] -translate-y-1/2 opacity-[0.14]"
+    >
+      <circle
+        cx="100"
+        cy="100"
+        r="64"
+        fill="none"
+        stroke="#8f784e"
+      />
+
+      <circle
+        cx="100"
+        cy="100"
+        r="54"
+        fill="none"
+        stroke="#8f784e"
+      />
+
+      <line
+        x1="100"
+        y1="18"
+        x2="100"
+        y2="182"
+        stroke="#8f784e"
+      />
+
+      <line
+        x1="18"
+        y1="100"
+        x2="182"
+        y2="100"
+        stroke="#8f784e"
+      />
+
+      <path
+        d="M100 20 L113 88 L100 100 L87 88 Z"
+        fill="#8f784e"
+      />
+
+      <path
+        d="M100 180 L87 112 L100 100 L113 112 Z"
+        fill="#8f784e"
+      />
+
+      <path
+        d="M20 100 L88 87 L100 100 L88 113 Z"
+        fill="#8f784e"
+      />
+
+      <path
+        d="M180 100 L112 113 L100 100 L112 87 Z"
+        fill="#8f784e"
+      />
+    </svg>
+  );
+}
+
+/* =========================================================
+   BARCODE
+   ========================================================= */
+
+function TicketBarcode({ value }) {
+  return (
+    <div className="mt-6 flex items-center justify-center gap-3">
+      <div
+        className="h-[125px] w-[48px]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(90deg,#17233a 0px,#17233a 2px,transparent 2px,transparent 4px,#17233a 4px,#17233a 7px,transparent 7px,transparent 9px,#17233a 9px,#17233a 10px,transparent 10px,transparent 13px)",
+        }}
+      />
+
+      <span
+        className="text-[8px] font-bold tracking-[0.15em]"
+        style={{
+          writingMode: "vertical-rl",
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/* =========================================================
+   ROUTE LINE
+   ========================================================= */
+
+function RouteLine({ duration, stopText }) {
+  return (
+    <div className="flex min-w-[160px] flex-col items-center px-2">
+      <span className="mb-2 text-[10px] font-medium">
+        {duration || "—"}
+      </span>
+
+      <div className="flex w-full items-center">
+        <span className="h-[6px] w-[6px] rounded-full bg-[#b8ae9d]" />
+
+        <span className="h-px flex-1 bg-[#b8ae9d]" />
+
+        <Plane
+          size={30}
+          className="mx-1 rotate-90 fill-[#aaa7a1] text-[#aaa7a1]"
+        />
+
+        <span className="h-px flex-1 bg-[#b8ae9d]" />
+
+        <span className="h-[6px] w-[6px] rounded-full bg-[#b8ae9d]" />
+      </div>
+
+      <strong className="mt-2 text-[9px] uppercase">
+        {stopText}
+      </strong>
+    </div>
+  );
+}
+
+/* =========================================================
+   PREMIUM TICKET
+   ========================================================= */
+
+function PremiumFlightTicket({
+  bookingId,
+  pnr,
+  status,
+  flights,
+  passengers,
+  totalAmount,
+  bookingEmail,
+  onPrint,
+  navigate,
+}) {
+  const firstFlight = flights?.[0] || {};
+
+  const lastFlight =
+    flights?.[flights.length - 1] || firstFlight;
+
+  const firstPassenger = passengers?.[0] || {};
+
+  const passengerName = [
+    firstPassenger.title || "MR",
+    firstPassenger.firstName || "Traveller",
+    firstPassenger.lastName || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const airlineCode =
+    firstFlight.airlineCode || "FL";
+
+  const airlineName =
+    firstFlight.airlineName || "Partner Airline";
+
+  const total = Number(totalAmount || 0);
+
+  const baseFare = Math.round(total * 0.82);
+
+  const taxes = Math.max(total - baseFare, 0);
+
+  const stops = Math.max((flights?.length || 1) - 1, 0);
+
+  const stopText =
+    stops === 0
+      ? "DIRECT"
+      : stops === 1
+      ? "1 STOP"
+      : `${stops} STOPS`;
+
+  const cabinBaggage =
+    firstPassenger.includedCabinBag ||
+    firstPassenger.cabinBag ||
+    "7 kg";
+
+  const checkinBaggage =
+    firstPassenger.includedCheckinBag ||
+    firstPassenger.checkinBag ||
+    "15 kg";
+
+  const seat =
+    firstPassenger.seatNumber ||
+    firstPassenger.selectedSeat ||
+    "Not Selected";
+
+  const meal =
+    firstPassenger.confirmedMealTitle ||
+    firstPassenger.selectedMeal ||
+    "Not Selected";
+
+  const qrValue = [
+    `Booking:${bookingId}`,
+    `PNR:${pnr}`,
+    `Passenger:${passengerName}`,
+    `Route:${firstFlight.origin}-${lastFlight.destination}`,
+  ].join("|");
+
+  return (
+    <>
+      {/* =====================================================
+          PRINT CSS
+          ===================================================== */}
+
+      <style>{`
+        @media print {
+
+          @page {
+            size: A4 landscape;
+            margin: 4mm;
+          }
+
+          html,
+          body,
+          #root {
+            margin: 0 !important;
+            padding: 0 !important;
+
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+
+            background: #ffffff !important;
+
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          body {
+            overflow: visible !important;
+          }
+
+          .ticket-page-background {
+            margin: 0 !important;
+            padding: 0 !important;
+
+            width: 100% !important;
+
+            height: auto !important;
+            min-height: 0 !important;
+
+            background: white !important;
+          }
+
+          .ticket-print-area {
+            width: 1480px !important;
+            max-width: 1480px !important;
+
+            margin: 0 auto !important;
+
+            /*
+             * Chrome / Edge:
+             * whole desktop ticket shrinks
+             * into a single A4 Landscape page
+             */
+            zoom: 0.67 !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            overflow: hidden !important;
+
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+
+            break-before: avoid !important;
+            break-after: avoid !important;
+
+            page-break-before: avoid !important;
+            page-break-after: avoid !important;
+          }
+
+          .ticket-layout {
+            display: grid !important;
+            grid-template-columns: 250px minmax(0, 1fr) !important;
+          }
+
+          .route-layout {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) 245px !important;
+          }
+
+          .route-main-layout {
+            display: grid !important;
+            grid-template-columns: 1fr auto 1fr !important;
+          }
+
+          .ticket-information-layout {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+
+          .ticket-payment-layout {
+            display: grid !important;
+            grid-template-columns: 1.2fr 1fr 1fr !important;
+          }
+
+          .airline-header-layout {
+            display: grid !important;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr !important;
+          }
+
+          .no-print {
+            display: none !important;
+          }
+
+          * {
+            box-sizing: border-box !important;
+          }
+        }
+      `}</style>
+
+      <div className="ticket-page-background min-h-screen bg-[#eee9df] px-1 py-2 text-[#17233a] sm:px-3 sm:py-3">
+        {/* =====================================================
+            TICKET
+            ===================================================== */}
+
+        <div className="ticket-print-area mx-auto w-full max-w-[960px] overflow-hidden rounded-[14px] border border-[#d1c4aa] bg-[#fffdf7] shadow-[0_15px_45px_rgba(26,38,58,0.16)]">
+          {/* ===================================================
+              HEADER
+              =================================================== */}
+
+          <header className="relative overflow-hidden bg-gradient-to-r from-[#071a36] via-[#15335d] to-[#10284d] px-4 py-2.5 text-white">
+            <div className="absolute bottom-0 left-[20%] top-0 hidden w-[2px] bg-[#c49b51] lg:block" />
+
+            <div className="grid min-w-0 items-center gap-3 lg:grid-cols-[165px_1fr_285px]">
+              {/* Brand */}
+
+              <div>
+                <div className="font-serif text-[28px] leading-none">
+                  GoAirClass
+                </div>
+
+                <div className="mt-2 flex items-center">
+                  <div className="h-px flex-1 bg-[#c49b51]" />
+
+                  <span className="ml-2 font-serif text-[11px] text-[#d9b67b]">
+                    Tourism
+                  </span>
+                </div>
+              </div>
+
+              {/* Confirmation */}
+
+              <div className="flex items-center gap-4 lg:px-4">
+                <div className="flex h-[43px] w-[43px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#f0d078] to-[#a37227]">
+                  <Check
+                    size={27}
+                    strokeWidth={3}
+                    className="text-[#172340]"
+                  />
+                </div>
+
+                <div>
+                  <h1 className="font-serif text-[18px] font-bold uppercase text-[#ddb973]">
+                    Flight Booking Confirmed
+                  </h1>
+
+                  <p className="mt-1 text-[10px]">
+                    Your e-ticket has been sent to
+                  </p>
+
+                  <p className="text-[11px] font-semibold">
+                    {bookingEmail || "your registered email"}
+                  </p>
+                </div>
+              </div>
+
+              {/* QR */}
+
+              <div className="flex min-w-0 items-center justify-start gap-3 lg:justify-end">
+                <div className="rounded-[7px] bg-white p-[6px]">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=0&data=${encodeURIComponent(
+                      qrValue
+                    )}`}
+                    alt="Booking QR"
+                    className="h-[68px] w-[68px]"
+                  />
+                </div>
+
+                <div className="h-[70px] w-px bg-white/25" />
+
+                <div className="min-w-0">
+                  <span className="block text-[8px] text-[#dabb87]">
+                    Booking ID:
+                  </span>
+
+                  <strong className="block max-w-[170px] break-all text-[12px]">
+                    {bookingId}
+                  </strong>
+
+                  <span className="mt-2 block text-[8px] text-[#dabb87]">
+                    PNR (Booking Reference)
+                  </span>
+
+                  <strong className="block text-[12px]">
+                    {pnr}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* ===================================================
+              BODY
+              =================================================== */}
+
+          <div className="ticket-layout grid min-w-0 grid-cols-1 lg:grid-cols-[165px_minmax(0,1fr)]">
+            {/* =================================================
+                LEFT SIDE
+                ================================================= */}
+
+            <aside className="border-b border-dashed border-[#d0c4ae] bg-[#fffdf7] px-4 pb-4 lg:border-b-0 lg:border-r">
+              <div className="-mt-[9px] inline-flex h-[35px] items-center rounded-b-[5px] bg-[#12294e] px-6 text-[9px] font-black text-white">
+                E-TICKET
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <div className="flex gap-3">
+                  <Plane
+                    size={20}
+                    strokeWidth={1.4}
+                    className="shrink-0 -rotate-12"
+                  />
+
+                  <div>
+                    <span className="block text-[8px] uppercase">
+                      Passenger
+                    </span>
+
+                    <strong className="mt-1 block text-[11px]">
+                      {passengerName}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <UserRound
+                    size={20}
+                    strokeWidth={1.4}
+                    className="shrink-0"
+                  />
+
+                  <div>
+                    <span className="block text-[8px] uppercase">
+                      Ticket Type
+                    </span>
+
+                    <strong className="mt-1 block text-[11px]">
+                      {firstPassenger.type === "CHD"
+                        ? "Child"
+                        : firstPassenger.type === "INF"
+                        ? "Infant"
+                        : "Adult"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <CalendarDays
+                    size={20}
+                    strokeWidth={1.4}
+                    className="shrink-0"
+                  />
+
+                  <div>
+                    <span className="block text-[8px] uppercase">
+                      Issue Date
+                    </span>
+
+                    <strong className="mt-1 block text-[11px]">
+                      {getIssueDate()}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="my-3 border-t border-dashed border-[#d0c4ae]" />
+
+              <TicketBarcode value={bookingId} />
+            </aside>
+
+            {/* =================================================
+                MAIN CONTENT
+                ================================================= */}
+
+            <main className="relative min-w-0 px-3 pb-3 pt-2 sm:px-4 lg:px-5">
+              {/* ===============================================
+                  AIRLINE HEADER
+                  =============================================== */}
+
+              <div className="airline-header-layout grid min-w-0 grid-cols-1 items-center gap-3 border-b border-[#ded4c1] pb-3 md:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr]">
+                {/* Airline */}
+
+                <div className="flex items-center gap-3">
+                  <AirlineLogo code={airlineCode} />
+
+                  <div>
+                    <h2 className="text-[16px] font-black text-[#16275b]">
+                      {airlineName}
+                    </h2>
+
+                    <p className="text-[10px]">
+                      {firstFlight.flightNumber || airlineCode}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Booking Date */}
+
+                <div className="flex items-center gap-3 border-[#ded4c1] xl:border-l xl:pl-5">
+                  <CalendarDays
+                    size={20}
+                    strokeWidth={1.4}
+                  />
+
+                  <div>
+                    <span className="block text-[8px] uppercase">
+                      Booking Date
+                    </span>
+
+                    <strong className="mt-1 block text-[10px]">
+                      {getIssueDate()}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Status */}
+
+                <div className="flex items-center gap-3 border-[#ded4c1] xl:border-l xl:pl-5">
+                  <div className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#a7aaad]">
+                    <Check
+                      size={17}
+                      strokeWidth={2.5}
+                      className="text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="block text-[8px] uppercase">
+                      Status
+                    </span>
+
+                    <strong
+                      className={`mt-1 block text-[10px] uppercase ${
+                        String(status).toLowerCase() === "confirmed"
+                          ? "text-green-700"
+                          : String(status).toLowerCase() === "cancelled"
+                          ? "text-red-600"
+                          : "text-amber-600"
+                      }`}
+                    >
+                      {status}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Class */}
+
+                <div className="flex justify-start xl:justify-end">
+                  <div className="min-w-[120px] rounded-[4px] border border-[#94703a] bg-gradient-to-r from-[#b98a48] via-[#eed497] to-[#ae7d3c] px-3 py-2 text-center shadow-sm">
+                    <span className="block text-[8px]">
+                      Class
+                    </span>
+
+                    <strong className="block text-[10px]">
+                      Economy Class
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* ===============================================
+                  ROUTE
+                  =============================================== */}
+
+              <div className="relative mt-2 min-w-0 overflow-hidden rounded-[9px] border border-[#d8cdb8]">
+                <CompassDecoration />
+
+                <div className="route-layout grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_200px]">
+                  {/* Main Route */}
+
+                  <div className="route-main-layout relative z-10 grid min-h-[140px] grid-cols-1 items-center gap-2 px-3 py-3 sm:px-5 md:grid-cols-[1fr_auto_1fr]">
+                    {/* FROM */}
+
+                    <div className="min-w-0">
+                      <span className="text-[8px] uppercase">
+                        From
+                      </span>
+
+                      <h3 className="mt-1 font-serif text-[25px] font-black leading-none">
+                        {firstFlight.origin || "BLR"}
+                      </h3>
+
+                      <p className="mt-1 text-[11px] font-medium">
+                        {firstFlight.originCity || "Departure"}
+                      </p>
+
+                      <p className="mt-1 max-w-[180px] break-words text-[8px] leading-4">
+                        {firstFlight.originAirportName ||
+                          firstFlight.originAirport ||
+                          ""}
+                      </p>
+
+                      <strong className="mt-2 block text-[13px]">
+                        {firstFlight.depTime || "—"}
+                      </strong>
+
+                      <span className="text-[8px]">
+                        {firstFlight.depDate || "—"}
+                      </span>
+                    </div>
+
+                    {/* ROUTE LINE */}
+
+                    <RouteLine
+                      duration={
+                        firstFlight.duration ||
+                        calculateDuration(
+                          firstFlight.departureDateTime,
+                          lastFlight.arrivalDateTime
+                        )
+                      }
+                      stopText={stopText}
+                    />
+
+                    {/* TO */}
+
+                    <div className="min-w-0 md:text-right">
+                      <span className="text-[8px] uppercase">
+                        To
+                      </span>
+
+                      <h3 className="mt-1 font-serif text-[25px] font-black leading-none">
+                        {lastFlight.destination || "DEL"}
+                      </h3>
+
+                      <p className="mt-1 text-[11px] font-medium">
+                        {lastFlight.destinationCity || "Arrival"}
+                      </p>
+
+                      <p className="ml-auto mt-1 max-w-[180px] break-words text-[8px] leading-4">
+                        {lastFlight.destinationAirportName ||
+                          lastFlight.destinationAirport ||
+                          ""}
+                      </p>
+
+                      <strong className="mt-2 block text-[13px]">
+                        {lastFlight.arrTime || "—"}
+                      </strong>
+
+                      <span className="text-[8px]">
+                        {lastFlight.arrDate || "—"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Baggage / Meal / Seat */}
+
+                  <div className="border-t border-[#ddd3c1] bg-[#fcf8ef] px-4 py-2 xl:border-l xl:border-t-0">
+                    <div className="flex gap-3 pb-3">
+                      <BriefcaseBusiness
+                        size={21}
+                        strokeWidth={1.4}
+                      />
+
+                      <div>
+                        <strong className="block text-[8px] uppercase">
+                          Baggage
+                        </strong>
+
+                        <span className="block text-[8px]">
+                          {cabinBaggage} Cabin Baggage
+                        </span>
+
+                        <span className="block text-[8px]">
+                          {checkinBaggage} Check-in Baggage
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-dashed border-[#d6cab5]" />
+
+                    <div className="flex gap-3 py-2">
+                      <Utensils
+                        size={21}
+                        strokeWidth={1.4}
+                      />
+
+                      <div>
+                        <strong className="block text-[8px] uppercase">
+                          Meal
+                        </strong>
+
+                        <span className="text-[8px]">
+                          {meal}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-dashed border-[#d6cab5]" />
+
+                    <div className="flex gap-3 pt-3">
+                      <Armchair
+                        size={21}
+                        strokeWidth={1.4}
+                      />
+
+                      <div>
+                        <strong className="block text-[8px] uppercase">
+                          Seat
+                        </strong>
+
+                        <span className="text-[8px]">
+                          {seat}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ===============================================
+                  PASSENGERS
+                  =============================================== */}
+
+              <div className="mt-2 overflow-hidden rounded-[8px] border border-[#d8cdb8]">
+                {passengers.map((p, index) => {
+                  const passengerSeat =
+                    p.seatNumber ||
+                    p.selectedSeat ||
+                    "Not Selected";
+
+                  const passengerMeal =
+                    p.confirmedMealTitle ||
+                    p.selectedMeal ||
+                    "Not Selected";
+
+                  return (
+                    <div
+                      key={`${p.firstName}-${index}`}
+                      className={`grid min-w-0 grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-2 sm:px-4 md:grid-cols-5 ${
+                        index > 0
+                          ? "border-t border-[#ded4c1]"
+                          : ""
+                      }`}
+                    >
+                      <div>
+                        <span className="block text-[7px] uppercase">
+                          Passenger Name
+                        </span>
+
+                        <strong className="mt-1 block text-[9px]">
+                          {p.title || "MR"}{" "}
+                          {p.firstName || "Traveller"}{" "}
+                          {p.lastName || ""}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="block text-[7px] uppercase">
+                          Booking Status
+                        </span>
+
+                        <span className="mt-1 inline-block rounded bg-[#dfe7e1] px-2 py-[2px] text-[8px] font-bold uppercase text-green-800">
+                          {status}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="block text-[7px] uppercase">
+                          Seat
+                        </span>
+
+                        <strong className="mt-1 block text-[9px]">
+                          {passengerSeat}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="block text-[7px] uppercase">
+                          Meal
+                        </span>
+
+                        <strong className="mt-1 block text-[9px]">
+                          {passengerMeal}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span className="block text-[7px] uppercase">
+                          Frequent Flyer
+                        </span>
+
+                        <strong className="mt-1 block text-[9px]">
+                          —
+                        </strong>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ===============================================
+                  INFORMATION
+                  =============================================== */}
+
+              <div className="ticket-information-layout mt-2 grid grid-cols-1 rounded-[8px] border border-[#d8cdb8] md:grid-cols-3">
+                <div className="flex gap-3 px-3 py-2">
+                  <Clock3
+                    size={29}
+                    strokeWidth={1.3}
+                    className="shrink-0"
+                  />
+
+                  <div>
+                    <strong className="text-[9px] uppercase">
+                      Check-in
+                    </strong>
+
+                    <p className="mt-1 text-[8px] leading-4">
+                      Check-in opens 3 hours before departure and
+                      closes 60 minutes before departure.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 border-[#ddd2bd] px-3 py-2 md:border-l">
+                  <BriefcaseBusiness
+                    size={29}
+                    strokeWidth={1.3}
+                    className="shrink-0"
+                  />
+
+                  <div>
+                    <strong className="text-[9px] uppercase">
+                      Baggage Information
+                    </strong>
+
+                    <p className="mt-1 text-[8px] leading-4">
+                      Cabin: {cabinBaggage}
+                      <br />
+                      Check-in: {checkinBaggage}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 border-[#ddd2bd] px-3 py-2 md:border-l">
+                  <FileText
+                    size={29}
+                    strokeWidth={1.3}
+                    className="shrink-0"
+                  />
+
+                  <div>
+                    <strong className="text-[9px] uppercase">
+                      Important
+                    </strong>
+
+                    <p className="mt-1 text-[8px] leading-4">
+                      Carry a valid government-issued photo ID for
+                      airport check-in.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ===============================================
+                  PAYMENT & SUPPORT
+                  =============================================== */}
+
+              <div className="ticket-payment-layout mt-2 grid grid-cols-1 border-t border-[#ded4c1] pt-2 md:grid-cols-3">
+                {/* Information */}
+
+                <div className="px-3 py-1">
+                  <strong className="text-[8px] uppercase">
+                    Important Information
+                  </strong>
+
+                  <ul className="mt-2 list-disc space-y-1 pl-4 text-[7px] leading-4">
+                    <li>
+                      Please arrive at the airport well in advance.
+                    </li>
+
+                    <li>
+                      This is an auto-generated e-ticket. No signature
+                      is required.
+                    </li>
+
+                    <li>
+                      For assistance, contact GoAirClass support.
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Payment */}
+
+                <div className="border-[#ddd2bd] px-4 py-1 md:border-l">
+                  <strong className="text-[8px] uppercase">
+                    Payment Summary
+                  </strong>
+
+                  <div className="mt-2 space-y-1 text-[7px]">
+                    <div className="flex justify-between">
+                      <span>Base Fare</span>
+
+                      <strong>
+                        ₹{formatCurrency(baseFare)}
+                      </strong>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Taxes & Fees</span>
+
+                      <strong>
+                        ₹{formatCurrency(taxes)}
+                      </strong>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span>Convenience Fee</span>
+
+                      <strong>₹0</strong>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 flex justify-between rounded-[4px] bg-gradient-to-r from-[#b88b45] via-[#efd895] to-[#bb8b43] px-3 py-1.5 text-[9px] font-black">
+                    <span>TOTAL PAID</span>
+
+                    <span>
+                      ₹{formatCurrency(total)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Support */}
+
+                <div className="border-[#ddd2bd] px-4 py-1 md:border-l">
+                  <strong className="text-[8px] uppercase">
+                    Customer Support
+                  </strong>
+
+                  <div className="mt-2 space-y-2 text-[7px]">
+                    <div className="flex items-center gap-2">
+                      <Phone size={13} />
+                      <span>+91 98765 43210</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Mail size={13} />
+                      <span>support@goairclass.com</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Globe2 size={13} />
+                      <span>www.goairclass.com</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+
+          {/* ===================================================
+              FOOTER
+              =================================================== */}
+
+          <footer className="border-t-2 border-[#c39a53] bg-[#fbf7ed] px-4 py-2">
+            <div className="grid grid-cols-1 items-center gap-3 text-[8px] sm:grid-cols-2 md:grid-cols-5">
+              <span>
+                Thank you for choosing GoAirClass.
+              </span>
+
+              <span className="flex items-center justify-center gap-2">
+                <CheckCircle2 size={16} />
+                Verified Ticket
+              </span>
+
+              <span className="flex items-center justify-center gap-2">
+                <ShieldCheck size={16} />
+                Secure Booking
+              </span>
+
+              <span className="flex items-center justify-center gap-2">
+                <Headphones size={16} />
+                24x7 Support
+              </span>
+
+              <span className="flex items-center justify-end gap-2 font-serif text-[11px] italic">
+                Happy Journey!
+                <Plane size={17} className="-rotate-45" />
+              </span>
+            </div>
+          </footer>
+        </div>
+
+        {/* =====================================================
+            BUTTONS
+            ===================================================== */}
+
+        <div className="no-print mx-auto mt-3 flex w-full max-w-[960px] flex-col justify-end gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="flex min-w-[150px] items-center justify-center gap-2 rounded-[7px] border border-[#b9ad98] bg-white px-5 py-2.5 text-[10px] font-bold shadow-sm hover:bg-[#faf8f3]"
+          >
+            <Home size={15} />
+            Go to Home
+          </button>
+
+          <button
+            type="button"
+            onClick={onPrint}
+            className="flex min-w-[190px] items-center justify-center gap-2 rounded-[7px] bg-[#b88945] px-5 py-2.5 text-[10px] font-bold text-white shadow-sm hover:bg-[#9e7136]"
+          >
+            <Download size={15} />
+            Print / Download Ticket
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* =========================================================
+   MAIN PAGE
+   ========================================================= */
 
 export default function FlightBookingSuccessPage() {
-    const location = useLocation();
-    const navigate = useNavigate();
+  const location = useLocation();
 
-    // Mock data for visual testing / direct access fallback
-    const mockFlight = {
-        airlineCode: '6E',
-        airlineName: 'IndiGo',
-        flightNumber: '6E-6269',
-        segments: [{
-            airlineCode: '6E',
-            airlineName: 'IndiGo',
-            flightNumber: '6E-6269',
-            origin: 'BLR',
-            originCity: 'Bangalore',
-            departureTime: '02:45 am',
-            departureDateTime: '2025-08-05T02:45:00',
-            destination: 'MAA',
-            destinationCity: 'Chennai',
-            arrivalTime: '03:45 am',
-            arrivalDateTime: '2025-08-05T03:45:00'
-        }],
-        duration: '2h 15m'
+  const navigate = useNavigate();
+
+  /* =========================================================
+     MOCK DATA
+     ========================================================= */
+
+  const mockFlight = {
+    airlineCode: "6E",
+
+    airlineName: "IndiGo",
+
+    flightNumber: "6E 840",
+
+    price: 3486,
+
+    segments: [
+      {
+        airlineCode: "6E",
+
+        airlineName: "IndiGo",
+
+        flightNumber: "6E 840",
+
+        origin: "BLR",
+
+        originCity: "Bangalore",
+
+        originAirportName:
+          "Kempegowda International Airport (BLR)",
+
+        departureDateTime:
+          "2026-08-21T14:15:00+05:30",
+
+        destination: "DEL",
+
+        destinationCity: "New Delhi",
+
+        destinationAirportName:
+          "Indira Gandhi International Airport (DEL)",
+
+        arrivalDateTime:
+          "2026-08-21T16:45:00+05:30",
+
+        duration: "2h 30m",
+      },
+    ],
+  };
+
+  const mockPassenger = {
+    title: "MR",
+
+    firstName: "Suraj",
+
+    lastName: "Kurrey",
+
+    type: "ADT",
+
+    selectedSeat: "",
+
+    selectedMeal: "",
+
+    includedCabinBag: "7 kg",
+
+    includedCheckinBag: "15 kg",
+
+    email: "surajkurrey@example.com",
+  };
+
+  /* =========================================================
+     NAVIGATION STATE
+     ========================================================= */
+
+  const stateToUse =
+    location.state || {
+      flight: mockFlight,
+
+      passenger: mockPassenger,
+
+      passengers: [mockPassenger],
+
+      pnr: "Q260820974448",
+
+      bookingId: "Q260820974448",
     };
-    const mockPassenger = {
-        title: 'MR',
-        firstName: 'Ajay',
-        lastName: 'Dhayatidak',
-        selectedSeat: 'Assigned at Check-in',
-        email: 'rdhayatidak@gmail.com'
-    };
 
-    const stateToUse = location.state || {
-        flight: mockFlight,
-        passenger: mockPassenger,
-        pnr: 'Q260803968312',
-        bookingId: 'Q260803968312'
-    };
+  const {
+    bookingData,
+    holdData,
+    flight,
+    passenger,
+    passengers,
+    pnr,
+    bookingId,
+  } = stateToUse;
 
-    // Data passed from Payment page or Cleartrip /book response
-    const { bookingData, holdData, flight, passenger, pnr, bookingId } = stateToUse;
+  /* =========================================================
+     BOOKING ID
+     ========================================================= */
 
-    const primarySegment = flight?.segments?.[0] || {};
-    const lastSegment = flight?.segments?.[flight?.segments?.length - 1] || primarySegment;
+  const fallbackBookingId = useMemo(() => {
+    return `GAC-${Date.now().toString().slice(-10)}`;
+  }, []);
 
-    // Extract Cleartrip tripId from hold response or book response (e.g. "Q260803968284")
-    const fallbackConfirmId = React.useMemo(() => `CT-GAC-${Date.now().toString().slice(-6)}`, []);
-    const fallbackPnr = React.useMemo(() => `PNR-${Math.floor(100000 + Math.random() * 900000)}`, []);
+  const confirmId =
+    bookingId ||
+    holdData?.booking_details?.trip_id ||
+    holdData?.booking_details?.tripId ||
+    holdData?.data?.booking_details?.trip_id ||
+    holdData?.data?.booking_details?.tripId ||
+    holdData?.trip_id ||
+    holdData?.tripId ||
+    bookingData?.booking_details?.trip_id ||
+    bookingData?.booking_details?.tripId ||
+    bookingData?.data?.booking_details?.trip_id ||
+    bookingData?.data?.booking_details?.tripId ||
+    bookingData?.trip_id ||
+    bookingData?.tripId ||
+    bookingData?.bookingId ||
+    bookingData?.data?.tripId ||
+    bookingData?.data?.itineraryId ||
+    bookingData?.data?.bookingId ||
+    fallbackBookingId;
 
-    const confirmId = bookingId
-        || holdData?.booking_details?.trip_id
-        || holdData?.booking_details?.tripId
-        || holdData?.data?.booking_details?.trip_id
-        || holdData?.data?.booking_details?.tripId
-        || holdData?.trip_id
-        || holdData?.tripId
-        || bookingData?.booking_details?.trip_id
-        || bookingData?.booking_details?.tripId
-        || bookingData?.data?.booking_details?.trip_id
-        || bookingData?.data?.booking_details?.tripId
-        || bookingData?.trip_id
-        || bookingData?.tripId
-        || bookingData?.bookingId
-        || bookingData?.data?.tripId
-        || bookingData?.data?.itineraryId
-        || bookingData?.data?.bookingId
-        || fallbackConfirmId;
+  /* =========================================================
+     INITIAL PNR
+     ========================================================= */
 
-    // Bug 5 fix: pnrNumber should NOT fall through to trip_id — that's the booking ID, not airline PNR.
-    // The real airline PNR comes from booking_infos[].pnr in the Cleartrip trip-details response.
-    // If we only have trip_id from navigation state, show 'Pending' — resolveTripDetails will extract the real PNR.
-    const pnrNumber = pnr 
-        || bookingData?.pnr 
-        || bookingData?.data?.pnr 
-        || holdData?.pnr
-        || '';
+  const initialPnr =
+    pnr ||
+    bookingData?.pnr ||
+    bookingData?.data?.pnr ||
+    bookingData?.airlinePnr ||
+    bookingData?.data?.airlinePnr ||
+    holdData?.pnr ||
+    "";
 
-    const [liveDetails, setLiveDetails] = useState(null);
-    const [loadingLive, setLoadingLive] = useState(false);
+  /* =========================================================
+     LIVE CLEARTRIP DATA
+     ========================================================= */
 
-    useEffect(() => {
-        if (!confirmId || confirmId.startsWith('CT-GAC-')) return;
+  const [liveDetails, setLiveDetails] = useState(null);
 
-        const loadLiveDetails = async () => {
-            setLoadingLive(true);
-            try {
-                const res = await fetchTripDetailsApi(confirmId);
-                if (res.success && res.data) {
-                    const rawData = res.data.data || res.data;
-                    setLiveDetails(rawData);
-                }
-            } catch (err) {
-                console.warn('[Success Page] Failed to fetch live trip details from Cleartrip API:', err.message);
-            } finally {
-                setLoadingLive(false);
-            }
-        };
+  const [loadingLiveDetails, setLoadingLiveDetails] =
+    useState(false);
 
-        loadLiveDetails();
-    }, [confirmId]);
+  useEffect(() => {
+    if (
+      !confirmId ||
+      confirmId.startsWith("GAC-")
+    ) {
+      return;
+    }
 
-    // Bug 3 fix: Format epoch timestamp in a specific timezone (from Cleartrip airport metadata)
-    // instead of relying on browser's local timezone which corrupts airport-local times.
-    const formatTimeInTZ = (epochMs, timeZone, fallback = '') => {
-        if (!epochMs) return fallback;
-        try {
-            const d = new Date(epochMs);
-            if (isNaN(d.getTime())) return fallback;
-            const tz = timeZone || 'Asia/Kolkata'; // Default to IST for Indian domestic flights
-            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz });
-        } catch (e) {
-            return fallback;
+    let cancelled = false;
+
+    const loadDetails = async () => {
+      setLoadingLiveDetails(true);
+
+      try {
+        const response =
+          await fetchTripDetailsApi(confirmId);
+
+        if (
+          !cancelled &&
+          response?.success &&
+          response?.data
+        ) {
+          setLiveDetails(
+            response.data.data ||
+              response.data
+          );
         }
-    };
-
-    const formatDateInTZ = (epochMs, timeZone, fallback = '') => {
-        if (!epochMs) return fallback;
-        try {
-            const d = new Date(epochMs);
-            if (isNaN(d.getTime())) return fallback;
-            const tz = timeZone || 'Asia/Kolkata';
-            return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: tz });
-        } catch (e) {
-            return fallback;
-        }
-    };
-
-    // Bug 4 fix: Calculate flight duration from departure and arrival timestamps
-    const calculateDuration = (depMs, arrMs) => {
-        if (!depMs || !arrMs) return '';
-        const diffMs = arrMs - depMs;
-        if (diffMs <= 0) return '';
-        const totalMinutes = Math.round(diffMs / 60000);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        if (hours === 0) return `${minutes}m`;
-        if (minutes === 0) return `${hours}h`;
-        return `${hours}h ${minutes}m`;
-    };
-
-    // Parse dynamic fields from Cleartrip API response
-    const resolveTripDetails = (data) => {
-        if (!data) return null;
-
-        // Support for new booking_details wrapper from Cleartrip API
-        const details = data.booking_details || data;
-
-        // 1. Status Mapping
-        let rawStatus = details.booking_status || details.tripStatus || details.status || details.statusDescription || 'Confirmed';
-        let status = 'Confirmed';
-        if (rawStatus === 'P' || rawStatus === 'CONFIRMED' || rawStatus === 'Ticketed') {
-            status = 'Confirmed';
-        } else if (rawStatus === 'Z' || rawStatus === 'PI' || rawStatus === 'H') {
-            status = 'Pending';
-        } else if (rawStatus === 'F' || rawStatus === 'PF' || rawStatus === 'Q') {
-            status = 'Cancelled';
-        } else {
-            status = rawStatus;
-        }
-
-        // Extract segments & meta
-        let segments = [];
-        let travellers = [];
-        let airlinesMeta = {};
-        let airportsMeta = {};
-
-        if (details.journey_details) {
-            const jd = details.journey_details;
-            travellers = jd.traveller_details || [];
-            airlinesMeta = jd.meta_data?.airlines || {};
-            airportsMeta = jd.meta_data?.airports || {};
-            // Extract segments from flight_details
-            if (Array.isArray(jd.flight_details)) {
-                segments = jd.flight_details.flatMap(fd => fd.segment_details || []);
-            }
-        }
-
-        // Bug 5 fix: Extract REAL airline PNR from booking_infos, not trip_id
-        // Cleartrip returns airline PNR in segment_details[].booking_infos[].pnr
-        const allBookingInfos = segments.flatMap(s => s.booking_infos || []);
-        const pnrVal = allBookingInfos[0]?.pnr ||
-            allBookingInfos[0]?.gds_pnr ||
-            details.pnr ||
-            details.pnrNumber ||
-            details.airlinePnr ||
-            ''; // DO NOT fall through to trip_id or bookingId
-
-        // Bug 6 fix: Build a map of pax_info_id → seat_number from booking_infos
-        const seatMap = {};
-        allBookingInfos.forEach(bi => {
-            if (bi.pax_info_id && bi.seat_number) {
-                seatMap[bi.pax_info_id] = bi.seat_number;
-            }
-        });
-
-        // Bug 2 fix: Extract included baggage allowance from segment_details[].baggage
-        const firstSegBaggage = segments[0]?.baggage || {};
-        const adtBaggage = firstSegBaggage.ADT || firstSegBaggage.adt || {};
-        const includedCabinBag = adtBaggage.cab || adtBaggage.cabin_baggage || '';
-        const includedCheckinBag = adtBaggage.cib || adtBaggage.checkin_baggage || '';
-
-        // 3. Passengers — now includes seat number and baggage
-        let mappedPassengers = [];
-        if (travellers.length > 0) {
-            mappedPassengers = travellers.map((traveller, tIdx) => {
-                const paxId = traveller.pax_info_id;
-                const ticketInfo = allBookingInfos.find(b => b.pax_info_id === paxId);
-                // Bug 6: Use actual seat from booking_infos if available, fall back to selected seat from stateToUse
-                const fallbackSeat = stateToUse.passengers?.[tIdx]?.selectedSeat || stateToUse.passengers?.[tIdx]?.seatNumber || (tIdx === 0 ? (stateToUse.passenger?.selectedSeat || stateToUse.passenger?.seatNumber) : '') || '';
-                const seatNumber = seatMap[paxId] || ticketInfo?.seat_number || fallbackSeat || '';
-                return {
-                    title: traveller.title || 'Mr.',
-                    firstName: traveller.fn || 'Traveller',
-                    lastName: traveller.ln || '',
-                    type: traveller.type || 'ADT',
-                    ticketNumber: ticketInfo?.ticket_number || 'Ticketed',
-                    email: details.user_details?.email || '',
-                    seatNumber: seatNumber, // Bug 6: actual seat from Cleartrip/fallback
-                    includedCabinBag, // Bug 2: included baggage
-                    includedCheckinBag // Bug 2: included baggage
-                };
-            });
-        }
-
-        // 4. Flights / Segments — now with timezone-safe times and calculated duration
-        let mappedFlights = [];
-        if (segments.length > 0) {
-            mappedFlights = segments.map(seg => {
-                const depEpoch = seg.dd || null;
-                const arrEpoch = seg.ad || null;
-                // Use airport timezone from Cleartrip metadata if available
-                const depTZ = airportsMeta[seg.dep]?.time_zone || airportsMeta[seg.dep]?.timezone || 'Asia/Kolkata';
-                const arrTZ = airportsMeta[seg.arr]?.time_zone || airportsMeta[seg.arr]?.timezone || 'Asia/Kolkata';
-
-                return {
-                    airlineCode: seg.al || 'FL',
-                    airlineName: airlinesMeta[seg.al]?.name || seg.al || 'Airline',
-                    flightNumber: `${seg.al}-${seg.fn}`,
-                    origin: seg.dep || 'BLR',
-                    originCity: airportsMeta[seg.dep]?.city || seg.dep || 'Departure',
-                    originAirportName: airportsMeta[seg.dep]?.name || '',
-                    destination: seg.arr || 'BOM',
-                    destinationCity: airportsMeta[seg.arr]?.city || seg.arr || 'Arrival',
-                    destinationAirportName: airportsMeta[seg.arr]?.name || '',
-                    depDate: formatDateInTZ(depEpoch, depTZ),
-                    depTime: formatTimeInTZ(depEpoch, depTZ),
-                    arrDate: formatDateInTZ(arrEpoch, arrTZ),
-                    arrTime: formatTimeInTZ(arrEpoch, arrTZ),
-                    duration: calculateDuration(depEpoch, arrEpoch) // Bug 4: real duration
-                };
-            });
-        }
-
-        return {
-            tripId: details.trip_id || details.tripId || details.bookingId || '',
-            status,
-            pnr: pnrVal,
-            passengers: mappedPassengers,
-            flights: mappedFlights
-        };
-    };
-
-    const resolved = resolveTripDetails(liveDetails);
-
-    // Bug 5: Show resolved airline PNR (from Cleartrip API), fall back to state PNR, never show trip_id as PNR
-    const displayPnr = resolved?.pnr || pnrNumber || 'Pending';
-    const displayStatus = resolved?.status || 'Confirmed';
-
-    // Helper for formatting date — Bug 3 fix: use IST timezone explicitly
-    const getFormattedDate = (dateStr, fallback = '') => {
-        if (!dateStr) return fallback;
-        try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return fallback;
-            // Use Asia/Kolkata timezone to match Indian domestic flights
-            return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
-        } catch (e) {
-            return fallback;
-        }
-    };
-
-    // Helper for formatting time — Bug 3 fix: extract from ISO string directly or use IST timezone
-    const getFormattedTime = (dateStr, fallback = '') => {
-        if (!dateStr) return fallback;
-        try {
-            // If it's an ISO string with time component, extract the local time directly
-            // This avoids browser timezone conversion on strings like "2026-08-09T20:30:00+05:30"
-            if (typeof dateStr === 'string' && dateStr.includes('T')) {
-                const timePart = dateStr.split('T')[1]; // "20:30:00+05:30" or "20:30:00"
-                const [hourMinSec] = timePart.split(/[+\-Z]/); // "20:30:00"
-                const [hStr, mStr] = hourMinSec.split(':');
-                const h = parseInt(hStr, 10);
-                const m = parseInt(mStr, 10);
-                if (!isNaN(h) && !isNaN(m)) {
-                    const period = h >= 12 ? 'pm' : 'am';
-                    const h12 = h % 12 || 12;
-                    return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
-                }
-            }
-            // Fallback: use Date with explicit timezone
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return fallback;
-            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
-        } catch (e) {
-            return fallback;
-        }
-    };
-
-    // Helper: calculate duration from two datetime strings — Bug 4 fix
-    const getStateDuration = (depStr, arrStr) => {
-        if (!depStr || !arrStr) return '';
-        try {
-            const dep = new Date(depStr);
-            const arr = new Date(arrStr);
-            if (isNaN(dep.getTime()) || isNaN(arr.getTime())) return '';
-            const diffMs = arr - dep;
-            if (diffMs <= 0) return '';
-            const totalMin = Math.round(diffMs / 60000);
-            const h = Math.floor(totalMin / 60);
-            const m = totalMin % 60;
-            if (h === 0) return `${m}m`;
-            if (m === 0) return `${h}h`;
-            return `${h}h ${m}m`;
-        } catch (e) {
-            return '';
-        }
-    };
-
-    // Resolved flight & passenger data
-    const displayFlightsList = resolved?.flights && resolved.flights.length > 0
-        ? resolved.flights
-        : (stateToUse.flight?.segments && stateToUse.flight.segments.length > 0
-            ? stateToUse.flight.segments.map(seg => ({
-                airlineCode: seg.airlineCode || stateToUse.flight?.airlineCode || 'FL',
-                airlineName: seg.airlineName || stateToUse.flight?.airlineName || 'Partner Airline',
-                flightNumber: seg.flightNumber || 'N/A',
-                origin: seg.origin || 'BLR',
-                originCity: seg.originCity || seg.originAirportName?.split(',')[0] || seg.origin || 'Departure',
-                originAirportName: seg.originAirportName || seg.originAirport || '',
-                destination: seg.destination || 'BOM',
-                destinationCity: seg.destinationCity || seg.destinationAirportName?.split(',')[0] || seg.destination || 'Arrival',
-                destinationAirportName: seg.destinationAirportName || seg.destinationAirport || '',
-                depTime: getFormattedTime(seg.departureDateTime),
-                depDate: getFormattedDate(seg.departureDateTime),
-                arrTime: getFormattedTime(seg.arrivalDateTime),
-                arrDate: getFormattedDate(seg.arrivalDateTime),
-                duration: getStateDuration(seg.departureDateTime, seg.arrivalDateTime)
-            }))
-            : [
-                {
-                    airlineCode: flight?.airlineCode || primarySegment?.airlineCode || 'FL',
-                    airlineName: flight?.airlineName || primarySegment?.airlineName || 'Partner Airline',
-                    flightNumber: flight?.segments?.map(s => s.flightNumber).join(' → ') || primarySegment?.flightNumber || flight?.flightNumber || 'N/A',
-                    origin: primarySegment?.origin || 'BLR',
-                    originCity: primarySegment?.originCity || 'Departure',
-                    originAirportName: primarySegment?.originAirportName || primarySegment?.originAirport || '',
-                    depTime: getFormattedTime(primarySegment?.departureDateTime) || primarySegment?.departureTime || '',
-                    depDate: getFormattedDate(primarySegment?.departureDateTime || flight?.departureDate || flight?.date),
-                    destination: lastSegment?.destination || 'BOM',
-                    destinationCity: lastSegment?.destinationCity || 'Arrival',
-                    destinationAirportName: lastSegment?.destinationAirportName || lastSegment?.destinationAirport || '',
-                    arrTime: getFormattedTime(lastSegment?.arrivalDateTime) || lastSegment?.arrivalTime || '',
-                    arrDate: getFormattedDate(lastSegment?.arrivalDateTime || flight?.arrivalDate || flight?.date),
-                    duration: getStateDuration(primarySegment?.departureDateTime, lastSegment?.arrivalDateTime) || flight?.duration || ''
-                }
-            ]
+      } catch (error) {
+        console.warn(
+          "[Flight Ticket] Trip details error:",
+          error
         );
-
-    const isRoundTripBooking = displayFlightsList.length > 1 && 
-        displayFlightsList[0].origin === displayFlightsList[displayFlightsList.length - 1].destination;
-
-    const displayPassengersList = resolved?.passengers && resolved.passengers.length > 0
-        ? resolved.passengers
-        : (stateToUse.passengers && stateToUse.passengers.length > 0
-            ? stateToUse.passengers
-            : (stateToUse.passenger ? [stateToUse.passenger] : [mockPassenger]));
-
-    const handlePrint = () => {
-        window.print();
+      } finally {
+        if (!cancelled) {
+          setLoadingLiveDetails(false);
+        }
+      }
     };
 
-    if (!flight && !bookingData) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col justify-between pt-[75px]">
-                <Navbar />
-                <div className="max-w-md mx-auto px-4 py-20 text-center">
-                    <Ticket className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-slate-800">No Booking Details Found</h2>
-                    <p className="text-sm text-slate-500 mt-2 mb-6">Please start a new flight booking from search.</p>
-                    <button
-                        onClick={() => navigate('/flights/list')}
-                        className="bg-[#b89565] hover:bg-[#a38053] text-white font-bold py-3 px-6 transition-all"
-                    >
-                        Back to Flight Search
-                    </button>
-                </div>
-                <Footer />
-            </div>
+    loadDetails();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [confirmId]);
+
+  /* =========================================================
+     RESOLVE LIVE DETAILS
+     ========================================================= */
+
+  const resolvedLiveDetails = useMemo(() => {
+    if (!liveDetails) return null;
+
+    const details =
+      liveDetails.booking_details ||
+      liveDetails.data ||
+      liveDetails;
+
+    /* STATUS */
+
+    const rawStatus =
+      details.booking_status ||
+      details.tripStatus ||
+      details.status ||
+      details.statusDescription ||
+      "Confirmed";
+
+    const normalizedStatus =
+      String(rawStatus).toUpperCase();
+
+    let status = "Confirmed";
+
+    if (
+      [
+        "P",
+        "K",
+        "HK",
+        "OK",
+        "T",
+        "CONFIRMED",
+        "TICKETED",
+        "SUCCESS",
+      ].includes(normalizedStatus)
+    ) {
+      status = "Confirmed";
+    } else if (
+      [
+        "Z",
+        "PI",
+        "H",
+        "PENDING",
+        "PROCESSING",
+      ].includes(normalizedStatus)
+    ) {
+      status = "Pending";
+    } else if (
+      [
+        "F",
+        "PF",
+        "Q",
+        "CANCELLED",
+        "CANCELED",
+        "FAILED",
+      ].includes(normalizedStatus)
+    ) {
+      status = "Cancelled";
+    } else {
+      status = rawStatus || "Confirmed";
+    }
+
+    /* JOURNEY */
+
+    const journey =
+      details.journey_details || {};
+
+    const travellers =
+      journey.traveller_details || [];
+
+    const airlinesMeta =
+      journey.meta_data?.airlines || {};
+
+    const airportsMeta =
+      journey.meta_data?.airports || {};
+
+    /* SEGMENTS */
+
+    let rawSegments = [];
+
+    if (
+      Array.isArray(
+        journey.flight_details
+      )
+    ) {
+      rawSegments =
+        journey.flight_details.flatMap(
+          (item) =>
+            item.segment_details || []
         );
     }
 
-    return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-between pt-[75px] font-sans print:pt-0 print:bg-white">
-            <div className="print:hidden">
-                <Navbar />
-            </div>
+    /* BOOKING INFO */
 
-            <main className="max-w-2xl mx-auto px-4 py-8 w-full print:py-0 print:px-0">
-                {/* Boarding Pass Ticket Container */}
-                <div className="bg-white rounded-3xl border border-slate-200/60 shadow-[0_10px_30px_rgba(0,0,0,0.04)] overflow-hidden relative print:border-slate-300 print:shadow-none">
-                    
-                    {/* Compact Success Header Banner inside the ticket */}
-                    <div className="bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 text-white px-6 py-5 text-center relative overflow-hidden print:bg-emerald-700">
-                        {/* Subtle background graphics */}
-                        <div className="absolute right-0 top-0 bottom-0 opacity-15 w-1/3 pointer-events-none">
-                            <svg viewBox="0 0 100 100" fill="none" className="w-full h-full text-white">
-                                <circle cx="80" cy="50" r="40" stroke="currentColor" strokeWidth="2" />
-                                <circle cx="80" cy="50" r="30" stroke="currentColor" strokeWidth="1" />
-                            </svg>
-                        </div>
-                        
-                        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0 backdrop-blur-sm border border-white/10 shadow-inner">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="4.5" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <div className="text-center sm:text-left">
-                                <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">Flight Booking Confirmed!</h1>
-                                <p className="text-emerald-100 text-xs mt-0.5 font-medium">Your ticket is confirmed. E-ticket sent to your email.</p>
-                            </div>
-                        </div>
-                    </div>
+    const allBookingInfos =
+      rawSegments.flatMap(
+        (segment) =>
+          segment.booking_infos || []
+      );
 
-                    {/* Ticket Body Content */}
-                    <div className="p-5 sm:p-6 relative space-y-5">
-                        
-                        {/* Cleartrip Status, PNR & Booking ID Strip */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100/80">
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Airline PNR:</span>
-                                <span className="text-sm font-black text-emerald-600 tracking-wide">{displayPnr}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Booking ID:</span>
-                                <span className="text-sm font-bold text-slate-700">{confirmId}</span>
-                            </div>
-                            <span className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> {displayStatus}
-                            </span>
-                        </div>
+    /* REAL PNR */
 
-                        {/* Flight Route & Details (Compact) */}
-                        <div className="space-y-6">
-                            {displayFlightsList.map((f, idx) => {
-                                const isReturnLeg = isRoundTripBooking && idx >= Math.ceil(displayFlightsList.length / 2);
-                                return (
-                                    <div key={idx} className={`space-y-3 ${idx > 0 ? 'pt-4 border-t border-slate-100/80' : ''}`}>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] bg-slate-900 text-white font-extrabold px-2.5 py-0.5 rounded-sm uppercase tracking-wider">
-                                                {isRoundTripBooking
-                                                    ? (isReturnLeg ? '🔄 Return Flight' : '✈️ Outbound Flight')
-                                                    : (idx === 0 ? '✈️ Outbound Flight' : `✈️ Connection Flight ${idx}`)}
-                                            </span>
-                                        </div>
+    const realPnr =
+      allBookingInfos.find(
+        (item) => item?.pnr
+      )?.pnr ||
+      allBookingInfos.find(
+        (item) => item?.gds_pnr
+      )?.gds_pnr ||
+      details.pnr ||
+      details.pnrNumber ||
+      details.airlinePnr ||
+      "";
 
-                                        {/* Airline Header */}
-                                        <div className="flex items-center justify-between pb-3 border-b border-slate-100/60">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-9 h-9 bg-slate-900 text-white rounded-full flex items-center justify-center font-extrabold text-xs shrink-0">
-                                                    {f.airlineCode}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-extrabold text-slate-800 text-sm leading-none">{f.airlineName}</h3>
-                                                    <p className="text-[10px] text-slate-400 font-bold mt-1">Flight {f.flightNumber}</p>
-                                                </div>
-                                            </div>
-                                            <div className="bg-slate-50 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200/50 flex items-center gap-1">
-                                                <Armchair className="w-3 h-3 text-slate-500" /> Economy
-                                            </div>
-                                        </div>
+    /* BAGGAGE */
 
-                                        {/* Origin / Destination Grid */}
-                                        <div className="grid grid-cols-3 items-center gap-2 pt-2 pb-1">
-                                            {/* Origin */}
-                                            <div>
-                                                <p className="text-2.5xl font-black text-slate-800 tracking-tight leading-none">{f.origin}</p>
-                                                <p className="text-[11px] text-slate-800 font-black mt-1.5 truncate">{f.originCity}</p>
-                                                {f.originAirportName && (
-                                                    <p className="text-xs text-slate-700 font-bold mt-0.5 leading-snug" title={f.originAirportName}>{f.originAirportName}</p>
-                                                )}
-                                                <p className="text-xs font-black text-emerald-600 mt-2">{f.depTime}</p>
-                                                <p className="text-[9px] text-slate-400 font-semibold mt-0.5">{f.depDate}</p>
-                                            </div>
+    const baggage =
+      rawSegments?.[0]?.baggage || {};
 
-                                            {/* Route illustration */}
-                                            <div className="flex flex-col items-center justify-center relative">
-                                                <span className="text-[10px] text-slate-450 font-bold mb-1">{f.duration || ''}</span>
-                                                <div className="w-full flex items-center relative py-1">
-                                                    <div className="absolute inset-x-0 top-1/2 h-[1px] bg-slate-200"></div>
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-600 absolute left-0 top-1/2 -translate-y-1/2 z-10"></div>
-                                                    <div className="mx-auto w-7 h-7 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-full flex items-center justify-center z-20 shadow-sm">
-                                                        <Plane className="w-3.5 h-3.5 rotate-90 text-emerald-600" />
-                                                    </div>
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-600 absolute right-0 top-1/2 -translate-y-1/2 z-10"></div>
-                                                </div>
-                                                <span className="text-[9px] text-emerald-650 font-extrabold tracking-wider mt-1 uppercase">{displayFlightsList.length <= 1 ? 'Direct' : `${displayFlightsList.length - 1} Stop(s)`}</span>
-                                            </div>
+    const adultBaggage =
+      baggage.ADT ||
+      baggage.adt ||
+      baggage;
 
-                                            {/* Destination */}
-                                            <div className="text-right">
-                                                <p className="text-2.5xl font-black text-slate-800 tracking-tight leading-none">{f.destination}</p>
-                                                <p className="text-[11px] text-slate-800 font-black mt-1.5 truncate">{f.destinationCity}</p>
-                                                {f.destinationAirportName && (
-                                                    <p className="text-xs text-slate-700 font-bold mt-0.5 leading-snug" title={f.destinationAirportName}>{f.destinationAirportName}</p>
-                                                )}
-                                                <p className="text-xs font-black text-emerald-600 mt-2">{f.arrTime}</p>
-                                                <p className="text-[9px] text-slate-400 font-semibold mt-0.5">{f.arrDate}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+    const includedCabinBag =
+      adultBaggage?.cab ||
+      adultBaggage?.cabin_baggage ||
+      adultBaggage?.cabin ||
+      "";
 
-                        {/* Dashed divider line with ticket cutout punches */}
-                        <div className="relative py-2 -mx-5 sm:-mx-6 print:py-1">
-                            {/* Left cutout */}
-                            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-50 border-r border-slate-200/60 rounded-full z-10"></div>
-                            {/* Dotted border line */}
-                            <div className="border-t border-dashed border-slate-250 w-full"></div>
-                            {/* Right cutout */}
-                            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-50 border-l border-slate-200/60 rounded-full z-10"></div>
-                        </div>
+    const includedCheckinBag =
+      adultBaggage?.cib ||
+      adultBaggage?.checkin_baggage ||
+      adultBaggage?.checkin ||
+      "";
 
-                        {/* Passenger Details Row(s) */}
-                        <div className="space-y-4 py-1 text-left">
-                            <div className="border-b border-slate-100 pb-1 flex justify-between items-center">
-                                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
-                                    Passengers, Seats & Perks
-                                </span>
-                                <span className="text-[9px] text-slate-400 font-bold block">
-                                    {displayPassengersList.length} Traveller(s)
-                                </span>
-                            </div>
-                            {displayPassengersList.map((p, idx) => {
-                                const resolvePassengerMealDisplay = () => {
-                                    if (p.confirmedMealTitle) {
-                                        return { text: `🍱 ${p.confirmedMealTitle}`, class: 'text-emerald-600 font-bold' };
-                                    }
+    /* PASSENGERS */
 
-                                    const selMealObj = p.selectedMealObj || p.selectedMeals?.[0];
-                                    const selMealTitle = typeof selMealObj === 'object' 
-                                        ? (selMealObj.description || selMealObj.title || selMealObj.mealId) 
-                                        : (p.selectedMeal && p.selectedMeal !== 'None' ? p.selectedMeal : null);
+    const mappedPassengers =
+      travellers.map(
+        (traveller, index) => {
+          const paxId =
+            traveller.pax_info_id;
 
-                                    const holdStatus = p.mealHoldStatus || 'PENDING';
+          const bookingInfo =
+            allBookingInfos.find(
+              (item) =>
+                item.pax_info_id === paxId
+            );
 
-                                    if (selMealTitle) {
-                                        const mealPriceStr = (typeof selMealObj === 'object' && selMealObj.price) ? ` (+₹${selMealObj.price})` : '';
-                                        if (holdStatus === 'FAILED') {
-                                            return { text: `🍱 ${selMealTitle}${mealPriceStr} (Not Confirmed)`, class: 'text-rose-600 font-bold' };
-                                        } else {
-                                            return { text: `🍱 ${selMealTitle}${mealPriceStr}`, class: 'text-emerald-600 font-bold' };
-                                        }
-                                    }
+          const fallbackPassenger =
+            stateToUse.passengers?.[
+              index
+            ] ||
+            (index === 0
+              ? stateToUse.passenger
+              : {}) ||
+            {};
 
-                                    const hasFareBenefit = stateToUse.hasFareMealBenefit || stateToUse.flight?.benefits?.some(b => 
-                                        (b.type || b.benefitType || '').toUpperCase() === 'MEAL' ||
-                                        (b.description || b.value || '').toLowerCase().includes('meal')
-                                    );
+          return {
+            title:
+              traveller.title ||
+              fallbackPassenger.title ||
+              "MR",
 
-                                    if (hasFareBenefit) {
-                                        return { text: '🍱 Complimentary Meal Included', class: 'text-emerald-700 font-semibold' };
-                                    }
+            firstName:
+              traveller.fn ||
+              traveller.first_name ||
+              fallbackPassenger.firstName ||
+              "Traveller",
 
-                                    return { text: '🍱 Not Selected', class: 'text-slate-400 font-normal' };
-                                };
+            lastName:
+              traveller.ln ||
+              traveller.last_name ||
+              fallbackPassenger.lastName ||
+              "",
 
-                                const mealDisplay = resolvePassengerMealDisplay();
+            type:
+              traveller.type ||
+              fallbackPassenger.type ||
+              "ADT",
 
-                                return (
-                                    <div key={idx} className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 items-start border-b border-slate-50 last:border-0 last:pb-0">
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Passenger {idx + 1}</span>
-                                            <span className="text-xs font-black text-slate-800 mt-0.5 block truncate">
-                                                {p.title || 'Mr.'} {p.firstName} {p.lastName}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Seat</span>
-                                            <span className={`text-xs font-black mt-0.5 block truncate ${(p.seatNumber || p.selectedSeat) ? 'text-emerald-600' : 'text-slate-400'}`} title={p.seatNumber || p.selectedSeat || 'Pending'}>
-                                                {p.seatNumber || p.selectedSeat || 'Pending'}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Baggage</span>
-                                            <span className="text-xs font-semibold text-slate-700 mt-0.5 block truncate" title={`Cabin: ${p.includedCabinBag || p.cabinBag || 'Included'} • Check-in: ${p.includedCheckinBag || p.checkinBag || 'Included'}`}>
-                                                🧳 {p.includedCabinBag || p.cabinBag || 'Included'} + {p.includedCheckinBag || p.checkinBag || 'Included'}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Meal Selection</span>
-                                            <span className={`text-xs mt-0.5 block truncate ${mealDisplay.class}`} title={mealDisplay.text}>
-                                                {mealDisplay.text}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+            email:
+              details.user_details
+                ?.email ||
+              fallbackPassenger.email ||
+              "",
 
-                        {/* Simulated Barcode */}
-                        <div className="pt-3 border-t border-slate-100 flex flex-col items-center justify-center gap-1.5 print:pt-2">
-                            <div className="flex items-center justify-center gap-[2px] opacity-75 h-7">
-                                <div className="w-[1.5px] h-full bg-slate-800"></div>
-                                <div className="w-[3px] h-full bg-slate-800"></div>
-                                <div className="w-[1px] h-full bg-slate-800"></div>
-                                <div className="w-[2px] h-full bg-slate-800"></div>
-                                <div className="w-[4px] h-full bg-slate-800"></div>
-                                <div className="w-[1px] h-full bg-slate-800"></div>
-                                <div className="w-[3px] h-full bg-slate-800"></div>
-                                <div className="w-[1.5px] h-full bg-slate-800"></div>
-                                <div className="w-[1px] h-full bg-slate-800"></div>
-                                <div className="w-[4px] h-full bg-slate-800"></div>
-                                <div className="w-[2.5px] h-full bg-slate-800"></div>
-                                <div className="w-[1px] h-full bg-slate-800"></div>
-                                <div className="w-[3.5px] h-full bg-slate-800"></div>
-                                <div className="w-[1.5px] h-full bg-slate-800"></div>
-                                <div className="w-[2.5px] h-full bg-slate-800"></div>
-                                <div className="w-[1.5px] h-full bg-slate-800"></div>
-                                <div className="w-[4px] h-full bg-slate-800"></div>
-                                <div className="w-[1px] h-full bg-slate-800"></div>
-                                <div className="w-[2px] h-full bg-slate-800"></div>
-                                <div className="w-[3px] h-full bg-slate-800"></div>
-                                <div className="w-[1.5px] h-full bg-slate-800"></div>
-                                <div className="w-[1px] h-full bg-slate-800"></div>
-                                <div className="w-[4px] h-full bg-slate-800"></div>
-                                <div className="w-[2px] h-full bg-slate-800"></div>
-                                <div className="w-[3px] h-full bg-slate-800"></div>
-                            </div>
-                            <span className="text-[9px] font-bold tracking-widest text-slate-400">{confirmId}</span>
-                        </div>
+            ticketNumber:
+              bookingInfo?.ticket_number ||
+              bookingInfo?.ticketNumber ||
+              "",
 
-                    </div>
-                </div>
+            seatNumber:
+              bookingInfo?.seat_number ||
+              bookingInfo?.seatNumber ||
+              fallbackPassenger.seatNumber ||
+              fallbackPassenger.selectedSeat ||
+              "",
 
-                {/* Compact Trust Badges (Horizontal single row) */}
-                <div className="bg-white rounded-2xl border border-slate-150 shadow-[0_4px_15px_rgba(0,0,0,0.02)] p-4.5 mt-5">
-                    <div className="grid grid-cols-4 gap-3 text-center">
-                        <div className="flex flex-col items-center">
-                            <Ticket className="w-4 h-4 text-emerald-600" />
-                            <span className="text-[9px] font-extrabold text-slate-800 mt-1">Verified Ticket</span>
-                        </div>
-                        <div className="flex flex-col items-center border-l border-slate-100">
-                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                            <span className="text-[9px] font-extrabold text-slate-800 mt-1">Secure Booking</span>
-                        </div>
-                        <div className="flex flex-col items-center border-l border-slate-100">
-                            <Headphones className="w-4 h-4 text-emerald-600" />
-                            <span className="text-[9px] font-extrabold text-slate-800 mt-1">24x7 Help</span>
-                        </div>
-                        <div className="flex flex-col items-center border-l border-slate-100">
-                            <Smartphone className="w-4 h-4 text-emerald-600" />
-                            <span className="text-[9px] font-extrabold text-slate-800 mt-1">E-Ticket Ready</span>
-                        </div>
-                    </div>
-                </div>
+            selectedMeal:
+              fallbackPassenger.selectedMeal ||
+              "",
 
-                {/* Print/Home Buttons */}
-                <div className="flex items-center justify-between gap-4 mt-6 print:hidden">
-                    <button
-                        onClick={() => navigate('/')}
-                        className="w-full flex items-center justify-center gap-1.5 border border-slate-300 hover:bg-slate-50 text-slate-750 font-extrabold py-3 px-6 rounded-xl transition-all cursor-pointer text-xs"
-                    >
-                        <Home className="w-4 h-4" /> Go to Home
-                    </button>
-                    <button
-                        onClick={handlePrint}
-                        className="w-full flex items-center justify-center gap-1.5 bg-[#b89565] hover:bg-[#a38053] text-white font-extrabold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer text-xs"
-                    >
-                        <Download className="w-4 h-4" /> Print / Download
-                    </button>
-                </div>
-            </main>
+            confirmedMealTitle:
+              fallbackPassenger.confirmedMealTitle ||
+              "",
 
-            <div className="print:hidden">
-                <Footer />
-            </div>
-        </div>
+            includedCabinBag:
+              includedCabinBag ||
+              fallbackPassenger.includedCabinBag ||
+              fallbackPassenger.cabinBag ||
+              "",
+
+            includedCheckinBag:
+              includedCheckinBag ||
+              fallbackPassenger.includedCheckinBag ||
+              fallbackPassenger.checkinBag ||
+              "",
+          };
+        }
+      );
+
+    /* FLIGHTS */
+
+    const mappedFlights =
+      rawSegments.map((segment) => {
+        const depEpoch =
+          normalizeEpoch(segment.dd);
+
+        const arrEpoch =
+          normalizeEpoch(segment.ad);
+
+        const depAirport =
+          airportsMeta[segment.dep] || {};
+
+        const arrAirport =
+          airportsMeta[segment.arr] || {};
+
+        const depTimezone =
+          depAirport.time_zone ||
+          depAirport.timezone ||
+          "Asia/Kolkata";
+
+        const arrTimezone =
+          arrAirport.time_zone ||
+          arrAirport.timezone ||
+          "Asia/Kolkata";
+
+        return {
+          airlineCode:
+            segment.al || "FL",
+
+          airlineName:
+            airlinesMeta[segment.al]
+              ?.name ||
+            segment.airline_name ||
+            segment.al ||
+            "Partner Airline",
+
+          flightNumber:
+            segment.al && segment.fn
+              ? `${segment.al} ${segment.fn}`
+              : segment.fn || "",
+
+          origin:
+            segment.dep || "",
+
+          originCity:
+            depAirport.city ||
+            segment.dep ||
+            "Departure",
+
+          originAirportName:
+            depAirport.name ||
+            depAirport.airport_name ||
+            "",
+
+          destination:
+            segment.arr || "",
+
+          destinationCity:
+            arrAirport.city ||
+            segment.arr ||
+            "Arrival",
+
+          destinationAirportName:
+            arrAirport.name ||
+            arrAirport.airport_name ||
+            "",
+
+          depTime:
+            formatEpochTime(
+              depEpoch,
+              depTimezone
+            ),
+
+          depDate:
+            formatEpochDate(
+              depEpoch,
+              depTimezone
+            ),
+
+          arrTime:
+            formatEpochTime(
+              arrEpoch,
+              arrTimezone
+            ),
+
+          arrDate:
+            formatEpochDate(
+              arrEpoch,
+              arrTimezone
+            ),
+
+          departureDateTime:
+            depEpoch,
+
+          arrivalDateTime:
+            arrEpoch,
+
+          duration:
+            calculateDuration(
+              depEpoch,
+              arrEpoch
+            ) ||
+            segment.duration ||
+            "",
+        };
+      });
+
+    return {
+      status,
+
+      pnr: realPnr,
+
+      flights: mappedFlights,
+
+      passengers: mappedPassengers,
+
+      email:
+        details.user_details?.email ||
+        details.email ||
+        "",
+    };
+  }, [liveDetails, stateToUse]);
+
+  /* =========================================================
+     FALLBACK FLIGHTS
+     ========================================================= */
+
+  const stateFlights = useMemo(() => {
+    const source =
+      flight ||
+      stateToUse.flight ||
+      mockFlight;
+
+    if (
+      !Array.isArray(source?.segments)
+    ) {
+      return [];
+    }
+
+    return source.segments.map(
+      (segment) => ({
+        airlineCode:
+          segment.airlineCode ||
+          source.airlineCode ||
+          "FL",
+
+        airlineName:
+          segment.airlineName ||
+          source.airlineName ||
+          "Partner Airline",
+
+        flightNumber:
+          segment.flightNumber ||
+          source.flightNumber ||
+          "",
+
+        origin:
+          segment.origin || "",
+
+        originCity:
+          segment.originCity ||
+          segment.origin ||
+          "Departure",
+
+        originAirportName:
+          segment.originAirportName ||
+          segment.originAirport ||
+          "",
+
+        destination:
+          segment.destination || "",
+
+        destinationCity:
+          segment.destinationCity ||
+          segment.destination ||
+          "Arrival",
+
+        destinationAirportName:
+          segment.destinationAirportName ||
+          segment.destinationAirport ||
+          "",
+
+        depTime:
+          formatNormalTime(
+            segment.departureDateTime,
+            segment.departureTime || ""
+          ),
+
+        depDate:
+          formatNormalDate(
+            segment.departureDateTime,
+            segment.departureDate || ""
+          ),
+
+        arrTime:
+          formatNormalTime(
+            segment.arrivalDateTime,
+            segment.arrivalTime || ""
+          ),
+
+        arrDate:
+          formatNormalDate(
+            segment.arrivalDateTime,
+            segment.arrivalDate || ""
+          ),
+
+        departureDateTime:
+          segment.departureDateTime,
+
+        arrivalDateTime:
+          segment.arrivalDateTime,
+
+        duration:
+          segment.duration ||
+          calculateDuration(
+            segment.departureDateTime,
+            segment.arrivalDateTime
+          ) ||
+          source.duration ||
+          "",
+      })
     );
+  }, [flight, stateToUse]);
+
+  /* =========================================================
+     DISPLAY DATA
+     ========================================================= */
+
+  const displayFlights =
+    resolvedLiveDetails?.flights
+      ?.length
+      ? resolvedLiveDetails.flights
+      : stateFlights.length
+      ? stateFlights
+      : mockFlight.segments.map(
+          (segment) => ({
+            ...segment,
+
+            depTime:
+              formatNormalTime(
+                segment.departureDateTime
+              ),
+
+            depDate:
+              formatNormalDate(
+                segment.departureDateTime
+              ),
+
+            arrTime:
+              formatNormalTime(
+                segment.arrivalDateTime
+              ),
+
+            arrDate:
+              formatNormalDate(
+                segment.arrivalDateTime
+              ),
+          })
+        );
+
+  const fallbackPassengers =
+    Array.isArray(passengers) &&
+    passengers.length
+      ? passengers
+      : Array.isArray(
+          stateToUse.passengers
+        ) &&
+        stateToUse.passengers.length
+      ? stateToUse.passengers
+      : passenger
+      ? [passenger]
+      : stateToUse.passenger
+      ? [stateToUse.passenger]
+      : [mockPassenger];
+
+  const displayPassengers =
+    resolvedLiveDetails?.passengers
+      ?.length
+      ? resolvedLiveDetails.passengers
+      : fallbackPassengers;
+
+  const displayPnr =
+    resolvedLiveDetails?.pnr ||
+    initialPnr ||
+    (location.state
+      ? "Pending"
+      : "Q260820974448");
+
+  const displayStatus =
+    resolvedLiveDetails?.status ||
+    "Confirmed";
+
+  const bookingEmail =
+    resolvedLiveDetails?.email ||
+    displayPassengers?.[0]?.email ||
+    stateToUse.email ||
+    bookingData?.email ||
+    bookingData?.data?.email ||
+    "your registered email";
+
+  /* =========================================================
+     PRICE
+     ========================================================= */
+
+  const ticketTotal =
+    flight?.price ||
+    stateToUse.flight?.price ||
+    bookingData?.price ||
+    bookingData?.totalAmount ||
+    bookingData?.amount ||
+    bookingData?.data?.price ||
+    bookingData?.data?.totalAmount ||
+    holdData?.price ||
+    holdData?.totalAmount ||
+    holdData?.data?.price ||
+    (!location.state ? 3486 : 0);
+
+  /* =========================================================
+     PRINT
+     ========================================================= */
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  /* =========================================================
+     RENDER
+     ========================================================= */
+
+  return (
+    <>
+      {loadingLiveDetails && (
+        <div className="no-print fixed left-1/2 top-4 z-[9999] -translate-x-1/2 rounded-full bg-[#10284d] px-5 py-2 text-[10px] font-semibold text-white shadow-lg">
+          Updating ticket details...
+        </div>
+      )}
+
+      <PremiumFlightTicket
+        bookingId={confirmId}
+        pnr={displayPnr}
+        status={displayStatus}
+        flights={displayFlights}
+        passengers={displayPassengers}
+        totalAmount={ticketTotal}
+        bookingEmail={bookingEmail}
+        onPrint={handlePrint}
+        navigate={navigate}
+      />
+    </>
+  );
 }
