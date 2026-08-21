@@ -9,7 +9,7 @@ import {
 import { toast } from 'react-toastify'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { searchAirports } from '../services/flightApi'
+import { searchAirports, getFareCalendar } from '../services/flightApi'
 import API from '../services/axios'
 import './Home.css'
 
@@ -204,7 +204,7 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
 }
 
 /* ── Mini calendar popover ────────────────────────────── */
-function MiniCalendar({ value, min, onSelect, openUp }) {
+function MiniCalendar({ value, min, onSelect, openUp, fares = {} }) {
   const initial = value ? new Date(`${value}T00:00:00`) : (min ? new Date(`${min}T00:00:00`) : new Date())
   const [viewYear, setViewYear] = useState(initial.getFullYear())
   const [viewMonth, setViewMonth] = useState(initial.getMonth())
@@ -236,6 +236,9 @@ function MiniCalendar({ value, min, onSelect, openUp }) {
           const dateObj = new Date(viewYear, viewMonth, day)
           const isDisabled = minDate && dateObj < minDate
           const isSelected = value === dateStr
+          const fareObj = fares[dateStr]
+          const price = fareObj ? (fareObj.price || fareObj.fare || (typeof fareObj === 'number' ? fareObj : null)) : null
+
           return (
             <button
               type="button"
@@ -244,7 +247,8 @@ function MiniCalendar({ value, min, onSelect, openUp }) {
               className={`mini-cal__day ${isSelected ? 'selected' : ''}`}
               onClick={() => onSelect(dateStr)}
             >
-              {day}
+              <div className="mini-cal__day-num">{day}</div>
+              {price && !isDisabled && <div className="mini-cal__day-fare">₹{price}</div>}
             </button>
           )
         })}
@@ -254,7 +258,7 @@ function MiniCalendar({ value, min, onSelect, openUp }) {
 }
 
 /* ── Date field (dd/mm/yyyy display, custom calendar) ──── */
-function DateField({ label, value, onChange, min, disabled, placeholder = 'dd/mm/yyyy' }) {
+function DateField({ label, value, onChange, min, disabled, placeholder = 'dd/mm/yyyy', fares = {} }) {
   const [open, setOpen] = useState(false)
   const [openUp, setOpenUp] = useState(false)
   const ref = useRef(null)
@@ -293,7 +297,7 @@ function DateField({ label, value, onChange, min, disabled, placeholder = 'dd/mm
         <Calendar size={15} />
       </div>
       {open && !disabled && (
-        <MiniCalendar value={value} min={min} openUp={openUp} onSelect={(d) => { onChange(d); setOpen(false) }} />
+        <MiniCalendar value={value} min={min} openUp={openUp} onSelect={(d) => { onChange(d); setOpen(false) }} fares={fares} />
       )}
     </div>
   )
@@ -309,7 +313,10 @@ export default function Home() {
   const [to, setTo] = useState('')
   const [departDate, setDepartDate] = useState('')
   const [returnDate, setReturnDate] = useState('')
-  const [travelers, setTravelers] = useState(1)
+  const [adults, setAdults] = useState(1)
+  const [children, setChildren] = useState(0)
+  const [infants, setInfants] = useState(0)
+  const travelers = adults + children + infants
   const [travelClass, setTravelClass] = useState('Economy')
   const [travelersOpen, setTravelersOpen] = useState(false)
   const [searchingFlights, setSearchingFlights] = useState(false)
@@ -320,15 +327,41 @@ export default function Home() {
 
   // Newsletter
   const [email, setEmail] = useState('')
+  const [fares, setFares] = useState({})
 
   const today = new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    if (activeTab === 'flights' && from && to && from.length >= 3 && to.length >= 3) {
+      const fromCode = from.match(/\(([^)]+)\)/)?.[1] || from;
+      const toCode = to.match(/\(([^)]+)\)/)?.[1] || to;
+      if (fromCode.length >= 3 && toCode.length >= 3) {
+        getFareCalendar({ origin: fromCode, destination: toCode }).then(res => {
+          let f = {};
+          if (res?.data?.fares) f = res.data.fares;
+          else if (res?.fares) f = res.fares;
+          else if (res?.data && typeof res.data === 'object' && !Array.isArray(res.data)) f = res.data;
+          setFares(f || {});
+        }).catch(() => setFares({}));
+      }
+    } else {
+      setFares({});
+    }
+  }, [from, to, activeTab]);
 
   const swapCities = () => { setFrom(to); setTo(from) }
 
   const fetchAirportSuggestions = async (query) => {
     const res = await searchAirports(query)
-    if (res?.success && res.data?.length) {
-      return res.data.map(ap => ({ main: `${ap.airportCity} (${ap.airportCode})`, sub: ap.airportName }))
+    let data = [];
+    if (Array.isArray(res)) data = res;
+    else if (res?.airportData && Array.isArray(res.airportData)) data = res.airportData;
+    else if (res?.data?.airportData && Array.isArray(res.data.airportData)) data = res.data.airportData;
+    else if (res?.success && Array.isArray(res.data)) data = res.data;
+    else if (res?.data && Array.isArray(res.data)) data = res.data;
+
+    if (data.length) {
+      return data.map(ap => ({ main: `${ap.airportCity} (${ap.airportCode})`, sub: ap.airportName }))
     }
     return []
   }
@@ -355,7 +388,14 @@ export default function Home() {
     if (query.includes('(')) return query
     try {
       const res = await searchAirports(query)
-      const match = res?.success && res.data?.length ? res.data[0] : null
+      let data = [];
+      if (Array.isArray(res)) data = res;
+      else if (res?.airportData && Array.isArray(res.airportData)) data = res.airportData;
+      else if (res?.data?.airportData && Array.isArray(res.data.airportData)) data = res.data.airportData;
+      else if (res?.success && Array.isArray(res.data)) data = res.data;
+      else if (res?.data && Array.isArray(res.data)) data = res.data;
+
+      const match = data.length ? data[0] : null
       return match ? `${match.airportCity} (${match.airportCode})` : query
     } catch {
       return query
@@ -397,7 +437,7 @@ export default function Home() {
           const travellersLabel = `${travelers} Traveller${travelers > 1 ? 's' : ''}`
           navigate(
             `/flights/list?tripType=multiCity&sectors=${encodeURIComponent(JSON.stringify(resolvedSectors))}` +
-            `&cabin=${encodeURIComponent(travelClass)}&travellers=${encodeURIComponent(travellersLabel)}&adults=${travelers}&children=0&infants=0`
+            `&cabin=${encodeURIComponent(travelClass)}&travellers=${encodeURIComponent(travellersLabel)}&adults=${adults}&children=${children}&infants=${infants}`
           )
         } finally {
           setSearchingFlights(false)
@@ -419,7 +459,7 @@ export default function Home() {
           `/flights/list?from=${encodeURIComponent(fromResolved)}&to=${encodeURIComponent(toResolved)}` +
           `&date=${encodeURIComponent(departDate)}&returnDate=${encodeURIComponent(flightTripType === 'roundTrip' ? returnDate : '')}` +
           `&tripType=${flightTripType}&cabin=${encodeURIComponent(travelClass)}&travellers=${encodeURIComponent(travellersLabel)}` +
-          `&adults=${travelers}&children=0&infants=0`
+          `&adults=${adults}&children=${children}&infants=${infants}`
         )
       } finally {
         setSearchingFlights(false)
@@ -526,7 +566,7 @@ export default function Home() {
                     fetchSuggestions={fetchAirportSuggestions}
                   />
 
-                  <DateField label="Depart" value={departDate} min={today} onChange={setDepartDate} />
+                  <DateField label="Depart" value={departDate} min={today} onChange={setDepartDate} fares={fares} />
 
                   <DateField
                     label="Return"
@@ -534,6 +574,7 @@ export default function Home() {
                     min={departDate || today}
                     onChange={setReturnDate}
                     disabled={tripType !== 'roundtrip'}
+                    fares={fares}
                   />
 
                   <div className="search2__field search2__field--travelers">
@@ -545,15 +586,42 @@ export default function Home() {
                     {travelersOpen && (
                       <div className="search2__travelers-pop">
                         <div className="search2__travelers-row">
-                          <span>Travelers</span>
+                          <div className="search2__travelers-info">
+                            <span>Adults</span>
+                            <small>12+ Years</small>
+                          </div>
                           <div className="search2__stepper">
-                            <button onClick={() => setTravelers(t => Math.max(1, t - 1))}>-</button>
-                            <span>{travelers}</span>
-                            <button onClick={() => setTravelers(t => Math.min(9, t + 1))}>+</button>
+                            <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                            <span>{adults}</span>
+                            <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
                           </div>
                         </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Children</span>
+                            <small>2 - 12 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
+                            <span>{children}</span>
+                            <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Infants</span>
+                            <small>Below 2 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
+                            <span>{infants}</span>
+                            <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        
+                        <div className="search2__travelers-cabin-title">CABIN CLASS</div>
                         <div className="search2__travelers-row search2__travelers-row--classes">
-                          {['Economy', 'Premium Economy', 'Business', 'First'].map(c => (
+                          {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
                             <button
                               key={c}
                               className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
@@ -563,7 +631,7 @@ export default function Home() {
                             </button>
                           ))}
                         </div>
-                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>Done</button>
+                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>APPLY</button>
                       </div>
                     )}
                   </div>
@@ -631,15 +699,42 @@ export default function Home() {
                     {travelersOpen && (
                       <div className="search2__travelers-pop">
                         <div className="search2__travelers-row">
-                          <span>Travelers</span>
+                          <div className="search2__travelers-info">
+                            <span>Adults</span>
+                            <small>12+ Years</small>
+                          </div>
                           <div className="search2__stepper">
-                            <button onClick={() => setTravelers(t => Math.max(1, t - 1))}>-</button>
-                            <span>{travelers}</span>
-                            <button onClick={() => setTravelers(t => Math.min(9, t + 1))}>+</button>
+                            <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                            <span>{adults}</span>
+                            <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
                           </div>
                         </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Children</span>
+                            <small>2 - 12 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
+                            <span>{children}</span>
+                            <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Infants</span>
+                            <small>Below 2 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
+                            <span>{infants}</span>
+                            <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        
+                        <div className="search2__travelers-cabin-title">CABIN CLASS</div>
                         <div className="search2__travelers-row search2__travelers-row--classes">
-                          {['Economy', 'Premium Economy', 'Business', 'First'].map(c => (
+                          {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
                             <button
                               key={c}
                               className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
@@ -649,7 +744,7 @@ export default function Home() {
                             </button>
                           ))}
                         </div>
-                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>Done</button>
+                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>APPLY</button>
                       </div>
                     )}
                   </div>

@@ -374,6 +374,25 @@ export default function SeatAndAncillarySelectionPage() {
                     if (isMounted) {
                         setLiveAncillaries(data);
                         setAncillariesUnavailable(false);
+
+                        // Auto-select first leg that has live API SEAT data
+                        if (data) {
+                            let activeLegData = Array.isArray(data) ? (data[activeCityPairIdx] || data[0]) : data;
+                            const rootData = activeLegData?.data || activeLegData || {};
+                            const travelOpts = rootData?.travelOptions || [];
+                            const activeTravelOpt = travelOpts[0] || travelOpts[activeCityPairIdx];
+                            const subTravelOptions = activeTravelOpt?.subTravelOptions || [];
+                            for (const subOpt of subTravelOptions) {
+                                if (subOpt.flights && Array.isArray(subOpt.flights)) {
+                                    const seatLegIdx = subOpt.flights.findIndex(f => f.ancillaries?.some(a => a.type === 'SEAT'));
+                                    if (seatLegIdx !== -1) {
+                                        setActiveLegIdx(seatLegIdx);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
                         toast.success(`Seat Map & Perks loaded for ${cityPairs.map(c => `${c.origin}➔${c.destination}`).join(' | ')}!`);
                     }
                 } catch (cacheErr) {
@@ -594,7 +613,8 @@ export default function SeatAndAncillarySelectionPage() {
                 rowsList.push({
                     id: String(r),
                     characteristics: (r === 12 || r === 13) ? 'EXIT_ROW' : 'STANDARD',
-                    seats: rowSeats
+                    seats: rowSeats,
+                    isFallback: true
                 });
             }
         }
@@ -1199,7 +1219,7 @@ export default function SeatAndAncillarySelectionPage() {
         }
     };
 
-    if (!flight) {
+    if (!flight || sessionExpired) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col justify-between pt-[75px]">
                 <Navbar />
@@ -1207,13 +1227,19 @@ export default function SeatAndAncillarySelectionPage() {
                     <div className="w-16 h-16 bg-red-100 text-red-600 rounded-none flex items-center justify-center mx-auto mb-4">
                         <Plane className="w-8 h-8" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900">No Booking Data Found</h2>
-                    <p className="text-sm text-slate-500 mt-2 mb-6">Please start booking from the flight search list.</p>
+                    <h2 className="text-2xl font-black text-slate-900">
+                        {sessionExpired ? "Booking Session Expired" : "No Booking Data Found"}
+                    </h2>
+                    <p className="text-sm text-slate-500 mt-2 mb-6">
+                        {sessionExpired
+                            ? "Your booking has been completed or the session has expired. Please start a new search to mint a new booking session."
+                            : "Please start booking from the flight search list."}
+                    </p>
                     <button
-                        onClick={() => navigate('/flights/list')}
+                        onClick={handleSearchAgain}
                         className="bg-[#b89565] hover:bg-[#a38053] text-white font-bold py-3 px-8 rounded-none transition-all shadow-md"
                     >
-                        Back to Search
+                        Start New Search
                     </button>
                 </div>
                 <Footer />
@@ -1388,6 +1414,23 @@ export default function SeatAndAncillarySelectionPage() {
                                         <div className="flex flex-wrap gap-2">
                                             {activeLegs.map((leg, lIdx) => {
                                                 const isLegActive = activeLegIdx === lIdx;
+
+                                                let legHasSeats = false;
+                                                if (liveAncillaries) {
+                                                    let activeLegData = Array.isArray(liveAncillaries) ? (liveAncillaries[activeCityPairIdx] || liveAncillaries[0]) : liveAncillaries;
+                                                    const rootData = activeLegData?.data || activeLegData || {};
+                                                    const travelOpts = rootData?.travelOptions || [];
+                                                    const activeTravelOpt = travelOpts[0] || travelOpts[activeCityPairIdx];
+                                                    const subTravelOptions = activeTravelOpt?.subTravelOptions || [];
+                                                    for (const subOpt of subTravelOptions) {
+                                                        const flt = subOpt.flights?.[lIdx];
+                                                        if (flt?.ancillaries?.some(a => a.type === 'SEAT')) {
+                                                            legHasSeats = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
                                                 return (
                                                     <button
                                                         key={lIdx}
@@ -1396,13 +1439,16 @@ export default function SeatAndAncillarySelectionPage() {
                                                             setActiveLegIdx(lIdx);
                                                             toast.info(`Showing seat map for Leg ${lIdx + 1}: ${leg.origin} ➔ ${leg.destination}`);
                                                         }}
-                                                        className={`flex-1 min-w-[150px] py-2.5 px-4 text-xs font-bold transition-all border ${
+                                                        className={`flex-1 min-w-[170px] py-2.5 px-4 text-xs font-bold transition-all border text-left ${
                                                             isLegActive
                                                                 ? 'bg-slate-900 border-slate-900 text-white shadow-sm font-black'
                                                                 : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
                                                         }`}
                                                     >
-                                                        Leg {lIdx + 1}: {leg.origin} ➔ {leg.destination}
+                                                        <div>Leg {lIdx + 1}: {leg.origin} ➔ {leg.destination}</div>
+                                                        <div className={`text-[10px] font-normal mt-0.5 ${legHasSeats ? 'text-emerald-400 font-bold' : isLegActive ? 'text-slate-300' : 'text-slate-500'}`}>
+                                                            {legHasSeats ? '🟢 Live API Seat Map' : '⚪ Standard Seating'}
+                                                        </div>
                                                     </button>
                                                 );
                                             })}
@@ -1462,6 +1508,16 @@ export default function SeatAndAncillarySelectionPage() {
                                         {passengers[activePassengerIdx]?.type === 'INF' && (
                                             <div className="max-w-md mx-auto bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold p-4 text-center my-3 rounded">
                                                 👶 Infants travel on the lap of an adult. Seats cannot be assigned for infants.
+                                            </div>
+                                        )}
+
+                                        {apiSeatsLayout?.[0]?.isFallback ? (
+                                            <div className="max-w-md mx-auto bg-amber-50 border border-amber-300 text-amber-900 text-xs font-medium p-3 mb-3 text-center">
+                                                ℹ️ Live seat map not returned by airline for <strong>{activeLeg.origin} ➔ {activeLeg.destination}</strong>. Showing standard layout for seat preference.
+                                            </div>
+                                        ) : (
+                                            <div className="max-w-md mx-auto bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold p-3 mb-3 text-center">
+                                                ✨ Live Airline Seat Map Loaded ({apiSeatsLayout?.length} Rows) for <strong>{activeLeg.origin} ➔ {activeLeg.destination}</strong>
                                             </div>
                                         )}
 

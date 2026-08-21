@@ -177,6 +177,7 @@ export default function Payment() {
 
             toast.success("Flight booking confirmed!");
             navigate('/flight/booking-success', {
+              replace: true,
               state: {
                 ...location.state,
                 bookingData: bookData,
@@ -187,7 +188,7 @@ export default function Payment() {
           } catch (err) {
             console.error("Post Payment Error:", err);
             toast.error(err.message || "Failed to issue ticket after payment.");
-            navigate('/flight/booking-success', { state: location.state });
+            navigate('/flight/booking-success', { replace: true, state: location.state });
           } finally {
             setProcessing(false);
           }

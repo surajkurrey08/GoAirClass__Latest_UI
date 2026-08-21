@@ -705,8 +705,18 @@ export default function FlightListPage() {
                     sectorFlightsMap['J1'] = parsed;
                 }
 
-                const processedJ1 = sectorFlightsMap['J1'] || [];
-                const processedJ2 = sectorFlightsMap['J2'] || [];
+                // Dynamically resolve sector keys (e.g., J1, J2) returned by Cleartrip API
+                const sortedSectorKeys = Object.keys(sectorFlightsMap).sort((a, b) => {
+                    const numA = Number(a.replace(/\D/g, '')) || 0;
+                    const numB = Number(b.replace(/\D/g, '')) || 0;
+                    return numA - numB;
+                });
+
+                const primarySectorKey = sortedSectorKeys[0] || 'J1';
+                const secondarySectorKey = sortedSectorKeys[1] || 'J2';
+
+                const processedJ1 = sectorFlightsMap[primarySectorKey] || Object.values(sectorFlightsMap)[0] || [];
+                const processedJ2 = sectorFlightsMap[secondarySectorKey] || [];
 
                 setAllFares(faresDict);
                 setAllBenefits(apiData.benefits || null);
@@ -715,7 +725,7 @@ export default function FlightListPage() {
                 setAllSectorFlights(sectorFlightsMap);
 
                 if (tripTypeVal === 'multiCity') {
-                    const firstKey = Object.keys(sectorFlightsMap).sort()[0] || 'J1';
+                    const firstKey = sortedSectorKeys[0] || 'J1';
                     setActiveSectorKey(firstKey);
                     setFlights(sectorFlightsMap[firstKey] || []);
                 } else {
@@ -728,7 +738,7 @@ export default function FlightListPage() {
                     setSelectionMode('oneWay');
                 }
 
-                const prices = (tripTypeVal === 'multiCity' ? (sectorFlightsMap['J1'] || []) : processedJ1).map(f => f.price);
+                const prices = processedJ1.map(f => f.price).filter(p => typeof p === 'number' && !isNaN(p));
                 if (prices.length > 0) {
                     const minP = Math.min(...prices);
                     const maxP = Math.max(...prices);

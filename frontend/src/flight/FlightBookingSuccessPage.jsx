@@ -1216,7 +1216,7 @@ function PremiumFlightTicket({
         <div className="no-print mx-auto mt-3 flex w-full max-w-[960px] flex-col justify-end gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/", { replace: true })}
             className="flex min-w-[150px] items-center justify-center gap-2 rounded-[7px] border border-[#b9ad98] bg-white px-5 py-2.5 text-[10px] font-bold shadow-sm hover:bg-[#faf8f3]"
           >
             <Home size={15} />
@@ -1247,87 +1247,37 @@ export default function FlightBookingSuccessPage() {
   const navigate = useNavigate();
 
   /* =========================================================
+     SESSION CLEANUP & BACK BUTTON NAVIGATION TRAP
+     ========================================================= */
+
+  // Clear stale session tokens so any new booking requires creating a fresh session
+  useEffect(() => {
+    [
+      'flight_session_id', 'flight_preview_id', 'multi_city_previews_map',
+    ].forEach(key => sessionStorage.removeItem(key));
+    for (let i = 0; i < 10; i++) {
+      sessionStorage.removeItem(`flight_session_id_${i}`);
+      sessionStorage.removeItem(`flight_preview_id_${i}`);
+    }
+  }, []);
+
+  // Redirect user to Home screen ('/') when browser Back button is pressed on Booking Success page
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      navigate("/", { replace: true });
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
+
+  /* =========================================================
      MOCK DATA
      ========================================================= */
 
-  const mockFlight = {
-    airlineCode: "6E",
-
-    airlineName: "IndiGo",
-
-    flightNumber: "6E 840",
-
-    price: 3486,
-
-    segments: [
-      {
-        airlineCode: "6E",
-
-        airlineName: "IndiGo",
-
-        flightNumber: "6E 840",
-
-        origin: "BLR",
-
-        originCity: "Bangalore",
-
-        originAirportName:
-          "Kempegowda International Airport (BLR)",
-
-        departureDateTime:
-          "2026-08-21T14:15:00+05:30",
-
-        destination: "DEL",
-
-        destinationCity: "New Delhi",
-
-        destinationAirportName:
-          "Indira Gandhi International Airport (DEL)",
-
-        arrivalDateTime:
-          "2026-08-21T16:45:00+05:30",
-
-        duration: "2h 30m",
-      },
-    ],
-  };
-
-  const mockPassenger = {
-    title: "MR",
-
-    firstName: "Suraj",
-
-    lastName: "Kurrey",
-
-    type: "ADT",
-
-    selectedSeat: "",
-
-    selectedMeal: "",
-
-    includedCabinBag: "7 kg",
-
-    includedCheckinBag: "15 kg",
-
-    email: "surajkurrey@example.com",
-  };
-
-  /* =========================================================
-     NAVIGATION STATE
-     ========================================================= */
-
-  const stateToUse =
-    location.state || {
-      flight: mockFlight,
-
-      passenger: mockPassenger,
-
-      passengers: [mockPassenger],
-
-      pnr: "Q260820974448",
-
-      bookingId: "Q260820974448",
-    };
+  const stateToUse = location.state || {};
 
   const {
     bookingData,
@@ -1791,8 +1741,7 @@ export default function FlightBookingSuccessPage() {
   const stateFlights = useMemo(() => {
     const source =
       flight ||
-      stateToUse.flight ||
-      mockFlight;
+      stateToUse.flight;
 
     if (
       !Array.isArray(source?.segments)
@@ -1893,33 +1842,7 @@ export default function FlightBookingSuccessPage() {
     resolvedLiveDetails?.flights
       ?.length
       ? resolvedLiveDetails.flights
-      : stateFlights.length
-      ? stateFlights
-      : mockFlight.segments.map(
-          (segment) => ({
-            ...segment,
-
-            depTime:
-              formatNormalTime(
-                segment.departureDateTime
-              ),
-
-            depDate:
-              formatNormalDate(
-                segment.departureDateTime
-              ),
-
-            arrTime:
-              formatNormalTime(
-                segment.arrivalDateTime
-              ),
-
-            arrDate:
-              formatNormalDate(
-                segment.arrivalDateTime
-              ),
-          })
-        );
+      : stateFlights;
 
   const fallbackPassengers =
     Array.isArray(passengers) &&
@@ -1934,7 +1857,7 @@ export default function FlightBookingSuccessPage() {
       ? [passenger]
       : stateToUse.passenger
       ? [stateToUse.passenger]
-      : [mockPassenger];
+      : [];
 
   const displayPassengers =
     resolvedLiveDetails?.passengers
@@ -1989,6 +1912,28 @@ export default function FlightBookingSuccessPage() {
   /* =========================================================
      RENDER
      ========================================================= */
+
+  if (!loadingLiveDetails && displayFlights.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between pt-[75px]">
+        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-none flex items-center justify-center mx-auto mb-4">
+            <Plane className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900">No Booking Ticket Found</h2>
+          <p className="text-sm text-slate-500 mt-2 mb-6">
+            Please search for flights to start a new booking session.
+          </p>
+          <button
+            onClick={() => navigate('/flights', { replace: true })}
+            className="bg-[#b89565] hover:bg-[#a38053] text-white font-bold py-3 px-8 rounded-none transition-all shadow-md"
+          >
+            Search Flights
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

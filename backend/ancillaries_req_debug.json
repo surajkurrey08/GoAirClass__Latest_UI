@@ -1,40 +1,44 @@
 {
   "headers": {
     "host": "localhost:5000",
-    "connection": "close",
-    "content-length": "846",
+    "connection": "keep-alive",
+    "content-length": "1040",
     "sec-ch-ua-platform": "\"Windows\"",
-    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhODZlZTVlNTQzNDExZmU2ZTdiMWRiNSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg3MjMwODQ3LCJleHAiOjE3ODk4MjI4NDd9.8XX9WxrDwpU_8D28XUrBxwYvPxT6YPw4q0hm_58QEiA",
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNzg4YmFjMmYzYzI1MTFlZDgzOGQ2OCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg3MTQwMzAzLCJleHAiOjE3ODk3MzIzMDN9.JRU5TSKvaZ2SGcQeP-r0DlYFjoe5TM-Mx0oLCkkJtUo",
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
     "accept": "application/json, text/plain, */*",
     "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
     "content-type": "application/json",
     "sec-ch-ua-mobile": "?0",
     "origin": "http://localhost:5173",
-    "sec-fetch-site": "same-origin",
+    "sec-fetch-site": "same-site",
     "sec-fetch-mode": "cors",
     "sec-fetch-dest": "empty",
-    "referer": "http://localhost:5173/flight/seat-selection",
+    "referer": "http://localhost:5173/",
     "accept-encoding": "gzip, deflate, br, zstd",
-    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8,hi;q=0.7",
-    "cookie": "rzp_unified_session_id=TS2EYz1G2wMJGP"
+    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8"
   },
   "body": {
-    "sessionId": "65273301_d5eddaf9-c6bc-4955-a800-a08b1a9f6f3f-260820183942",
-    "flightPreviewId": "35479e9d-763a-4b1f-b244-65a489e38549",
+    "sessionId": "65273301_5863e9d6-c7e1-4023-a860-2588bd5e22e4-260820200009",
+    "flightPreviewId": "8eb1ce77-a81b-417a-b757-248263a69eb9",
     "travelOptions": [
       {
-        "id": "6E-840-BLR-DEL-1787301900",
-        "searchIntent": "BLR_DEL",
+        "id": "SG-937-PNQ-DEL-1787703900__SG-162-DEL-BOM-1787755200",
+        "searchIntent": "PNQ_BOM",
         "subTravelOptions": [
           {
-            "id": "6E-840-BLR-DEL-1787301900",
-            "fareId": "REGULAR__21/08/2026__6E__6E__BLR_DEL__true__RETAIL__E__DOM__OW__UNKNOWN__S050__SALE__AVN+Z51/786fwC7E1hiMIuLXL26Ag8T9R/grc0NLzxZoy3OVm6yLdiBS1tWO6fTaa6laPDZFjA5d+dW+hRW4FFZVnr7DlkgdGZQVRaNsW5jxXNviSKoaI4oDxJTBYj5nCur/ucBVy2whkvUB2t7IhmuOf4ELUG5pMtwRPnF+Sq9PI14B2HvLg+gdHQ7kzCCPQ7jT2q0hvD2+Usv1pjM4fmUfDoUddooX89lcz9/FuPXbXy87/UKlg1slFkoKNdEzjm9AqEySHrxaxYn3+qyTp87ISYMwIg==~~V3",
+            "id": "SG-937-PNQ-DEL-1787703900__SG-162-DEL-BOM-1787755200",
+            "fareId": "REGULAR__26/08/2026__SG^SG__SG^SG__PNQ_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S055__HOLIDAY FARE,HOLIDAY FARE__AVN+Z50gMINc0hAtMfhNaQbVXw9WgQ1Cbz+XXOHBxMpb3BuF7Sh9K7mablWy+MQlw9Bed3sjoB/VcMPk1SUd84wXH3j+ruELTvrt/HmErwo1Zs3Lp41kSXHEcOvmsC+IgNk+VqLQAkfb4lJ4vd4oiIqdoXXiP/XEaA9/rkA6f/FpbJ/eOXc44Y+CZzjIn3uybNL6olIdad/7Xq7Cb4BnfiTpCNba4juYs4alf7PJXBTF+ksvGozPz0wZ3H2LmkllyxN5NWbMCns1EwWeXozkf2mhcwk/e6qbKZV3Au1AsG+Pk+rbH60Sr/eCfsPssUwFTVw=~~V3",
             "flights": [
               {
-                "id": "6E-840-BLR-DEL-1787301900",
-                "departureCode": "BLR",
+                "id": "SG-937-PNQ-DEL-1787703900",
+                "departureCode": "PNQ",
                 "arrivalCode": "DEL"
+              },
+              {
+                "id": "SG-162-DEL-BOM-1787755200",
+                "departureCode": "DEL",
+                "arrivalCode": "BOM"
               }
             ]
           }
@@ -46,6 +50,6 @@
       "MEAL",
       "BAGGAGE"
     ],
-    "searchId": "DC_Search-01b41703-d6ce-4798-92fc-ca6e3924ff93"
+    "searchId": "DC_Search-997f45d7-12d2-4c2a-bd4e-1498f7ce715c"
   }
 }
