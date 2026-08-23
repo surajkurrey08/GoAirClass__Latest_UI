@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-08-20T13:08:53.248Z",
+  "timestamp": "2026-08-21T11:23:43.529Z",
   "requestBody": {
-    "sessionId": "65273301_8926be70-f479-460a-bfb0-3ee2be709455-260820163703",
-    "searchId": "DC_Search-086baf01-1976-4cdb-91d4-5d5a5ebadc66",
-    "dataId": "AVN+Z520tqJABoFjlYWKFOr5FctFwwwmWJOUu0pAFpaBTG1ZmnflAIhKIEjENZuYfAylxe4dFiFeyrf7vKjzgvFSUffd2dNNGvfecNaltilhTGdsiRzYHuykvVDmefxYIzCxaXobOvEv23prCNncQlRl2zVIxP31eDu9RH6xXoNxv4hea3oi241Z+QNx4OnfYRUz8qvjNDqFGL/ltDa5crOoYd8fVN0qYjVknXip+91QBO3t2+WF9LWkNPZCNpQU9QRHgFY=",
+    "sessionId": "65273301_a64913c9-c637-4907-b5ce-3a762c15321a-260821162017",
+    "searchId": "DC_Search-b1928230-d8ce-4346-9c35-e4ce88c0a5ad",
+    "dataId": "AVN+Z53AWsj6HD8wLGGtJ3yYMI/Vx8TigDdWzD2EJmy5v5Vm1y5TP9oD9QqhXWgJJdyzI9/kTmvMIgwEjRPoXhaiW2uuKZ4t4dwRxVqdeZ8qg4AokjjZs2iVTz++YlWDAPO+J549Vj92XQF2MYMo0cl+tYpMul4x38K1pC0jrWxa5nCU53+hAZDYmmNkvTb9Bm8g6cWYr9IH2OuCLX403c3D/rVPHZbt8pSnFn98Js106NkzULd6DgTzcmSFl5qBTTajumA=",
     "flightPreviewCriteria": {
       "isMultiFareRequest": false,
       "maxFareCount": 0,
@@ -30,12 +30,12 @@
     },
     "travelOptions": {
       "J1": {
-        "travelOptionId": "6E-5218-BLR-BOM-1787301000",
-        "price": 5575,
+        "travelOptionId": "IX-2116-BLR-COK-1787326200__IX-1802-COK-BOM-1787333700",
+        "price": 3356,
         "subTravelOptions": [
           {
-            "subTravelOptionId": "6E-5218-BLR-BOM-1787301000",
-            "fareId": "REGULAR__21/08/2026__6E__6E__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z53MnTrfDC6cotUJKQqFDySFv6nxy2+nEev5eWkzTNHCy5c9LJrX2fbi43ZkQkeg88EWO4x3dY8546NUELaJbW9cM2mxg8NYTasV/LHqnuJDt2NjWkUeHQ3C0GLpQ5TMizl59qD0dlHkvisOvfGPW1NHsN4UuYQzN6rAq1kRN0x/G9StUIrVotjNTVBKJ94F6yMJqkoV/TNiBxOUgxunikUVWvq6UzKkDoSAVCzpUrQ8xnXs7uVTERS4IvQkZTvVA0/uZDGP/oKt+GMtTaObSZ84RRI=~~V3"
+            "subTravelOptionId": "IX-2116-BLR-COK-1787326200__IX-1802-COK-BOM-1787333700",
+            "fareId": "REGULAR__21/08/2026__IX^IX__IX^IX__BLR_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S034__PROMO,PROMO__AVN+Z51uX6I3WRYJx0PY81TSPD+r7V7ozynPldxBMjVC6sc1ino8bCSxgFHcOzz50dMbW4BMAAmwj8bFVuRExKtQHHu2SvJA0hPXUuxL36UTnNPqtLFbcNGeXO5fGMAW/wgkiJz3g+3TKP/sfsXhOxPHvk16oDYwCiZ7nKnMxcfmCsfu6rcc3Kvbv5BqW+QK8kpXg6O94LhgPc+sKQ+87dMmFN461eKPfyYQ8P8ivHjG8vo4Lv4RRIe1wSykUzK09rcCDxs3Bf09K0b3z+ItxD2vbXic8M9dvODSUOUI64w9+CHd8D4V73ErGJZkEjg=~~V3"
           }
         ]
       }

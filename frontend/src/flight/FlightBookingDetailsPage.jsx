@@ -739,14 +739,14 @@ export default function FlightBookingDetailsPage() {
             <div className="min-h-screen bg-slate-50 flex flex-col justify-between pt-[75px]">
                 <Navbar />
                 <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-                    <div className="w-16 h-16 bg-red-100 text-red-600 rounded-none flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <Plane className="w-8 h-8" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-900">No Flight Selected</h2>
                     <p className="text-sm text-slate-500 mt-2 mb-6">Please select a flight from the search list to view booking details.</p>
                     <button
                         onClick={() => navigate('/flights/list')}
-                        className="bg-[#b89565] hover:bg-[#a38053] text-white font-bold py-3 px-8 rounded-none transition-all shadow-md"
+                        className="bg-[#d8942f] hover:bg-[#b9791f] text-white font-bold py-3 px-8 rounded-lg transition-all shadow-md"
                     >
                         Back to Flight Search
                     </button>
@@ -765,10 +765,10 @@ export default function FlightBookingDetailsPage() {
             return (
                 <div>
                     {/* Leg / Sector Tab Selector */}
-                    <div className="bg-slate-900 text-white p-3.5 mb-5 rounded-none border-b-2 border-[#b89565] flex flex-wrap items-center justify-between gap-3 shadow-sm">
+                    <div className="bg-white border border-[#c9dcff] p-3.5 mb-5 rounded-lg flex flex-wrap items-center justify-between gap-3 shadow-sm">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#b89565] mr-1 flex items-center gap-1.5">
-                                <Plane className="w-4 h-4" /> Select Leg / Sector:
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#00206B] mr-1 flex items-center gap-1.5">
+                                <Plane className="w-4 h-4 text-[#d8942f]" /> Select Leg / Sector:
                             </span>
                             {flight.selectedSectorsList.map((sec, sIdx) => {
                                 const pSeg = sec.segments?.[0] || {};
@@ -779,12 +779,12 @@ export default function FlightBookingDetailsPage() {
                                         key={sIdx}
                                         type="button"
                                         onClick={() => setActiveLegIndex(sIdx)}
-                                        className={`px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border ${isActive
-                                            ? 'bg-[#b89565] text-slate-950 border-[#b89565] shadow-md'
-                                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                                        className={`px-3.5 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border ${isActive
+                                            ? 'bg-[#00206B] text-white border-[#00206B] shadow-md ring-1 ring-[#d8942f]'
+                                            : 'bg-white text-slate-700 border-slate-300 hover:border-[#d8942f] hover:bg-amber-50/30'
                                             }`}
                                     >
-                                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-slate-950 text-[#b89565]' : 'bg-slate-700 text-slate-300'
+                                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${isActive ? 'bg-[#d8942f] text-[#00206B]' : 'bg-slate-200 text-slate-600'
                                             }`}>
                                             {sIdx + 1}
                                         </span>
@@ -796,9 +796,9 @@ export default function FlightBookingDetailsPage() {
                         <button
                             type="button"
                             onClick={() => setActiveLegIndex(activeLegIndex === 'ALL' ? 0 : 'ALL')}
-                            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${activeLegIndex === 'ALL'
+                            className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${activeLegIndex === 'ALL'
                                 ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
-                                : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-white'
+                                : 'bg-white text-slate-700 border-slate-300 hover:border-[#d8942f] hover:bg-amber-50/30'
                                 }`}
                         >
                             {activeLegIndex === 'ALL' ? 'Single Leg View' : `View All (${flight.selectedSectorsList.length} Legs)`}
@@ -811,20 +811,20 @@ export default function FlightBookingDetailsPage() {
                         const pSeg = secFlight.segments[0];
                         const lSeg = secFlight.segments[secFlight.segments.length - 1];
                         return (
-                            <div key={idx} className="bg-white border border-slate-200 rounded-none shadow-sm overflow-hidden mb-5">
-                                <div className="bg-slate-900 text-white px-6 py-3.5 flex justify-between items-center border-b border-slate-800">
+                            <div key={idx} className="bg-white border border-[#c9dcff] rounded-lg shadow-sm overflow-hidden mb-5">
+                                <div className="bg-[#00206B] text-white px-6 py-3.5 flex justify-between items-center gap-3 flex-wrap">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-none bg-[#b89565] flex items-center justify-center text-slate-950 font-black">
+                                        <div className="w-8 h-8 rounded-md bg-[#d8942f] flex items-center justify-center text-[#00206B] font-black shadow-sm">
                                             {secFlight.airlineCode || 'FL'}
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-sm text-white">
                                                 Leg {idx + 1}: {secFlight.airlineName} • {secFlight.segments?.map(s => s.flightNumber).join(' → ') || pSeg.flightNumber}
                                             </h3>
-                                            <span className="text-[11px] text-slate-400 font-medium">{pSeg.aircraft}</span>
+                                            <span className="text-[11px] text-white/65 font-medium">{pSeg.aircraft}</span>
                                         </div>
                                     </div>
-                                    <span className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
+                                    <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-white/14 text-white border border-white/15 shadow-sm">
                                         Sector {idx + 1} of {flight.selectedSectorsList.length}
                                     </span>
                                 </div>
@@ -846,13 +846,13 @@ export default function FlightBookingDetailsPage() {
                                         {/* Duration */}
                                         <div className="flex flex-col items-center justify-center">
                                             <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                                                <Clock className="w-3.5 h-3.5 text-[#b89565]" /> {pSeg.duration}
+                                                <Clock className="w-3.5 h-3.5 text-[#d8942f]" /> {pSeg.duration}
                                             </span>
                                             <div className="w-32 h-[1px] bg-slate-300 my-2 relative">
-                                                <div className="absolute top-1/2 left-0 w-1.5 h-1.5 bg-[#b89565] -translate-y-1/2"></div>
-                                                <div className="absolute top-1/2 right-0 w-1.5 h-1.5 bg-[#b89565] -translate-y-1/2"></div>
+                                                <div className="absolute top-1/2 left-0 w-1.5 h-1.5 rounded-full bg-[#1d4fbd] -translate-y-1/2"></div>
+                                                <div className="absolute top-1/2 right-0 w-1.5 h-1.5 rounded-full bg-[#1d4fbd] -translate-y-1/2"></div>
                                             </div>
-                                            <span className="text-xs font-bold text-blue-600">
+                                            <span className="text-xs font-bold text-[#00206B]">
                                                 {secFlight.segments?.length === 1 ? 'Non-stop' : `${secFlight.segments?.length - 1} Stop(s)`}
                                             </span>
                                         </div>
@@ -871,7 +871,7 @@ export default function FlightBookingDetailsPage() {
                                     </div>
 
                                     {/* Baggage Strip */}
-                                    <div className="mt-6 pt-4 border-t border-slate-100 flex flex-wrap gap-6 text-xs text-slate-600 bg-slate-50/70 p-3.5 rounded-none border border-slate-200/60">
+                                    <div className="mt-6 pt-4 flex flex-wrap gap-6 text-xs text-slate-600 bg-slate-50/70 p-3.5 rounded-lg border border-slate-200/60">
                                         {(() => {
                                             const resolved = getResolvedBookingBenefits();
                                             const cabin = resolved?.baggageList.find(b => b.type === 'Cabin')?.weight || pSeg.cabinBaggage || '7 KG (1 Piece)';
@@ -879,11 +879,11 @@ export default function FlightBookingDetailsPage() {
                                             return (
                                                 <>
                                                     <div className="flex items-center gap-2">
-                                                        <Luggage className="w-4 h-4 text-[#b89565]" />
+                                                        <Luggage className="w-4 h-4 text-[#d8942f]" />
                                                         <span>Cabin Baggage: <strong className="text-slate-900">{cabin}</strong></span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <Briefcase className="w-4 h-4 text-[#b89565]" />
+                                                        <Briefcase className="w-4 h-4 text-[#d8942f]" />
                                                         <span>Check-in Baggage: <strong className="text-slate-900">{checkIn}</strong></span>
                                                     </div>
                                                 </>
@@ -896,7 +896,7 @@ export default function FlightBookingDetailsPage() {
                                         <button
                                             type="button"
                                             onClick={() => openDrawer(secFlight.segments, `Leg ${idx + 1}: ${secFlight.airlineName}`, secFlight)}
-                                            className="text-[#2563eb] hover:text-blue-800 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                                            className="text-[#00206B] hover:text-[#001548] font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                                         >
                                             <span>View detailed information ➔</span>
                                         </button>
@@ -910,18 +910,18 @@ export default function FlightBookingDetailsPage() {
         }
 
         return (
-            <div className="bg-white border border-slate-200 rounded-none shadow-sm overflow-hidden">
-                <div className="bg-slate-900 text-white px-6 py-3.5 flex justify-between items-center border-b border-slate-800">
+            <div className="bg-white border border-[#c9dcff] rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-[#00206B] text-white px-6 py-3.5 flex justify-between items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-none bg-[#b89565] flex items-center justify-center text-slate-950 font-black">
+                        <div className="w-8 h-8 rounded-md bg-[#d8942f] flex items-center justify-center text-[#00206B] font-black shadow-sm">
                             {flight.airlineCode || 'FL'}
                         </div>
                         <div>
                             <h3 className="font-bold text-sm text-white">{flight.airlineName} • {flight.segments?.map(s => s.flightNumber).join(' → ') || primarySegment.flightNumber}</h3>
-                            <span className="text-[11px] text-slate-400 font-medium">{primarySegment.aircraft}</span>
+                            <span className="text-[11px] text-white/65 font-medium">{primarySegment.aircraft}</span>
                         </div>
                     </div>
-                    <span className={`px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${isVerifying ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'}`}>
+                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded border shadow-sm ${isVerifying ? 'bg-[#ff9d3c]/20 text-[#ffc45a] border-[#ff9d3c]/40 animate-pulse' : 'bg-emerald-400/15 text-emerald-300 border-emerald-300/40'}`}>
                         {isVerifying ? '⚡ Verifying Live Rate...' : '✓ Price Verified'}
                     </span>
                 </div>
@@ -943,13 +943,13 @@ export default function FlightBookingDetailsPage() {
                         {/* Duration */}
                         <div className="flex flex-col items-center justify-center">
                             <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                                <Clock className="w-3.5 h-3.5 text-[#b89565]" /> {primarySegment.duration}
+                                <Clock className="w-3.5 h-3.5 text-[#d8942f]" /> {primarySegment.duration}
                             </span>
                             <div className="w-32 h-[1px] bg-slate-300 my-2 relative">
-                                <div className="absolute top-1/2 left-0 w-1.5 h-1.5 bg-[#b89565] -translate-y-1/2"></div>
-                                <div className="absolute top-1/2 right-0 w-1.5 h-1.5 bg-[#b89565] -translate-y-1/2"></div>
+                                <div className="absolute top-1/2 left-0 w-1.5 h-1.5 rounded-full bg-[#1d4fbd] -translate-y-1/2"></div>
+                                <div className="absolute top-1/2 right-0 w-1.5 h-1.5 rounded-full bg-[#1d4fbd] -translate-y-1/2"></div>
                             </div>
-                            <span className="text-xs font-bold text-blue-600">
+                            <span className="text-xs font-bold text-[#00206B]">
                                 {flight.segments?.length === 1 ? 'Non-stop' : `${flight.segments?.length - 1} Stop(s)`}
                             </span>
                         </div>
@@ -968,7 +968,7 @@ export default function FlightBookingDetailsPage() {
                     </div>
 
                     {/* Baggage Strip */}
-                    <div className="mt-6 pt-4 border-t border-slate-100 flex flex-wrap gap-6 text-xs text-slate-600 bg-slate-50/70 p-3.5 rounded-none border border-slate-200/60">
+                    <div className="mt-6 pt-4 flex flex-wrap gap-6 text-xs text-slate-600 bg-slate-50/70 p-3.5 rounded-lg border border-slate-200/60">
                         {(() => {
                             const resolved = getResolvedBookingBenefits();
                             const cabin = resolved?.baggageList.find(b => b.type === 'Cabin')?.weight || primarySegment.cabinBaggage || '7 KG (1 Piece)';
@@ -976,11 +976,11 @@ export default function FlightBookingDetailsPage() {
                             return (
                                 <>
                                     <div className="flex items-center gap-2">
-                                        <Luggage className="w-4 h-4 text-[#b89565]" />
+                                        <Luggage className="w-4 h-4 text-[#d8942f]" />
                                         <span>Cabin Baggage: <strong className="text-slate-900">{cabin}</strong></span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Briefcase className="w-4 h-4 text-[#b89565]" />
+                                        <Briefcase className="w-4 h-4 text-[#d8942f]" />
                                         <span>Check-in Baggage: <strong className="text-slate-900">{checkIn}</strong></span>
                                     </div>
                                 </>
@@ -993,7 +993,7 @@ export default function FlightBookingDetailsPage() {
                         <button
                             type="button"
                             onClick={() => openDrawer(flight.segments, 'Flight Itinerary Details')}
-                            className="text-[#2563eb] hover:text-blue-800 font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                            className="text-[#00206B] hover:text-[#001548] font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                         >
                             <span>View detailed information ➔</span>
                         </button>
@@ -1004,7 +1004,7 @@ export default function FlightBookingDetailsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between font-sans pt-[75px]">
+        <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between font-body pt-[75px]">
             <style>{`
                     @keyframes slideInRight {
                         from { transform: translateX(100%); }
@@ -1017,45 +1017,53 @@ export default function FlightBookingDetailsPage() {
             <Navbar />
 
             {/* Top Stepper Header */}
-            <div className="bg-slate-900 text-white py-6 border-b border-slate-800 shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3">
+            <div className="bg-[#00206B] text-white px-4 sm:px-6 py-5 shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
+                <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-none transition-colors"
+                            className="flex items-center gap-1.5 shrink-0 bg-white/12 hover:bg-white/20 border border-white/25 text-white px-2.5 py-1.5 rounded-md text-xs font-bold transition-all"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft size={14} /> Back
                         </button>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold uppercase tracking-wider text-[#b89565]">Booking Details</span>
-                                <span className="text-slate-500">•</span>
-                                <span className="text-xs text-slate-400 font-mono">Session: {liveSessionId ? `${liveSessionId.substring(0, 12)}...` : (isVerifying ? 'Creating Session...' : 'Active')}</span>
-                            </div>
-                            <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2 mt-0.5">
-                                {primarySegment.origin} ➔ {lastSegment.destination}
-                                <span className="text-xs font-normal text-slate-400 bg-slate-800 px-2 py-0.5 border border-slate-700">
+                        <div className="w-10 h-10 rounded-lg border border-white/50 bg-white/10 flex items-center justify-center shrink-0">
+                            <Plane size={23} className="text-white" strokeWidth={1.8} />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-lg md:text-xl leading-tight font-extrabold tracking-tight text-white flex items-center gap-2 flex-wrap">
+                                <span>{primarySegment.origin}</span>
+                                <span className="text-white/80 font-semibold">→</span>
+                                <span>{lastSegment.destination}</span>
+                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm">
                                     {flight.segments?.length === 1 ? 'Non-stop' : `${flight.segments?.length - 1} Stop(s)`}
                                 </span>
                             </h1>
+                            <div className="flex gap-1.5 flex-wrap items-center mt-1.5">
+                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                                    <User size={11} className="text-[#ff9d3c]" /> Booking Details
+                                </span>
+                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                                    <Lock size={11} className="text-[#ff9d3c]" /> Session: {liveSessionId ? `${liveSessionId.substring(0, 12)}...` : (isVerifying ? 'Creating…' : 'Active')}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex items-center gap-2 text-xs font-bold">
-                        <div className="flex items-center gap-2 text-emerald-400">
-                            <div className="w-6 h-6 rounded-none bg-emerald-500/20 border border-emerald-500 flex items-center justify-center text-emerald-400">1</div>
-                            <span>Flight Select</span>
+                    <div className="flex items-center gap-2 text-xs font-bold shrink-0">
+                        <div className="flex items-center gap-2 text-emerald-300">
+                            <div className="w-6 h-6 rounded-md bg-emerald-400/20 border border-emerald-300/60 flex items-center justify-center text-emerald-300">1</div>
+                            <span className="hidden sm:inline">Flight Select</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                        <div className="flex items-center gap-2 text-[#b89565]">
-                            <div className="w-6 h-6 rounded-none bg-[#b89565] text-slate-950 flex items-center justify-center font-bold">2</div>
-                            <span className="underline decoration-[#b89565] underline-offset-4">Passenger Details</span>
+                        <ChevronRight className="w-4 h-4 text-white/40" />
+                        <div className="flex items-center gap-2 text-white">
+                            <div className="w-6 h-6 rounded-md bg-[#d8942f] text-[#00206B] flex items-center justify-center font-bold shadow-sm">2</div>
+                            <span className="underline decoration-[#ff9d3c] underline-offset-4">Passenger Details</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <div className="w-6 h-6 rounded-none bg-slate-800 border border-slate-700 flex items-center justify-center">3</div>
-                            <span>Payment</span>
+                        <ChevronRight className="w-4 h-4 text-white/40" />
+                        <div className="flex items-center gap-2 text-white/55">
+                            <div className="w-6 h-6 rounded-md bg-white/10 border border-white/20 flex items-center justify-center">3</div>
+                            <span className="hidden sm:inline">Payment</span>
                         </div>
                     </div>
                 </div>
@@ -1071,10 +1079,10 @@ export default function FlightBookingDetailsPage() {
                         {renderFlightCards()}
 
                         {/* 2. Passenger Details Form (Driven by flightPreview Validations) */}
-                        <form onSubmit={handleFormSubmit} className="bg-white border border-slate-200 rounded-none shadow-sm p-6 space-y-6">
+                        <form onSubmit={handleFormSubmit} className="bg-white border border-[#c9dcff] rounded-lg shadow-sm p-6 space-y-6">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-none bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                                    <div className="w-8 h-8 rounded-md bg-blue-50 text-[#00206B] flex items-center justify-center font-bold">
                                         <User className="w-4 h-4" />
                                     </div>
                                     <div>
@@ -1087,7 +1095,7 @@ export default function FlightBookingDetailsPage() {
                             {/* Dynamically render traveller form for each passenger */}
                             {passengers.map((p, idx) => (
                                 <div key={p.id} className="space-y-4 border-b border-slate-100 pb-6 last:border-0 last:pb-0">
-                                    <div className="flex justify-between items-center bg-slate-50 p-2 border border-slate-200">
+                                    <div className="flex justify-between items-center bg-slate-50 p-2 rounded-md border border-slate-200">
                                         <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                                             👤 {p.label} ({p.type === 'ADT' ? 'Adult' : p.type === 'CHD' ? 'Child' : 'Infant'})
                                         </span>
@@ -1099,7 +1107,7 @@ export default function FlightBookingDetailsPage() {
                                             <select
                                                 value={p.title}
                                                 onChange={(e) => handlePassengerChange(idx, 'title', e.target.value)}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#b89565]"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md p-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#d8942f]"
                                             >
                                                 {p.type === 'ADT' ? (
                                                     <>
@@ -1125,7 +1133,7 @@ export default function FlightBookingDetailsPage() {
                                                 value={p.firstName}
                                                 onChange={(e) => handlePassengerChange(idx, 'firstName', e.target.value)}
                                                 required
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#b89565]"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md p-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#d8942f]"
                                             />
                                         </div>
 
@@ -1138,7 +1146,7 @@ export default function FlightBookingDetailsPage() {
                                                 value={p.lastName}
                                                 onChange={(e) => handlePassengerChange(idx, 'lastName', e.target.value)}
                                                 required
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#b89565]"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md p-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#d8942f]"
                                             />
                                         </div>
                                     </div>
@@ -1150,7 +1158,7 @@ export default function FlightBookingDetailsPage() {
                                             <select
                                                 value={p.gender}
                                                 onChange={(e) => handlePassengerChange(idx, 'gender', e.target.value)}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#b89565]"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md p-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#d8942f]"
                                             >
                                                 <option value="MALE">Male</option>
                                                 <option value="FEMALE">Female</option>
@@ -1165,7 +1173,7 @@ export default function FlightBookingDetailsPage() {
                                                 value={p.dob || ''}
                                                 onChange={(e) => handlePassengerChange(idx, 'dob', e.target.value)}
                                                 required
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#b89565]"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md p-3 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#d8942f]"
                                             />
                                         </div>
                                     </div>
@@ -1188,7 +1196,7 @@ export default function FlightBookingDetailsPage() {
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 required
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 pl-9 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#b89565]"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md p-3 pl-9 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#d8942f]"
                                             />
                                         </div>
                                     </div>
@@ -1200,14 +1208,14 @@ export default function FlightBookingDetailsPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                                    className="w-full h-[46px] bg-slate-50 border border-slate-200 border-r-0 rounded-none px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#b89565] flex items-center justify-between cursor-pointer"
+                                                    className="w-full h-[46px] bg-slate-50 border border-slate-200 border-r-0 rounded-l-md px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-[#d8942f] flex items-center justify-between cursor-pointer"
                                                 >
                                                     <span>{countryCode}</span>
                                                     <span className="text-[9px] text-slate-500">▼</span>
                                                 </button>
 
                                                 {isDropdownOpen && (
-                                                    <div className="absolute left-0 top-[47px] w-48 max-h-48 overflow-y-auto bg-white border border-slate-200 shadow-xl z-50 rounded-none scrollbar-thin">
+                                                    <div className="absolute left-0 top-[47px] w-48 max-h-48 overflow-y-auto bg-white border border-slate-200 shadow-xl z-50 rounded-md scrollbar-thin">
                                                         {countryCodes.map((item) => (
                                                             <div
                                                                 key={item.code}
@@ -1215,7 +1223,7 @@ export default function FlightBookingDetailsPage() {
                                                                     setCountryCode(item.code);
                                                                     setIsDropdownOpen(false);
                                                                 }}
-                                                                className="px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#b89565] cursor-pointer border-b border-slate-100/40 last:border-0"
+                                                                className="px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50/60 hover:text-[#00206B] cursor-pointer border-b border-slate-100/40 last:border-0"
                                                             >
                                                                 {item.label}
                                                             </div>
@@ -1231,7 +1239,7 @@ export default function FlightBookingDetailsPage() {
                                                     value={phone}
                                                     onChange={(e) => setPhone(e.target.value)}
                                                     required
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-none p-3 pl-9 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#b89565] h-[46px]"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-r-md p-3 pl-9 text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#d8942f] h-[46px]"
                                                 />
                                             </div>
                                         </div>
@@ -1246,13 +1254,13 @@ export default function FlightBookingDetailsPage() {
                                         type="checkbox"
                                         checked={needGst}
                                         onChange={(e) => setNeedGst(e.target.checked)}
-                                        className="w-4 h-4 text-[#b89565] border-slate-300 rounded-none focus:ring-0"
+                                        className="w-4 h-4 accent-[#00206B] border-slate-300 rounded focus:ring-0"
                                     />
                                     <span className="text-xs font-bold text-slate-700">Add GST Details (Optional for Business Travellers)</span>
                                 </label>
 
                                 {needGst && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 p-4 bg-slate-50 border border-slate-200">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
                                         <div>
                                             <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">GSTIN Number</label>
                                             <input
@@ -1260,7 +1268,7 @@ export default function FlightBookingDetailsPage() {
                                                 placeholder="29AAAAA0000A1Z5"
                                                 value={gstNumber}
                                                 onChange={(e) => setGstNumber(e.target.value)}
-                                                className="w-full bg-white border border-slate-200 rounded-none p-2.5 text-xs font-semibold text-slate-900"
+                                                className="w-full bg-white border border-slate-200 rounded-md p-2.5 text-xs font-semibold text-slate-900"
                                             />
                                         </div>
                                         <div>
@@ -1270,7 +1278,7 @@ export default function FlightBookingDetailsPage() {
                                                 placeholder="Company Name Pvt Ltd"
                                                 value={gstCompany}
                                                 onChange={(e) => setGstCompany(e.target.value)}
-                                                className="w-full bg-white border border-slate-200 rounded-none p-2.5 text-xs font-semibold text-slate-900"
+                                                className="w-full bg-white border border-slate-200 rounded-md p-2.5 text-xs font-semibold text-slate-900"
                                             />
                                         </div>
                                     </div>
@@ -1281,7 +1289,7 @@ export default function FlightBookingDetailsPage() {
                             <div className="pt-4 border-t border-slate-200">
                                 <button
                                     type="submit"
-                                    className="w-full bg-[#b89565] hover:bg-[#a38053] text-white py-4 font-bold text-sm tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.99]"
+                                    className="w-full bg-gradient-to-br from-[#f4b33e] to-[#f15a18] hover:from-[#ffc45a] hover:to-[#e94d10] text-white py-4 rounded-md font-extrabold text-sm tracking-wider uppercase transition-all shadow-[0_6px_14px_rgba(241,90,24,0.18)] flex items-center justify-center gap-2 active:scale-[0.99]"
                                 >
                                     Next: Select Seats & In-Flight Meals <ChevronRight className="w-4 h-4" />
                                 </button>
@@ -1331,9 +1339,11 @@ export default function FlightBookingDetailsPage() {
                             }
 
                             return (
-                                <div className="bg-white border border-slate-200 rounded-none shadow-sm p-6">
-                                    <div className="flex items-center gap-2 text-[#1e40af] font-bold text-xs uppercase tracking-wider mb-4">
-                                        <Receipt className="w-4 h-4 text-[#1e40af]" />
+                                <div className="bg-white border border-[#c9dcff] rounded-lg shadow-sm p-6">
+                                    <div className="flex items-center gap-2 text-[#00206B] font-bold text-xs uppercase tracking-wider mb-4">
+                                        <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center">
+                                            <Receipt className="w-3.5 h-3.5 text-[#00206B]" />
+                                        </div>
                                         <span>FARE BREAKDOWN</span>
                                     </div>
 
@@ -1398,20 +1408,22 @@ export default function FlightBookingDetailsPage() {
                         })()}
 
                         {/* Cleartrip Verified Flight Rules */}
-                        <div className="bg-slate-900 text-white p-6 border border-slate-800 rounded-none">
-                            <div className="flex items-center gap-2 text-[#b89565] font-bold text-xs uppercase tracking-wider mb-3">
-                                <Shield className="w-4 h-4 text-[#b89565]" />
-                                <span>CANCELLATION & FARE RULES</span>
+                        <div className="bg-white border border-[#c9dcff] rounded-lg shadow-sm p-6">
+                            <div className="flex items-center gap-2 text-[#00206B] font-bold text-xs uppercase tracking-wider mb-3">
+                                <div className="w-5 h-5 rounded bg-blue-50 flex items-center justify-center">
+                                    <Shield className="w-3.5 h-3.5 text-[#00206B]" />
+                                </div>
+                                <span>CANCELLATION &amp; FARE RULES</span>
                             </div>
 
-                            <div className="space-y-2.5 text-xs text-slate-300">
-                                <div className="flex justify-between py-1 border-b border-slate-800">
+                            <div className="space-y-2.5 text-xs text-slate-600">
+                                <div className="flex justify-between py-1 border-b border-slate-100">
                                     <span>Ticket Type</span>
-                                    <strong className="text-emerald-400">{flight.isRefundable ? 'Refundable' : 'Non-Refundable'}</strong>
+                                    <strong className="text-emerald-600">{flight.isRefundable ? 'Refundable' : 'Non-Refundable'}</strong>
                                 </div>
 
                                 {loadingBenefits && (
-                                    <div className="text-[11px] text-[#b89565] italic animate-pulse py-1">
+                                    <div className="text-[11px] text-[#a86612] italic animate-pulse py-1">
                                         🔄 Loading live fare rules...
                                     </div>
                                 )}
@@ -1421,13 +1433,13 @@ export default function FlightBookingDetailsPage() {
                                     if (!resolved) {
                                         return (
                                             <>
-                                                <div className="flex justify-between py-1 border-b border-slate-800">
+                                                <div className="flex justify-between py-1 border-b border-slate-100">
                                                     <span>Cancellation Penalty</span>
-                                                    <span className="text-slate-200">As per Airline Policy</span>
+                                                    <span className="text-slate-800 font-semibold">As per Airline Policy</span>
                                                 </div>
                                                 <div className="flex justify-between py-1">
                                                     <span>Date Change Fee</span>
-                                                    <span className="text-slate-200">Standard Reschedule Fee</span>
+                                                    <span className="text-slate-800 font-semibold">Standard Reschedule Fee</span>
                                                 </div>
                                             </>
                                         );
@@ -1437,15 +1449,15 @@ export default function FlightBookingDetailsPage() {
                                         <div className="space-y-3 pt-2">
                                             {/* Render Penalties */}
                                             {resolved.penaltiesList.map((pen, pIdx) => (
-                                                <div key={pIdx} className="bg-slate-850 p-2.5 border border-slate-800 rounded-none">
-                                                    <div className="font-bold text-xs text-[#b89565] mb-1.5 flex items-center gap-1">
+                                                <div key={pIdx} className="bg-slate-50/70 p-2.5 border border-slate-200/60 rounded-lg">
+                                                    <div className="font-bold text-xs text-[#00206B] mb-1.5 flex items-center gap-1">
                                                         <span>{pen.type === 'Cancellation' ? '❌' : '🔄'} {pen.type} Rules</span>
                                                     </div>
-                                                    <div className="flex flex-col gap-1 text-[11px] text-slate-300">
+                                                    <div className="flex flex-col gap-1 text-[11px] text-slate-600">
                                                         {pen.timelines.map((time, tIdx) => (
-                                                            <div key={tIdx} className="flex justify-between border-b border-slate-800/40 pb-0.5 last:border-0 last:pb-0">
+                                                            <div key={tIdx} className="flex justify-between border-b border-slate-200/60 pb-0.5 last:border-0 last:pb-0">
                                                                 <span>Within {time.timeLabel}:</span>
-                                                                <span className="font-bold text-white">{time.permittedLabel} ({time.amountStr})</span>
+                                                                <span className="font-bold text-slate-900">{time.permittedLabel} ({time.amountStr})</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -1454,14 +1466,14 @@ export default function FlightBookingDetailsPage() {
 
                                             {/* Render In-Flight Services */}
                                             {resolved.benefitsList.length > 0 && (
-                                                <div className="bg-slate-850 p-2.5 border border-slate-800 rounded-none">
-                                                    <div className="font-bold text-xs text-[#b89565] mb-1.5 uppercase tracking-wider">
+                                                <div className="bg-slate-50/70 p-2.5 border border-slate-200/60 rounded-lg">
+                                                    <div className="font-bold text-xs text-[#00206B] mb-1.5 uppercase tracking-wider">
                                                         ⚡ In-Flight Services
                                                     </div>
-                                                    <div className="flex flex-col gap-1 text-[11px] text-slate-350">
+                                                    <div className="flex flex-col gap-1 text-[11px] text-slate-600">
                                                         {resolved.benefitsList.map((ben, idx) => (
-                                                            <span key={idx} className="block text-slate-200">
-                                                                {ben.type === 'MEAL' ? '🍽️' : '💺'} {ben.description}: <strong className="font-bold text-white">{ben.value}</strong>
+                                                            <span key={idx} className="block">
+                                                                {ben.type === 'MEAL' ? '🍽️' : '💺'} {ben.description}: <strong className="font-bold text-slate-900">{ben.value}</strong>
                                                             </span>
                                                         ))}
                                                     </div>
@@ -1474,11 +1486,11 @@ export default function FlightBookingDetailsPage() {
                         </div>
 
                         {/* Customer Support Trust Badge */}
-                        <div className="bg-blue-50/60 border border-blue-100 p-4 text-xs text-blue-900 flex items-start gap-3">
-                            <Award className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
+                        <div className="bg-blue-50/60 border border-blue-100 rounded-lg p-4 text-xs text-[#00206B] flex items-start gap-3">
+                            <Award className="w-5 h-5 text-[#00206B] shrink-0 mt-0.5" />
                             <div>
                                 <strong className="font-bold block">Instant Cleartrip E-Ticket</strong>
-                                <span className="text-[11px] text-blue-700/90 mt-0.5 block">
+                                <span className="text-[11px] text-[#00206B]/80 mt-0.5 block">
                                     Your PNR will be issued immediately upon payment confirmation.
                                 </span>
                             </div>
@@ -1493,7 +1505,7 @@ export default function FlightBookingDetailsPage() {
                     <div className="absolute inset-0 overflow-hidden">
                         {/* Background Overlay */}
                         <div
-                            className="absolute inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-300"
+                            className="absolute inset-0 touch-none bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300"
                             onClick={closeDrawer}
                         ></div>
 
@@ -1501,21 +1513,21 @@ export default function FlightBookingDetailsPage() {
                             <div className="pointer-events-auto w-screen max-w-[40vw] min-w-[360px] md:min-w-[440px]">
                                 <div className="flex h-full flex-col overflow-y-scroll bg-white shadow-2xl border-l border-slate-200 animate-slide-in-right">
                                     {/* Header */}
-                                    <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white border-b border-slate-800">
+                                    <div className="flex items-center justify-between px-6 py-4 bg-[#00206B] text-white">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-none bg-[#b89565] flex items-center justify-center text-slate-950 font-black text-xs">
+                                            <div className="w-7 h-7 rounded-md bg-[#d8942f] flex items-center justify-center text-[#00206B] font-black text-xs">
                                                 ✈
                                             </div>
                                             <div>
                                                 <h2 className="text-sm font-bold text-white uppercase tracking-wider" id="drawer-title">
                                                     {drawerData.title}
                                                 </h2>
-                                                <span className="text-[11px] text-slate-400 font-medium">40% Drawer View • GoAirClass</span>
+                                                <span className="text-[11px] text-white/65 font-medium">Itinerary View • GoAirClass</span>
                                             </div>
                                         </div>
                                         <button
                                             type="button"
-                                            className="rounded-md p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition-all cursor-pointer"
+                                            className="rounded-md p-1.5 text-white/70 hover:text-white hover:bg-white/15 transition-all cursor-pointer"
                                             onClick={closeDrawer}
                                         >
                                             <span className="sr-only">Close panel</span>
@@ -1531,9 +1543,9 @@ export default function FlightBookingDetailsPage() {
                                         <FlightItineraryTimeline segments={drawerData.segments} />
 
                                         {/* Additional Policy Info */}
-                                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-none space-y-3">
+                                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg space-y-3">
                                             <h4 className="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                                                <Info className="w-4 h-4 text-[#b89565]" /> Baggage & Fare Policy
+                                                <Info className="w-4 h-4 text-[#00206B]" /> Baggage &amp; Fare Policy
                                             </h4>
                                             {(() => {
                                                 // Resolve live fare details from livePreview if available
@@ -1576,7 +1588,7 @@ export default function FlightBookingDetailsPage() {
                                         <button
                                             type="button"
                                             onClick={closeDrawer}
-                                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 text-xs uppercase tracking-wider transition-all cursor-pointer"
+                                            className="w-full bg-[#00206B] hover:bg-[#001548] text-white font-bold py-2.5 px-4 rounded-md text-xs uppercase tracking-wider transition-all cursor-pointer"
                                         >
                                             Close Details
                                         </button>

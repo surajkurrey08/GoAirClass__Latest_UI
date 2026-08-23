@@ -1,10 +1,9 @@
-// src/pages/Home.jsx
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, ArrowLeftRight, ChevronRight, ChevronDown, ChevronLeft, Calendar, Users,
   BadgePercent, ShieldCheck, Headphones, FileCheck, Plane, TrendingDown,
-  ClipboardCheck, Mail, BedDouble, Luggage, Globe, Star, Clock, MapPin, X
+  ClipboardCheck, Mail, BedDouble, Luggage, Globe, Star, Clock, MapPin, X, UserRound
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Navbar from '../components/Navbar'
@@ -127,6 +126,7 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
+  const [openUp, setOpenUp] = useState(false)
   const wrapRef = useRef(null)
   const debounceRef = useRef(null)
 
@@ -138,6 +138,16 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
 
   useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current) }, [])
 
+  // Same rationale as the date calendar: the search card intentionally
+  // overlaps the section below it, so open upward unless the field is
+  // right at the top of the viewport.
+  const revealUpward = () => {
+    if (wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect()
+      setOpenUp(rect.top > 160)
+    }
+  }
+
   const handleChange = (e) => {
     const val = e.target.value
     onChange(val)
@@ -148,6 +158,7 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
       setLoading(false)
       return
     }
+    revealUpward()
     setOpen(true)
     setLoading(true)
     debounceRef.current = setTimeout(async () => {
@@ -162,6 +173,13 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
     }, 350)
   }
 
+  const handleFocus = () => {
+    if (value.trim().length >= 2) {
+      revealUpward()
+      setOpen(true)
+    }
+  }
+
   return (
     <div className="search2__field" style={wide ? { flex: 1.6 } : undefined} ref={wrapRef}>
       <label>{label}</label>
@@ -171,13 +189,13 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
           placeholder={placeholder}
           value={value}
           onChange={handleChange}
-          onFocus={() => value.trim().length >= 2 && setOpen(true)}
+          onFocus={handleFocus}
           autoComplete="off"
         />
         <Icon size={15} />
       </div>
       {open && (
-        <div className="search2__suggestions">
+        <div className={`search2__suggestions ${openUp ? 'search2__suggestions--up' : ''}`}>
           {loading ? (
             <div className="search2__suggestion-loading">Searching...</div>
           ) : suggestions.length > 0 ? (
@@ -196,6 +214,114 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
             ))
           ) : (
             <div className="search2__suggestion-loading">No results found</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Travelers & class popover ───────────────────────── */
+function TravelersField({ label, mode = 'flights', adults, setAdults, children, setChildren, infants, setInfants, travelClass, setTravelClass }) {
+  const [open, setOpen] = useState(false)
+  const [openUp, setOpenUp] = useState(false)
+  const ref = useRef(null)
+  const travelers = adults + children + infants
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const toggleOpen = () => {
+    setOpen((wasOpen) => {
+      const willOpen = !wasOpen
+      if (willOpen && ref.current) {
+        const rect = ref.current.getBoundingClientRect()
+        setOpenUp(rect.top > 160)
+      }
+      return willOpen
+    })
+  }
+
+  const buttonLabel = mode === 'flights'
+    ? `${travelers} Traveler${travelers > 1 ? 's' : ''}, ${travelClass}`
+    : mode === 'hotels'
+      ? `${travelers} Guest${travelers > 1 ? 's' : ''}`
+      : `${travelers} Traveler${travelers > 1 ? 's' : ''}`
+
+  return (
+    <div className="search2__field search2__field--travelers" ref={ref}>
+      <label>{label}</label>
+      <button className="search2__travelers-btn" onClick={toggleOpen}>
+        {buttonLabel}
+        <ChevronDown size={13} />
+      </button>
+      {open && (
+        <div className={`search2__travelers-pop ${openUp ? 'search2__travelers-pop--up' : ''}`}>
+          {mode === 'flights' ? (
+            <>
+              <div className="search2__travelers-row">
+                <div className="search2__travelers-info">
+                  <span>Adults</span>
+                  <small>12+ Years</small>
+                </div>
+                <div className="search2__stepper">
+                  <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                  <span>{adults}</span>
+                  <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
+                </div>
+              </div>
+              <div className="search2__travelers-row">
+                <div className="search2__travelers-info">
+                  <span>Children</span>
+                  <small>2 - 12 yrs</small>
+                </div>
+                <div className="search2__stepper">
+                  <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
+                  <span>{children}</span>
+                  <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
+                </div>
+              </div>
+              <div className="search2__travelers-row">
+                <div className="search2__travelers-info">
+                  <span>Infants</span>
+                  <small>Below 2 yrs</small>
+                </div>
+                <div className="search2__stepper">
+                  <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
+                  <span>{infants}</span>
+                  <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
+                </div>
+              </div>
+
+              <div className="search2__travelers-cabin-title">CABIN CLASS</div>
+              <div className="search2__travelers-row search2__travelers-row--classes">
+                {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
+                  <button
+                    key={c}
+                    className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
+                    onClick={() => setTravelClass(c)}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+              <button className="search2__travelers-done" onClick={() => setOpen(false)}>APPLY</button>
+            </>
+          ) : (
+            <>
+              <div className="search2__travelers-row">
+                <span>{mode === 'hotels' ? 'Guests' : 'Travelers'}</span>
+                <div className="search2__stepper">
+                  <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                  <span>{travelers}</span>
+                  <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
+                </div>
+              </div>
+              <button className="search2__travelers-done" onClick={() => setOpen(false)}>Done</button>
+            </>
           )}
         </div>
       )}
@@ -306,6 +432,28 @@ function DateField({ label, value, onChange, min, disabled, placeholder = 'dd/mm
 export default function Home() {
   const navigate = useNavigate()
 
+  const [homeUserLoggedIn, setHomeUserLoggedIn] = useState(() => Boolean(
+    localStorage.getItem('token') ||
+    localStorage.getItem('accessToken') ||
+    localStorage.getItem('authToken') ||
+    sessionStorage.getItem('token') ||
+    sessionStorage.getItem('accessToken') ||
+    localStorage.getItem('isLoggedIn') === 'true'
+  ))
+
+  useEffect(() => {
+    const syncAuth = () => setHomeUserLoggedIn(Boolean(
+      localStorage.getItem('token') ||
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('authToken') ||
+      sessionStorage.getItem('token') ||
+      sessionStorage.getItem('accessToken') ||
+      localStorage.getItem('isLoggedIn') === 'true'
+    ))
+    window.addEventListener('storage', syncAuth)
+    return () => window.removeEventListener('storage', syncAuth)
+  }, [])
+
   // Search widget state
   const [activeTab, setActiveTab] = useState('flights')
   const [tripType, setTripType] = useState('oneway')
@@ -318,7 +466,6 @@ export default function Home() {
   const [infants, setInfants] = useState(0)
   const travelers = adults + children + infants
   const [travelClass, setTravelClass] = useState('Economy')
-  const [travelersOpen, setTravelersOpen] = useState(false)
   const [searchingFlights, setSearchingFlights] = useState(false)
   const [multiCitySectors, setMultiCitySectors] = useState([emptySector(), emptySector()])
 
@@ -492,6 +639,17 @@ export default function Home() {
 
       {/* ══════ HERO ══════ */}
       <section className={`hero2 ${isMultiCityOpen ? 'hero2--multicity' : ''}`}>
+        {/* {homeUserLoggedIn && (
+          <button
+            type="button"
+            onClick={() => navigate('/profile')}
+            className="fixed right-3 top-[86px] z-[35] inline-flex h-10 items-center gap-2 rounded-full border border-white/30 bg-[#002b68]/90 px-4 text-[11px] font-extrabold text-white shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur transition hover:bg-[#0b4c97] sm:right-5"
+          >
+            <UserRound size={15} />
+            My Profile
+          </button>
+        )} */}
+
         <img src={HERO_IMAGE} alt="Travel beyond boundaries" className="hero2__img" />
         <div className="hero2__overlay" />
 
@@ -577,64 +735,14 @@ export default function Home() {
                     fares={fares}
                   />
 
-                  <div className="search2__field search2__field--travelers">
-                    <label>Travelers &amp; Class</label>
-                    <button className="search2__travelers-btn" onClick={() => setTravelersOpen(o => !o)}>
-                      {travelers} Traveler{travelers > 1 ? 's' : ''}, {travelClass}
-                      <ChevronDown size={13} />
-                    </button>
-                    {travelersOpen && (
-                      <div className="search2__travelers-pop">
-                        <div className="search2__travelers-row">
-                          <div className="search2__travelers-info">
-                            <span>Adults</span>
-                            <small>12+ Years</small>
-                          </div>
-                          <div className="search2__stepper">
-                            <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
-                            <span>{adults}</span>
-                            <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        <div className="search2__travelers-row">
-                          <div className="search2__travelers-info">
-                            <span>Children</span>
-                            <small>2 - 12 yrs</small>
-                          </div>
-                          <div className="search2__stepper">
-                            <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
-                            <span>{children}</span>
-                            <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        <div className="search2__travelers-row">
-                          <div className="search2__travelers-info">
-                            <span>Infants</span>
-                            <small>Below 2 yrs</small>
-                          </div>
-                          <div className="search2__stepper">
-                            <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
-                            <span>{infants}</span>
-                            <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        
-                        <div className="search2__travelers-cabin-title">CABIN CLASS</div>
-                        <div className="search2__travelers-row search2__travelers-row--classes">
-                          {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
-                            <button
-                              key={c}
-                              className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
-                              onClick={() => setTravelClass(c)}
-                            >
-                              {c}
-                            </button>
-                          ))}
-                        </div>
-                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>APPLY</button>
-                      </div>
-                    )}
-                  </div>
+                  <TravelersField
+                    label="Travelers & Class"
+                    mode="flights"
+                    adults={adults} setAdults={setAdults}
+                    children={children} setChildren={setChildren}
+                    infants={infants} setInfants={setInfants}
+                    travelClass={travelClass} setTravelClass={setTravelClass}
+                  />
                 </>
               )}
 
@@ -690,64 +798,14 @@ export default function Home() {
                     <button type="button" className="search2__sector-add" onClick={addSector}>+ Add Flight</button>
                   </div>
 
-                  <div className="search2__field search2__field--travelers">
-                    <label>Travelers &amp; Class</label>
-                    <button className="search2__travelers-btn" onClick={() => setTravelersOpen(o => !o)}>
-                      {travelers} Traveler{travelers > 1 ? 's' : ''}, {travelClass}
-                      <ChevronDown size={13} />
-                    </button>
-                    {travelersOpen && (
-                      <div className="search2__travelers-pop">
-                        <div className="search2__travelers-row">
-                          <div className="search2__travelers-info">
-                            <span>Adults</span>
-                            <small>12+ Years</small>
-                          </div>
-                          <div className="search2__stepper">
-                            <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
-                            <span>{adults}</span>
-                            <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        <div className="search2__travelers-row">
-                          <div className="search2__travelers-info">
-                            <span>Children</span>
-                            <small>2 - 12 yrs</small>
-                          </div>
-                          <div className="search2__stepper">
-                            <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
-                            <span>{children}</span>
-                            <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        <div className="search2__travelers-row">
-                          <div className="search2__travelers-info">
-                            <span>Infants</span>
-                            <small>Below 2 yrs</small>
-                          </div>
-                          <div className="search2__stepper">
-                            <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
-                            <span>{infants}</span>
-                            <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        
-                        <div className="search2__travelers-cabin-title">CABIN CLASS</div>
-                        <div className="search2__travelers-row search2__travelers-row--classes">
-                          {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
-                            <button
-                              key={c}
-                              className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
-                              onClick={() => setTravelClass(c)}
-                            >
-                              {c}
-                            </button>
-                          ))}
-                        </div>
-                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>APPLY</button>
-                      </div>
-                    )}
-                  </div>
+                  <TravelersField
+                    label="Travelers & Class"
+                    mode="flights"
+                    adults={adults} setAdults={setAdults}
+                    children={children} setChildren={setChildren}
+                    infants={infants} setInfants={setInfants}
+                    travelClass={travelClass} setTravelClass={setTravelClass}
+                  />
                 </>
               )}
 
@@ -764,26 +822,13 @@ export default function Home() {
                   />
                   <DateField label="Check-in" value={departDate} min={today} onChange={setDepartDate} />
                   <DateField label="Check-out" value={returnDate} min={departDate || today} onChange={setReturnDate} />
-                  <div className="search2__field search2__field--travelers">
-                    <label>Guests &amp; Rooms</label>
-                    <button className="search2__travelers-btn" onClick={() => setTravelersOpen(o => !o)}>
-                      {travelers} Guest{travelers > 1 ? 's' : ''}
-                      <ChevronDown size={13} />
-                    </button>
-                    {travelersOpen && (
-                      <div className="search2__travelers-pop">
-                        <div className="search2__travelers-row">
-                          <span>Guests</span>
-                          <div className="search2__stepper">
-                            <button onClick={() => setTravelers(t => Math.max(1, t - 1))}>-</button>
-                            <span>{travelers}</span>
-                            <button onClick={() => setTravelers(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>Done</button>
-                      </div>
-                    )}
-                  </div>
+                  <TravelersField
+                    label="Guests & Rooms"
+                    mode="hotels"
+                    adults={adults} setAdults={setAdults}
+                    children={children} setChildren={setChildren}
+                    infants={infants} setInfants={setInfants}
+                  />
                 </>
               )}
 
@@ -794,26 +839,13 @@ export default function Home() {
                     <input type="text" placeholder="Where do you want to go?" value={to} onChange={e => setTo(e.target.value)} />
                   </div>
                   <DateField label="Travel Date" value={departDate} min={today} onChange={setDepartDate} />
-                  <div className="search2__field search2__field--travelers">
-                    <label>Travelers</label>
-                    <button className="search2__travelers-btn" onClick={() => setTravelersOpen(o => !o)}>
-                      {travelers} Traveler{travelers > 1 ? 's' : ''}
-                      <ChevronDown size={13} />
-                    </button>
-                    {travelersOpen && (
-                      <div className="search2__travelers-pop">
-                        <div className="search2__travelers-row">
-                          <span>Travelers</span>
-                          <div className="search2__stepper">
-                            <button onClick={() => setTravelers(t => Math.max(1, t - 1))}>-</button>
-                            <span>{travelers}</span>
-                            <button onClick={() => setTravelers(t => Math.min(9, t + 1))}>+</button>
-                          </div>
-                        </div>
-                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>Done</button>
-                      </div>
-                    )}
-                  </div>
+                  <TravelersField
+                    label="Travelers"
+                    mode="holidays"
+                    adults={adults} setAdults={setAdults}
+                    children={children} setChildren={setChildren}
+                    infants={infants} setInfants={setInfants}
+                  />
                 </>
               )}
 

@@ -291,6 +291,9 @@ export default function FlightListPage() {
     const [activeTab, setActiveTab] = useState('overview');
     const [previewFlight, setPreviewFlight] = useState(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [bookingTermsAccepted, setBookingTermsAccepted] = useState(false);
+    const [showLoginRequired, setShowLoginRequired] = useState(false);
+    const [pendingLoginFlight, setPendingLoginFlight] = useState(null);
     const [activePreviewSection, setActivePreviewSection] = useState('preview-overview');
     const fareUpgradeScrollRef = useRef(null);
     const fareUpgradeDragRef = useRef({ dragging: false, moved: false, startX: 0, scrollLeft: 0, pointerId: null, target: null });
@@ -1259,6 +1262,7 @@ export default function FlightListPage() {
     const handleCardClick = (flight) => {
         setPreviewFlight(flight);
         setSelectedFareId(flight.rawOption?.fareId || null);
+        setBookingTermsAccepted(false);
         setActivePreviewSection('preview-overview');
         setIsDrawerOpen(true);
 
@@ -1294,8 +1298,76 @@ export default function FlightListPage() {
         }
     };
 
+    // Booking auth gate ------------------------------------------------------
+    // If your app stores the auth token under a different key, add it here.
+    const isUserLoggedIn = () => {
+        const authKeys = ['token', 'accessToken', 'authToken', 'jwt', 'userToken'];
+
+        const hasToken = authKeys.some((key) =>
+            Boolean(localStorage.getItem(key) || sessionStorage.getItem(key))
+        );
+
+        const explicitLoginFlag =
+            localStorage.getItem('isLoggedIn') === 'true' ||
+            sessionStorage.getItem('isLoggedIn') === 'true';
+
+        return hasToken || explicitLoginFlag;
+    };
+
+    const requestLoginForBooking = (flight) => {
+        setPendingLoginFlight(flight || null);
+        setShowLoginRequired(true);
+    };
+
+    const handleBookNowClick = (flight) => {
+        if (!isUserLoggedIn()) {
+            requestLoginForBooking(flight);
+            return;
+        }
+
+        handleCardClick(flight);
+    };
+
+    const handleContinueBooking = (flight) => {
+        if (!isUserLoggedIn()) {
+            requestLoginForBooking(flight);
+            return;
+        }
+
+        handleBooking(flight);
+    };
+
+    const goToLogin = () => {
+        const returnUrl = `${window.location.pathname}${window.location.search}`;
+
+        // Keep the current search page so your login page can return the user here.
+        sessionStorage.setItem('post_login_redirect', returnUrl);
+        sessionStorage.setItem('booking_intent', 'flight');
+
+        if (pendingLoginFlight?.id) {
+            sessionStorage.setItem('pending_booking_flight_id', String(pendingLoginFlight.id));
+        }
+
+        setShowLoginRequired(false);
+
+        // Change '/login' here only if your actual login route is different.
+        navigate('/login', {
+            state: {
+                from: returnUrl,
+                bookingIntent: true,
+                pendingFlightId: pendingLoginFlight?.id || null
+            }
+        });
+    };
+
+    const closeLoginRequired = () => {
+        setShowLoginRequired(false);
+        setPendingLoginFlight(null);
+    };
+
     const closeDrawer = () => {
         setIsDrawerOpen(false);
+        setBookingTermsAccepted(false);
         setTimeout(() => {
             setPreviewFlight(null);
             setSelectedFareId(null);
@@ -1446,6 +1518,7 @@ export default function FlightListPage() {
         if (fareUpgradeDragRef.current.moved) return;
         if (fareId === selectedFareId) return;
         setSelectedFareId(fareId);
+        setBookingTermsAccepted(false);
     };
 
     const formatDisplayDate = (value, options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) => {
@@ -2236,7 +2309,7 @@ export default function FlightListPage() {
                                             className="h-11 w-full max-w-[280px] lg:max-w-none flex items-center justify-center gap-1.5 bg-gradient-to-br from-[#f4b33e] to-[#f15a18] hover:from-[#ffc45a] hover:to-[#e94d10] text-white font-extrabold text-sm px-3 rounded-md transition-all shadow-[0_6px_14px_rgba(241,90,24,0.18)] whitespace-nowrap"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleCardClick(flight);
+                                                handleBookNowClick(flight);
                                             }}
                                         >
                                             Book Now
@@ -2858,11 +2931,37 @@ export default function FlightListPage() {
                                             </div>
                                         </div>
 
-                                        {/* 7. Action Button */}
+                                        {/* 7. Terms confirmation + Action Button */}
                                         <div className="pt-2">
+                                            <label
+                                                htmlFor="booking-terms-accepted"
+                                                className="mb-3 flex items-start gap-2.5 cursor-pointer select-none text-left"
+                                            >
+                                                <input
+                                                    id="booking-terms-accepted"
+                                                    type="checkbox"
+                                                    checked={bookingTermsAccepted}
+                                                    onChange={(e) => setBookingTermsAccepted(e.target.checked)}
+                                                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#d8942f]"
+                                                />
+                                                <span className="text-[11px] leading-4 font-medium text-slate-600">
+                                                    I have read and understood the flight details, fare rules, baggage policy and booking terms.
+                                                </span>
+                                            </label>
+
                                             <button
-                                                className="w-full bg-[#d8942f] hover:bg-[#b9791f] text-white py-3.5 rounded-none text-sm font-bold tracking-wider uppercase transition-all shadow-md active:scale-[0.99]"
-                                                onClick={() => handleBooking(selectedFareData)}
+                                                type="button"
+                                                disabled={!bookingTermsAccepted}
+                                                aria-disabled={!bookingTermsAccepted}
+                                                className={`w-full py-3.5 rounded-none text-sm font-bold tracking-wider uppercase transition-all active:scale-[0.99] ${
+                                                    bookingTermsAccepted
+                                                        ? 'bg-[#d8942f] hover:bg-[#b9791f] text-white shadow-md cursor-pointer'
+                                                        : 'bg-slate-300 text-slate-500 shadow-none cursor-not-allowed'
+                                                }`}
+                                                onClick={() => {
+                                                    if (!bookingTermsAccepted) return;
+                                                    handleContinueBooking(selectedFareData);
+                                                }}
                                             >
                                                 CONTINUE BOOKING
                                             </button>
@@ -2877,6 +2976,64 @@ export default function FlightListPage() {
                     </div>
                 </div>
             )}
+            {/* Login required modal - shown before any booking action */}
+            {showLoginRequired && (
+                <div
+                    className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-[2px]"
+                    onClick={closeLoginRequired}
+                    role="presentation"
+                >
+                    <div
+                        className="w-full max-w-[430px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.28)]"
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="login-required-title"
+                    >
+                        <div className="bg-[#00206B] px-6 py-5 text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15">
+                                    <Shield size={22} />
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-100">Secure booking</p>
+                                    <h3 id="login-required-title" className="mt-0.5 text-xl font-extrabold">Login required</h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-6 py-6">
+                            <p className="text-sm leading-6 text-slate-600">
+                                Please login to your GoAirClass account before continuing with this flight booking.
+                            </p>
+
+                            <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/70 px-4 py-3">
+                                <div className="flex gap-2.5 text-xs font-semibold text-[#00206B]">
+                                    <Check size={16} className="mt-0.5 shrink-0" />
+                                    <span>Your selected flight search will stay available when you return.</span>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={goToLogin}
+                                className="mt-5 flex h-12 w-full items-center justify-center rounded-md bg-gradient-to-br from-[#f4b33e] to-[#f15a18] px-4 text-sm font-extrabold text-white shadow-[0_8px_18px_rgba(241,90,24,0.22)] transition-all hover:from-[#ffc45a] hover:to-[#e94d10]"
+                            >
+                                Login to Continue Booking
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={closeLoginRequired}
+                                className="mt-2.5 h-10 w-full rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50"
+                            >
+                                Not Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { CreditCard, Smartphone, Building2, Wallet, Lock, CheckCircle, ChevronRight } from 'lucide-react'
+import { CreditCard, Smartphone, Building2, Wallet, Lock, CheckCircle, ChevronRight, Shield, ShieldCheck, BadgeCheck, Headphones, FileText, User, Calendar, HelpCircle, Plane } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import './Payment.css'
 
@@ -221,13 +221,21 @@ export default function Payment() {
         <div className="payment-header">
           <div className="container">
             <div className="payment-header__inner">
-              <div>
-                <h1>Secure Payment</h1>
-                <p>Your payment is protected by 256-bit SSL encryption</p>
+              <div className="payment-header__lead">
+                <span className="payment-header__shield">
+                  <Shield size={34} strokeWidth={1.6} />
+                </span>
+                <div>
+                  <h1>Secure Payment</h1>
+                  <p>Your payment is protected by <strong>256-bit SSL</strong> encryption</p>
+                </div>
               </div>
               <div className="ssl-badge">
-                <Lock size={18} />
-                <span>SSL Secured</span>
+                <span className="ssl-badge__icon"><Lock size={19} /></span>
+                <div>
+                  <strong className="ssl-badge__title">SSL Secured</strong>
+                  <span className="ssl-badge__sub">Your data is safe with us</span>
+                </div>
               </div>
             </div>
           </div>
@@ -249,7 +257,16 @@ export default function Payment() {
                 <div className="animate-fadeInUp">
                   <div className="card-preview">
                     <div className="card-preview__top">
-                      <span className="card-chip">💳</span>
+                      <span className="card-preview__chipwrap">
+                        <span className="card-chip" />
+                        {/* Contactless arcs */}
+                        <span className="card-contactless" aria-hidden="true">
+                          <svg width="17" height="20" viewBox="0 0 17 20" fill="none">
+                            <path d="M2 5a9 9 0 0 1 0 10M6.5 3a13 13 0 0 1 0 14M11 1a17 17 0 0 1 0 18"
+                              stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                      </span>
                       <span className="card-network">VISA</span>
                     </div>
                     <div className="card-preview__number">
@@ -269,27 +286,42 @@ export default function Payment() {
                   <div className="form-grid" style={{ marginTop: 24 }}>
                     <div className="form-group form-group--full">
                       <label>Card Number</label>
-                      <input className="form-input" placeholder="1234 5678 9012 3456" maxLength={19}
-                        value={cardForm.number}
-                        onChange={e => setCardForm({ ...cardForm, number: formatCard(e.target.value) })} />
+                      <div className="input-wrap">
+                        <span className="input-wrap__icon"><CreditCard size={17} /></span>
+                        <input className="form-input" placeholder="1234 5678 9012 3456" maxLength={19}
+                          value={cardForm.number}
+                          onChange={e => setCardForm({ ...cardForm, number: formatCard(e.target.value) })} />
+                      </div>
                     </div>
                     <div className="form-group form-group--full">
                       <label>Cardholder Name</label>
-                      <input className="form-input" placeholder="Name as on card"
-                        value={cardForm.name}
-                        onChange={e => setCardForm({ ...cardForm, name: e.target.value })} />
+                      <div className="input-wrap">
+                        <span className="input-wrap__icon"><User size={17} /></span>
+                        <input className="form-input" placeholder="Name as on card"
+                          value={cardForm.name}
+                          onChange={e => setCardForm({ ...cardForm, name: e.target.value })} />
+                      </div>
                     </div>
                     <div className="form-group">
                       <label>Expiry Date</label>
-                      <input className="form-input" placeholder="MM/YY" maxLength={5}
-                        value={cardForm.expiry}
-                        onChange={e => setCardForm({ ...cardForm, expiry: formatExpiry(e.target.value) })} />
+                      <div className="input-wrap">
+                        <span className="input-wrap__icon"><Calendar size={17} /></span>
+                        <input className="form-input" placeholder="MM/YY" maxLength={5}
+                          value={cardForm.expiry}
+                          onChange={e => setCardForm({ ...cardForm, expiry: formatExpiry(e.target.value) })} />
+                      </div>
                     </div>
                     <div className="form-group">
                       <label>CVV</label>
-                      <input className="form-input" placeholder="•••" maxLength={4} type="password"
-                        value={cardForm.cvv}
-                        onChange={e => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })} />
+                      <div className="input-wrap input-wrap--hint">
+                        <span className="input-wrap__icon"><Lock size={17} /></span>
+                        <input className="form-input" placeholder="•••" maxLength={4} type="password"
+                          value={cardForm.cvv}
+                          onChange={e => setCardForm({ ...cardForm, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })} />
+                        <span className="input-wrap__hint" title="The 3 or 4 digit code printed on the back of your card">
+                          <HelpCircle size={16} />
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <label className="save-card">

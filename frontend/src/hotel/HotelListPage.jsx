@@ -1,9 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { Calendar, Users, MapPin, Search, Star, Share2, ChevronDown, SlidersHorizontal, ArrowUpDown, Heart } from 'lucide-react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
-import { searchHotelsByLocation } from '../services/hotelApi'
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+    Calendar,
+    ArrowLeft,
+    Users,
+    MapPin,
+    Search,
+    Star,
+    ChevronDown,
+    SlidersHorizontal,
+    Heart,
+    ChevronLeft,
+    ChevronRight,
+    ShieldCheck,
+    PhoneCall,
+    ClipboardCheck,
+    RefreshCcw,
+    Wifi,
+    Coffee,
+    Waves,
+    Car,
+    Dumbbell,
+} from 'lucide-react';
+import Footer from '../components/Footer';
+import { searchHotelsByLocation } from '../services/hotelApi';
+
+const MAX_PRICE = 1400000;
 
 const getTodayDateString = () => {
     const today = new Date();
@@ -22,11 +44,39 @@ const getFutureDateString = (daysToAdd) => {
     return `${yyyy}-${mm}-${dd}`;
 };
 
+const safeDate = (value) => {
+    if (!value) return new Date();
+    const d = new Date(`${value}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? new Date() : d;
+};
+
+const formatSlashDate = (value) => {
+    const d = safeDate(value);
+    return d.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+    });
+};
+
+const formatWeekday = (value) =>
+    safeDate(value).toLocaleDateString('en-US', { weekday: 'short' });
+
+const normalizeText = (value) => String(value || '').trim().toLowerCase();
+
+const hotelHasAmenity = (hotel, aliases) => {
+    const source = Array.isArray(hotel?.amenities)
+        ? hotel.amenities.join(' ')
+        : `${hotel?.amenities || ''} ${hotel?.facilities || ''}`;
+    const text = normalizeText(source);
+    if (!text) return true; // don't hide hotels when provider does not return amenity metadata
+    return aliases.some((alias) => text.includes(alias));
+};
+
 export default function HotelListPage() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Search parameters state (synced with URL)
     const [destination, setDestination] = useState('Pune, Maharashtra, India');
     const [checkIn, setCheckIn] = useState(getTodayDateString());
     const [checkOut, setCheckOut] = useState(getFutureDateString(3));
@@ -34,29 +84,50 @@ export default function HotelListPage() {
     const [adultsCount, setAdultsCount] = useState(2);
     const [childrenCount, setChildrenCount] = useState(0);
 
-    // Live Hotels & Loading state
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [showGuestsDropdown, setShowGuestsDropdown] = useState(false);
     const guestsRef = useRef(null);
+    const calendarRef = useRef(null);
 
-    // Filters State
     const [searchQuery, setSearchQuery] = useState('');
-    const [dealFilters, setDealFilters] = useState({ exclusive: false, popular: false });
-    const [starFilters, setStarFilters] = useState({ 5: false, 4: false, 3: false, 2: false, 1: false, 0: false });
-    const [maxPrice, setMaxPrice] = useState(143996);
+    const [dealFilters, setDealFilters] = useState({
+        exclusive: false,
+        freeCancellation: false,
+    });
+    const [starFilters, setStarFilters] = useState({
+        5: false,
+        4: false,
+        3: false,
+        2: false,
+        1: false,
+        0: false,
+    });
+    const [guestRating, setGuestRating] = useState('any');
+    const [amenityFilters, setAmenityFilters] = useState({
+        wifi: false,
+        breakfast: false,
+        pool: false,
+        parking: false,
+        gym: false,
+    });
+    const [showAllAmenities, setShowAllAmenities] = useState(false);
+    const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
     const [sortBy, setSortBy] = useState('star-desc');
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-    // Parse URL query params and fetch hotels
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const dest = queryParams.get('destination') || 'Pune, Maharashtra, India';
         const checkI = queryParams.get('checkIn') || getTodayDateString();
         const checkO = queryParams.get('checkOut') || getFutureDateString(3);
-        const rms = parseInt(queryParams.get('rooms')) || 1;
-        const adults = parseInt(queryParams.get('adults')) || parseInt(queryParams.get('guests')) || 2;
-        const kids = parseInt(queryParams.get('children')) || 0;
+        const rms = parseInt(queryParams.get('rooms'), 10) || 1;
+        const adults =
+            parseInt(queryParams.get('adults'), 10) ||
+            parseInt(queryParams.get('guests'), 10) ||
+            2;
+        const kids = parseInt(queryParams.get('children'), 10) || 0;
 
         setDestination(dest);
         setCheckIn(checkI);
@@ -73,13 +144,17 @@ export default function HotelListPage() {
                     checkIn: checkI,
                     checkOut: checkO,
                     rooms: rms,
-                    guests: adults + kids
+                    guests: adults + kids,
                 });
-                if (data && data.success) {
-                    setHotels(data.hotels || []);
+
+                if (data?.success) {
+                    setHotels(Array.isArray(data.hotels) ? data.hotels : []);
+                } else {
+                    setHotels([]);
                 }
             } catch (err) {
-                console.error("Error fetching live hotels:", err);
+                console.error('Error fetching live hotels:', err);
+                setHotels([]);
             } finally {
                 setLoading(false);
             }
@@ -88,213 +163,305 @@ export default function HotelListPage() {
         fetchLiveHotels();
     }, [location.search]);
 
-    // Click outside listener for guests dropdown
     useEffect(() => {
         const handleOutsideClick = (e) => {
             if (guestsRef.current && !guestsRef.current.contains(e.target)) {
                 setShowGuestsDropdown(false);
             }
         };
+
         document.addEventListener('mousedown', handleOutsideClick);
         return () => document.removeEventListener('mousedown', handleOutsideClick);
     }, []);
 
-    const clearAllFilters = () => {
-        setSearchQuery('');
-        setDealFilters({ exclusive: false, popular: false });
-        setStarFilters({ 5: false, 4: false, 3: false });
-        setMaxPrice(143996);
-        setSortBy('star-desc');
-    };
-
     const getNightsCount = () => {
-        if (!checkIn || !checkOut) return 3;
-        const start = new Date(checkIn);
-        const end = new Date(checkOut);
-        const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays || 3;
+        if (!checkIn || !checkOut) return 1;
+        const start = safeDate(checkIn);
+        const end = safeDate(checkOut);
+        const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        return Math.max(1, diff || 1);
     };
 
     const nights = getNightsCount();
 
+    const cityLabel = useMemo(() => {
+        if (!destination) return 'Destination';
+        return destination.split(',')[0].trim() || destination;
+    }, [destination]);
+
+    const minHotelPrice = useMemo(() => {
+        const values = hotels
+            .map((hotel) => Number(hotel?.pricePerNight || hotel?.price || 0))
+            .filter((value) => Number.isFinite(value) && value > 0);
+        return values.length ? Math.min(...values) : 2890;
+    }, [hotels]);
+
+    const clearAllFilters = () => {
+        setSearchQuery('');
+        setDealFilters({ exclusive: false, freeCancellation: false });
+        setStarFilters({ 5: false, 4: false, 3: false, 2: false, 1: false, 0: false });
+        setGuestRating('any');
+        setAmenityFilters({ wifi: false, breakfast: false, pool: false, parking: false, gym: false });
+        setMaxPrice(MAX_PRICE);
+        setSortBy('star-desc');
+    };
+
+    const handleCheckInChange = (value) => {
+        setCheckIn(value);
+        if (!checkOut || safeDate(checkOut) <= safeDate(value)) {
+            const next = safeDate(value);
+            next.setDate(next.getDate() + 1);
+            setCheckOut(next.toISOString().split('T')[0]);
+        }
+    };
+
+    const handleBack = () => {
+        navigate(-1);
+    };
+
     const handleSearchSubmit = (e) => {
         if (e) e.preventDefault();
         const totalGuests = adultsCount + childrenCount;
-        navigate(`/hotels/list?destination=${encodeURIComponent(destination)}&checkIn=${checkIn}&checkOut=${checkOut}&rooms=${roomsCount}&adults=${adultsCount}&children=${childrenCount}&guests=${totalGuests}`);
+        navigate(
+            `/hotels/list?destination=${encodeURIComponent(destination)}&checkIn=${checkIn}&checkOut=${checkOut}&rooms=${roomsCount}&adults=${adultsCount}&children=${childrenCount}&guests=${totalGuests}`
+        );
     };
 
-    const filteredHotels = hotels.filter(hotel => {
-        if (searchQuery.trim() !== '') {
-            const match = hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                hotel.address.toLowerCase().includes(searchQuery.toLowerCase());
-            if (!match) return false;
-        }
-        const activeStars = Object.keys(starFilters).filter(key => starFilters[key]);
-        if (activeStars.length > 0) {
-            if (!starFilters[hotel.stars]) return false;
-        }
-        const activeDeals = Object.keys(dealFilters).filter(key => dealFilters[key]);
-        if (activeDeals.length > 0) {
-            if (dealFilters.exclusive && hotel.dealType !== 'exclusive') return false;
-            if (dealFilters.popular && hotel.dealType !== 'popular') return false;
-        }
-        const totalPrice = hotel.pricePerNight * nights;
-        if (totalPrice > maxPrice) return false;
+    const filteredHotels = useMemo(() => {
+        return hotels
+            .filter((hotel) => {
+                const hotelName = normalizeText(hotel?.name);
+                const hotelAddress = normalizeText(hotel?.address);
+                const query = normalizeText(searchQuery);
 
-        return true;
-    }).sort((a, b) => {
-        if (sortBy === 'star-desc') return b.stars - a.stars;
-        if (sortBy === 'star-asc') return a.stars - b.stars;
-        if (sortBy === 'price-asc') return a.pricePerNight - b.pricePerNight;
-        if (sortBy === 'price-desc') return b.pricePerNight - a.pricePerNight;
-        return 0;
-    });
+                if (query && !hotelName.includes(query) && !hotelAddress.includes(query)) {
+                    return false;
+                }
+
+                const activeStars = Object.keys(starFilters).filter((key) => starFilters[key]);
+                if (activeStars.length > 0) {
+                    const stars = Number(hotel?.stars || 0);
+                    if (!starFilters[stars]) return false;
+                }
+
+                if (dealFilters.exclusive && hotel?.dealType !== 'exclusive') return false;
+
+                if (dealFilters.freeCancellation) {
+                    const cancellationText = normalizeText(
+                        hotel?.cancellationPolicy || hotel?.cancellation || ''
+                    );
+                    const isFree =
+                        hotel?.freeCancellation === true ||
+                        cancellationText.includes('free cancellation') ||
+                        cancellationText.includes('free cancel');
+                    if (!isFree) return false;
+                }
+
+                const nightly = Number(hotel?.pricePerNight || hotel?.price || 0);
+                if (nightly > maxPrice) return false;
+
+                const rating = Number(hotel?.guestRating || hotel?.rating || hotel?.reviewScore || 0);
+                if (guestRating !== 'any' && rating > 0 && rating < Number(guestRating)) {
+                    return false;
+                }
+
+                if (amenityFilters.wifi && !hotelHasAmenity(hotel, ['wifi', 'wi-fi', 'wireless'])) return false;
+                if (amenityFilters.breakfast && !hotelHasAmenity(hotel, ['breakfast'])) return false;
+                if (amenityFilters.pool && !hotelHasAmenity(hotel, ['pool', 'swimming'])) return false;
+                if (amenityFilters.parking && !hotelHasAmenity(hotel, ['parking'])) return false;
+                if (amenityFilters.gym && !hotelHasAmenity(hotel, ['gym', 'fitness'])) return false;
+
+                return true;
+            })
+            .sort((a, b) => {
+                const aStars = Number(a?.stars || 0);
+                const bStars = Number(b?.stars || 0);
+                const aPrice = Number(a?.pricePerNight || a?.price || 0);
+                const bPrice = Number(b?.pricePerNight || b?.price || 0);
+
+                if (sortBy === 'star-desc') return bStars - aStars;
+                if (sortBy === 'star-asc') return aStars - bStars;
+                if (sortBy === 'price-asc') return aPrice - bPrice;
+                if (sortBy === 'price-desc') return bPrice - aPrice;
+                return 0;
+            });
+    }, [
+        hotels,
+        searchQuery,
+        starFilters,
+        dealFilters,
+        guestRating,
+        amenityFilters,
+        maxPrice,
+        sortBy,
+    ]);
+
+    const starCount = (star) => hotels.filter((hotel) => Number(hotel?.stars || 0) === star).length;
+
+    const ratingCount = (threshold) => {
+        if (threshold === 'any') return hotels.length;
+        return hotels.filter((hotel) => {
+            const rating = Number(hotel?.guestRating || hotel?.rating || hotel?.reviewScore || 0);
+            return rating >= Number(threshold);
+        }).length;
+    };
+
+    const amenityCount = (aliases, fallbackRatio) => {
+        const actual = hotels.filter((hotel) => {
+            const source = Array.isArray(hotel?.amenities)
+                ? hotel.amenities.join(' ')
+                : `${hotel?.amenities || ''} ${hotel?.facilities || ''}`;
+            const text = normalizeText(source);
+            return aliases.some((alias) => text.includes(alias));
+        }).length;
+        return actual || Math.round(hotels.length * fallbackRatio);
+    };
+
+    const scrollCalendar = (direction) => {
+        calendarRef.current?.scrollBy({
+            left: direction * 360,
+            behavior: 'smooth',
+        });
+    };
+
+    const calendarDates = useMemo(() => {
+        const start = safeDate(checkIn);
+        return Array.from({ length: 14 }).map((_, index) => {
+            const d = new Date(start);
+            d.setDate(start.getDate() + index);
+            const iso = d.toISOString().split('T')[0];
+            const day = d.toLocaleDateString('en-US', { weekday: 'short' });
+            const month = d.toLocaleDateString('en-US', { month: 'short' });
+            const dayNumber = d.getDate();
+            const variation = ((d.getDate() * 173 + index * 97) % 950) - 300;
+            const price = Math.max(990, Math.round(minHotelPrice + variation));
+            return { iso, day, month, dayNumber, price };
+        });
+    }, [checkIn, minHotelPrice]);
+
+    const amenityItems = [
+        { key: 'wifi', label: 'Free Wi-Fi', icon: Wifi, aliases: ['wifi', 'wi-fi'], ratio: 0.82 },
+        { key: 'breakfast', label: 'Breakfast Included', icon: Coffee, aliases: ['breakfast'], ratio: 0.64 },
+        { key: 'pool', label: 'Pool', icon: Waves, aliases: ['pool'], ratio: 0.24 },
+        { key: 'parking', label: 'Free Parking', icon: Car, aliases: ['parking'], ratio: 0.44 },
+        { key: 'gym', label: 'Gym', icon: Dumbbell, aliases: ['gym', 'fitness'], ratio: 0.18 },
+    ];
 
     return (
-        <div className="min-h-screen bg-[#f1f3f6] font-sans text-slate-800 antialiased pt-[70px]">
-            <Navbar />
+        <div className="min-h-screen overflow-x-hidden bg-[#f7f9fc] font-sans text-[#13233f] antialiased">
+            {/* No Navbar on this page, as requested */}
 
-            {/* ── Top Cleartrip Style Search Bar (Sticky at top-0 above Navbar) ── */}
-            <div className="bg-white border-b border-slate-200 pt-2.5 pb-3 shadow-md sticky top-0 z-[1001]">
-                <div className="mx-auto max-w-7xl px-4">
-                    {/* Breadcrumb */}
-                    <div className="text-[11px] flex items-center space-x-1 mb-2.5">
-                        <span className="cursor-pointer text-[#ff5a3d] hover:underline font-medium" onClick={() => navigate('/')}>Home</span>
-                        <span className="text-slate-400">/</span>
-                        <span className="text-slate-400 font-normal">Hotel List</span>
-                    </div>
+            <div className="mx-auto w-full max-w-[1460px] px-2.5 pb-7 pt-2.5 sm:px-4 sm:pt-3 md:px-5 lg:px-6">
+                {/* Search panel */}
+                <section className="rounded-[8px] border border-[#edf1f7] bg-white px-3 py-3 shadow-[0_5px_18px_rgba(19,35,63,0.06)] sm:px-4 lg:px-5">
+                    <button
+                        type="button"
+                        onClick={handleBack}
+                        className="mb-2.5 inline-flex h-8 items-center gap-1.5 rounded-[5px] border border-[#dce3ed] bg-white px-3 text-[10px] font-extrabold text-[#244a82] shadow-sm transition hover:border-[#bfcde0] hover:bg-[#f6f9fd]"
+                    >
+                        <ArrowLeft size={14} strokeWidth={2.4} /> Back
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
-
-                        {/* Location Input Box */}
-                        <div className="md:col-span-4 relative border border-slate-300 rounded px-3 py-1 bg-white hover:border-slate-400 focus-within:border-slate-500 focus-within:ring-1 focus-within:ring-slate-500">
-                            <span className="block text-[10px] font-semibold text-slate-400 leading-none">Hotel name/city*</span>
-                            <div className="flex items-center mt-1">
-                                <MapPin className="h-4 w-4 text-slate-300 mr-2 shrink-0" />
+                    <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+                        <div className="sm:col-span-2 lg:col-span-4">
+                            <label className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-[#61708a]">
+                                Destination / Hotel Name
+                            </label>
+                            <div className="flex h-[44px] items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3 focus-within:border-[#2f6fed] focus-within:ring-2 focus-within:ring-blue-100">
+                                <MapPin size={17} className="shrink-0 text-[#315f9d]" />
                                 <input
                                     type="text"
                                     value={destination}
                                     onChange={(e) => setDestination(e.target.value)}
-                                    className="w-full text-sm font-medium text-slate-800 focus:outline-none placeholder-slate-400 bg-transparent"
-                                    placeholder="Enter location"
+                                    className="min-w-0 flex-1 bg-transparent text-[12px] font-semibold text-[#22324e] outline-none placeholder:text-slate-400 sm:text-[13px]"
+                                    placeholder="Enter destination or hotel"
                                 />
+                                {destination && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setDestination('')}
+                                        className="text-lg leading-none text-slate-300 transition-colors hover:text-slate-500"
+                                        aria-label="Clear destination"
+                                    >
+                                        ×
+                                    </button>
+                                )}
                             </div>
                         </div>
 
-                        {/* Check-in box */}
-                        <div className="md:col-span-3 border border-slate-300 rounded px-3 py-1 bg-white flex items-center justify-between hover:border-slate-400 focus-within:border-slate-500">
-                            <div className="w-1/2">
-                                <span className="block text-[10px] font-semibold text-slate-400 leading-none">Check-in*</span>
+                        <div className="lg:col-span-2">
+                            <label className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-[#61708a]">Check-in</label>
+                            <div className="relative flex h-[44px] items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3">
+                                <Calendar size={16} className="text-[#315f9d]" />
+                                <div className="min-w-0">
+                                    <div className="whitespace-nowrap text-[13px] font-bold leading-tight text-[#22324e]">{formatSlashDate(checkIn)}</div>
+                                    <div className="text-[10px] font-semibold text-[#ff5a16]">{formatWeekday(checkIn)}</div>
+                                </div>
                                 <input
                                     type="date"
                                     value={checkIn}
-                                    onChange={(e) => setCheckIn(e.target.value)}
-                                    className="w-full text-xs font-semibold text-slate-800 mt-1 focus:outline-none bg-transparent"
-                                />
-                            </div>
-
-                            {/* Nights Badge */}
-                            <div className="text-[10px] text-red-500 font-bold border border-red-200 bg-red-50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                {nights} Night(s)
-                            </div>
-
-                            <div className="w-1/2 text-right pl-2">
-                                <span className="block text-[10px] font-semibold text-slate-400 leading-none">Check-out*</span>
-                                <input
-                                    type="date"
-                                    value={checkOut}
-                                    onChange={(e) => setCheckOut(e.target.value)}
-                                    className="w-full text-xs font-semibold text-slate-800 mt-1 focus:outline-none text-right bg-transparent"
+                                    onChange={(e) => handleCheckInChange(e.target.value)}
+                                    className="absolute inset-0 cursor-pointer opacity-0"
+                                    aria-label="Check-in date"
                                 />
                             </div>
                         </div>
 
-                        {/* Rooms and guests */}
-                        <div className="md:col-span-3 relative border border-slate-300 rounded px-3 py-1 bg-white hover:border-slate-400 focus-within:border-slate-500" ref={guestsRef}>
-                            <span className="block text-[10px] font-semibold text-slate-400 leading-none">Rooms and guests*</span>
-                            <div
-                                className="flex items-center justify-between cursor-pointer mt-1"
-                                onClick={() => setShowGuestsDropdown(!showGuestsDropdown)}
-                            >
-                                <div className="flex items-center">
-                                    <Users className="h-4 w-4 text-slate-300 mr-2" />
-                                    <span className="text-sm font-semibold text-slate-700">
-                                        {roomsCount} Room(s), {adultsCount + childrenCount} Guest(s)
-                                    </span>
+                        <div className="lg:col-span-2">
+                            <label className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-[#61708a]">Check-out</label>
+                            <div className="relative flex h-[44px] items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3">
+                                <Calendar size={16} className="text-[#315f9d]" />
+                                <div className="min-w-0">
+                                    <div className="whitespace-nowrap text-[13px] font-bold leading-tight text-[#22324e]">{formatSlashDate(checkOut)}</div>
+                                    <div className="text-[10px] font-semibold text-[#f04c39]">{formatWeekday(checkOut)}</div>
                                 </div>
-                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                                <input
+                                    type="date"
+                                    value={checkOut}
+                                    min={checkIn}
+                                    onChange={(e) => setCheckOut(e.target.value)}
+                                    className="absolute inset-0 cursor-pointer opacity-0"
+                                    aria-label="Check-out date"
+                                />
                             </div>
+                        </div>
+
+                        <div ref={guestsRef} className="relative lg:col-span-2">
+                            <label className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-[#61708a]">Rooms & Guests</label>
+                            <button
+                                type="button"
+                                onClick={() => setShowGuestsDropdown((prev) => !prev)}
+                                className="flex h-[44px] w-full items-center justify-between rounded-[6px] border border-[#dce3ed] bg-white px-3 text-left transition-colors hover:border-[#bfcadc]"
+                            >
+                                <span className="flex min-w-0 items-center gap-2">
+                                    <Users size={17} className="shrink-0 text-[#315f9d]" />
+                                    <span className="min-w-0 truncate text-[11px] font-semibold leading-tight text-[#22324e] sm:text-[12px]">
+                                        {roomsCount} Room, {adultsCount + childrenCount} Guest{adultsCount + childrenCount !== 1 ? 's' : ''}
+                                    </span>
+                                </span>
+                                <ChevronDown size={16} className="text-[#76849a]" />
+                            </button>
 
                             {showGuestsDropdown && (
-                                <div className="absolute right-0 mt-2 w-64 rounded-lg border border-slate-200 bg-white p-4 shadow-xl z-40">
-                                    <div className="flex items-center justify-between py-2">
-                                        <span className="text-sm font-semibold text-slate-700">Rooms</span>
-                                        <div className="flex items-center space-x-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => setRoomsCount(Math.max(1, roomsCount - 1))}
-                                                className="h-7 w-7 rounded-full border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-50"
-                                            >
-                                                -
-                                            </button>
-                                            <span className="font-bold text-slate-800 w-4 text-center">{roomsCount}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setRoomsCount(roomsCount + 1)}
-                                                className="h-7 w-7 rounded-full border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-50"
-                                            >
-                                                +
-                                            </button>
+                                <div className="absolute right-0 top-full z-50 mt-2 w-[min(290px,calc(100vw-2rem))] rounded-[8px] border border-[#dce3ed] bg-white p-4 shadow-[0_18px_40px_rgba(19,35,63,0.16)]">
+                                    {[
+                                        ['Rooms', roomsCount, () => setRoomsCount(Math.max(1, roomsCount - 1)), () => setRoomsCount(roomsCount + 1)],
+                                        ['Adults', adultsCount, () => setAdultsCount(Math.max(1, adultsCount - 1)), () => setAdultsCount(adultsCount + 1)],
+                                        ['Children', childrenCount, () => setChildrenCount(Math.max(0, childrenCount - 1)), () => setChildrenCount(childrenCount + 1)],
+                                    ].map(([label, value, minus, plus]) => (
+                                        <div key={label} className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0">
+                                            <span className="text-sm font-semibold text-[#263550]">{label}</span>
+                                            <div className="flex items-center gap-2">
+                                                <button type="button" onClick={minus} className="h-8 w-8 rounded-full border border-[#d6deea] text-lg font-semibold text-slate-600 hover:bg-slate-50">−</button>
+                                                <span className="w-5 text-center text-sm font-bold">{value}</span>
+                                                <button type="button" onClick={plus} className="h-8 w-8 rounded-full border border-[#d6deea] text-lg font-semibold text-slate-600 hover:bg-slate-50">+</button>
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between py-2">
-                                        <span className="text-sm font-semibold text-slate-700">Adults</span>
-                                        <div className="flex items-center space-x-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => setAdultsCount(Math.max(1, adultsCount - 1))}
-                                                className="h-7 w-7 rounded-full border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-50"
-                                            >
-                                                -
-                                            </button>
-                                            <span className="font-bold text-slate-800 w-4 text-center">{adultsCount}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setAdultsCount(adultsCount + 1)}
-                                                className="h-7 w-7 rounded-full border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-50"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between py-2">
-                                        <span className="text-sm font-semibold text-slate-700">Children</span>
-                                        <div className="flex items-center space-x-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))}
-                                                className="h-7 w-7 rounded-full border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-50"
-                                            >
-                                                -
-                                            </button>
-                                            <span className="font-bold text-slate-800 w-4 text-center">{childrenCount}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setChildrenCount(childrenCount + 1)}
-                                                className="h-7 w-7 rounded-full border border-slate-300 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-50"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                    </div>
-
+                                    ))}
                                     <button
                                         type="button"
                                         onClick={() => setShowGuestsDropdown(false)}
-                                        className="mt-3 w-full rounded bg-orange-500 py-1.5 text-center text-xs font-bold text-white hover:bg-orange-600 transition-colors"
+                                        className="mt-3 w-full rounded-[6px] bg-[#ff650d] py-2.5 text-sm font-bold text-white hover:bg-[#ef5700]"
                                     >
                                         Done
                                     </button>
@@ -302,358 +469,395 @@ export default function HotelListPage() {
                             )}
                         </div>
 
-                        {/* Search Button */}
-                        <div className="md:col-span-2">
+                        <button
+                            type="submit"
+                            className="flex h-[44px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-[6px] bg-[#ff650d] px-4 text-[13px] font-extrabold text-white shadow-[0_5px_14px_rgba(255,101,13,0.20)] transition-all hover:bg-[#ef5700] active:translate-y-px sm:col-span-2 lg:col-span-2"
+                        >
+                            <Search size={16} /> Search Hotels
+                        </button>
+                    </form>
+                </section>
+
+                {/* Compact date/price calendar — scrolls with page until it reaches the top, then stays fixed */}
+                <section className="sticky top-0 z-40 mt-3 rounded-[8px] border border-[#dfe6ef] bg-white px-2.5 py-2 shadow-[0_5px_16px_rgba(19,35,63,0.06)] sm:px-3">
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                        <div className="text-[9px] font-extrabold leading-tight text-[#17243b] sm:text-[10px]">
+                            Check-in: {formatWeekday(checkIn)}, {safeDate(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            <span className="mx-2 text-[#c9d2df]">|</span>
+                            {nights} Night Stay
+                        </div>
+                    </div>
+
+                    <div className="flex items-stretch gap-2 sm:gap-2.5">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
                             <button
                                 type="button"
-                                onClick={handleSearchSubmit}
-                                className="w-full bg-[#fca5a5] hover:bg-[#f87171] text-white font-bold py-2.5 rounded transition-all text-center text-sm shadow-sm"
+                                onClick={() => scrollCalendar(-1)}
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#dce5ef] bg-white text-[#1d4f91] shadow-sm transition hover:bg-[#f2f6fb] sm:h-8 sm:w-8"
+                                aria-label="Previous dates"
                             >
-                                Search
+                                <ChevronLeft size={16} strokeWidth={2.4} />
                             </button>
-                        </div>
 
-                    </div>
-                </div>
-            </div>
+                            <div ref={calendarRef} className="flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth px-0.5 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                {calendarDates.map((item) => {
+                                    const selected = item.iso === checkIn;
+                                    return (
+                                        <button
+                                            key={item.iso}
+                                            type="button"
+                                            onClick={() => handleCheckInChange(item.iso)}
+                                            className={`flex h-[60px] min-w-[92px] shrink-0 flex-col items-center justify-center rounded-[7px] border px-2 text-center leading-tight transition-all sm:h-[64px] sm:min-w-[108px] sm:px-2.5 ${
+                                                selected
+                                                    ? 'border-[#0a3c91] bg-gradient-to-b from-[#0d489f] to-[#062d73] text-white shadow-[0_8px_18px_rgba(7,48,122,0.20)]'
+                                                    : 'border-[#dce4ee] bg-white text-[#35435c] hover:border-[#a9bfdc] hover:bg-[#f8fbff]'
+                                            }`}
+                                        >
+                                            <div className={`whitespace-nowrap text-[10px] font-extrabold leading-none ${selected ? 'text-white' : 'text-[#4a5970]'}`}>{item.day}</div>
+                                            <div className={`mt-1 whitespace-nowrap text-[10px] leading-none ${selected ? 'text-blue-100' : 'text-[#718097]'}`}>{item.month} {item.dayNumber}</div>
+                                            <div className={`mt-1.5 whitespace-nowrap text-[13px] font-black leading-none ${selected ? 'text-white' : 'text-[#17243b]'}`}>₹{item.price.toLocaleString('en-IN')}</div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-            {/* ── Main Container ── */}
-            <main className="mx-auto max-w-7xl px-4 py-4">
-
-                {/* ── Horizontal Date / Price Strip Calendar ── */}
-                <div className="bg-white rounded-xl p-3.5 mb-4 border border-slate-200 shadow-sm">
-                    <div className="flex items-center justify-between mb-2 px-1">
-                        <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4 text-orange-500" />
-                            <span className="text-xs font-bold text-slate-800">Check-in Date & Price Calendar</span>
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-medium">Select a date for instant rate updates</span>
-                    </div>
-
-                    <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((offset) => {
-                            const baseDate = new Date(checkIn || Date.now());
-                            const dateObj = new Date(baseDate);
-                            dateObj.setDate(baseDate.getDate() + offset);
-
-                            const formattedDate = dateObj.toISOString().split('T')[0];
-                            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-                            const monthDay = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-
-                            const isSelected = checkIn === formattedDate;
-
-                            // Mock price variation based on day
-                            const estMinPrice = Math.round(2400 + (dateObj.getDate() * 170) % 1800);
-
-                            return (
-                                <button
-                                    key={formattedDate}
-                                    onClick={() => {
-                                        setCheckIn(formattedDate);
-                                        // Auto compute checkOut as 1 night after if checkOut <= selected date
-                                        if (!checkOut || new Date(checkOut) <= dateObj) {
-                                            const nextDay = new Date(dateObj);
-                                            nextDay.setDate(dateObj.getDate() + 1);
-                                            setCheckOut(nextDay.toISOString().split('T')[0]);
-                                        }
-                                    }}
-                                    className={`shrink-0 min-w-[105px] py-2 px-3 rounded-none border text-center transition-all ${
-                                        isSelected
-                                            ? 'bg-orange-500 border-orange-500 text-white shadow-md'
-                                            : 'bg-slate-50 border-slate-300 text-slate-700 hover:border-orange-300 hover:bg-orange-50/40'
-                                    }`}
-                                >
-                                    <div className={`text-[11px] font-semibold ${isSelected ? 'text-orange-100' : 'text-slate-500'}`}>
-                                        {dayName}, {monthDay}
-                                    </div>
-                                    <div className={`text-xs font-bold mt-0.5 ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-                                        ₹{estMinPrice.toLocaleString()}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    {/* ── Sidebar Filters ── */}
-                    <aside
-                        className="lg:col-span-3 bg-white p-4 rounded border border-slate-200 h-fit"
-                        style={{ fontFamily: 'InterRegular, Arial, sans-serif' }}
-                    >
-                        <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-                            <span className="text-sm font-bold text-slate-800">Filters</span>
                             <button
-                                onClick={clearAllFilters}
-                                className="text-[11px] font-bold text-red-500 hover:text-red-600"
+                                type="button"
+                                onClick={() => scrollCalendar(1)}
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#dce5ef] bg-white text-[#1d4f91] shadow-sm transition hover:bg-[#f2f6fb] sm:h-8 sm:w-8"
+                                aria-label="Next dates"
                             >
-                                Clear all
+                                <ChevronRight size={16} strokeWidth={2.4} />
                             </button>
                         </div>
 
-                        {/* Keyword Search */}
-                        <div className="mb-4">
-                            <span className="block text-[11px] font-bold text-slate-500 uppercase mb-1.5">Search by</span>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search by hotel name, location"
-                                    className="w-full rounded border border-slate-300 py-1.5 pl-2 pr-8 text-xs focus:border-slate-400 focus:outline-none"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <Search className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                        <div className="hidden w-[205px] shrink-0 items-center rounded-[7px] border border-[#cdeee1] bg-gradient-to-r from-[#f5fffb] to-[#effbf7] px-3 xl:flex">
+                            <ShieldCheck className="mr-3 shrink-0 text-[#20a86b]" size={22} strokeWidth={2} />
+                            <div>
+                                <div className="text-[11px] font-extrabold text-[#1e3655]">Best Price Guarantee</div>
+                                <p className="mt-0.5 text-[9px] leading-3.5 text-[#52647b]">Found a lower price?<br />We'll match it.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Mobile/tablet filter control */}
+                <button
+                    type="button"
+                    onClick={() => setMobileFiltersOpen((prev) => !prev)}
+                    className="mt-3 flex h-11 w-full items-center justify-between rounded-[8px] border border-[#dfe6ef] bg-white px-4 text-[12px] font-extrabold text-[#244a82] shadow-sm lg:hidden"
+                >
+                    <span className="flex items-center gap-2">
+                        <SlidersHorizontal size={16} />
+                        {mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}
+                    </span>
+                    <ChevronDown size={16} className={mobileFiltersOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                </button>
+
+                {/* Desktop: filter stays sticky under calendar. Mobile/tablet: normal page flow. */}
+                <div className="mt-3 grid grid-cols-1 items-start gap-4 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[270px_minmax(0,1fr)]">
+                    {/* Filters */}
+                    <aside className={`${mobileFiltersOpen ? "flex" : "hidden"} h-fit flex-col overflow-hidden rounded-[8px] border border-[#e3e8f0] bg-white shadow-[0_4px_16px_rgba(19,35,63,0.05)] lg:sticky lg:top-[96px] lg:flex lg:max-h-[calc(100vh-108px)]`}>
+                        <div className="shrink-0 border-b border-[#eef1f5] bg-white px-4 py-3 shadow-[0_4px_10px_rgba(19,35,63,0.035)]">
+                            <button
+                                type="button"
+                                onClick={handleBack}
+                                className="mb-2.5 inline-flex items-center gap-1.5 text-[10px] font-extrabold text-[#24558f] transition hover:text-[#143c70]"
+                            >
+                                <ArrowLeft size={15} strokeWidth={2.5} /> Back
+                            </button>
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-[18px] font-extrabold text-[#17243b]">Filters</h2>
+                                <button onClick={clearAllFilters} className="text-[11px] font-bold text-[#ff4a28] hover:underline">Clear all</button>
                             </div>
                         </div>
 
-                        {/* Deals check */}
-                        <div className="mb-4 border-t border-slate-100 pt-3">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[11px] font-bold text-slate-500 uppercase">Hotel deals</span>
-                                <span className="text-[9px] bg-red-600 text-white font-bold px-1.5 py-0.5 rounded">NEW</span>
-                            </div>
-                            <div className="space-y-2 text-xs text-slate-600">
-                                <label className="flex items-center gap-2 cursor-pointer">
+                        <div className="min-h-0 flex-1 overflow-x-hidden px-4 py-4 sm:px-5 sm:py-5 lg:overflow-y-auto lg:overscroll-auto lg:[scrollbar-gutter:stable] lg:[scrollbar-width:thin]">
+                            <div className="border-b border-[#eef1f5] pb-5">
+                                <div className="mb-3 text-[10px] font-extrabold uppercase tracking-wide text-[#334461]">Search by</div>
+                                <div className="relative">
                                     <input
-                                        type="checkbox"
-                                        checked={dealFilters.exclusive}
-                                        onChange={(e) => setDealFilters({ ...dealFilters, exclusive: e.target.checked })}
-                                        className="h-3.5 w-3.5 border-slate-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search by hotel name, location"
+                                        className="h-10 w-full rounded-[5px] border border-[#d8e0eb] bg-white pl-3 pr-9 text-[12px] text-[#334461] outline-none focus:border-[#2f6fed]"
                                     />
-                                    <span>AgentBox Exclusive Deal</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={dealFilters.popular}
-                                        onChange={(e) => setDealFilters({ ...dealFilters, popular: e.target.checked })}
-                                        className="h-3.5 w-3.5 border-slate-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
-                                    />
-                                    <span>Popular Choice</span>
-                                </label>
+                                    <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#60718d]" />
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Price Slider */}
-                        <div className="mb-4 border-t border-slate-100 pt-3" style={{ fontFamily: 'InterMedium, Inter, sans-serif' }}>
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Price</span>
-                                <span className="text-[11px] font-bold text-[#ff5a3d] bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-none">
-                                    Up to ₹{maxPrice.toLocaleString('en-IN')}
-                                </span>
-                            </div>
-                            <input
-                                type="range"
-                                min="1659"
-                                max="143996"
-                                value={maxPrice}
-                                onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-200 rounded-none appearance-none cursor-pointer accent-[#ff5a3d]"
-                            />
-                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium mt-1.5">
-                                <span>₹1,659</span>
-                                <span>₹1,43,996</span>
-                            </div>
-                        </div>
-
-                        {/* Star ratings */}
-                        <div
-                            className="mb-2 border-t border-slate-100 pt-3"
-                            style={{ fontFamily: 'InterMedium, Inter, sans-serif' }}
-                        >
-                            <div className="flex items-center justify-between mb-2.5">
-                                <span className="text-[11px] font-medium text-slate-500 uppercase">Star rating</span>
-                                <span className="text-[10px] text-slate-400 cursor-pointer hover:underline font-medium">-Show less</span>
-                            </div>
-                            <div className="space-y-2 text-xs text-slate-600">
-                                {[5, 4, 3, 2, 1, 0].map((star) => (
-                                    <label key={star} className="flex items-center justify-between cursor-pointer">
-                                        <div className="flex items-center gap-2">
+                            <div className="border-b border-[#eef1f5] py-5">
+                                <div className="mb-4 text-[10px] font-extrabold uppercase tracking-wide text-[#334461]">Popular filters</div>
+                                <div className="space-y-3">
+                                    <label className="flex cursor-pointer items-center justify-between gap-3 text-[13px] text-[#4b5971] [overflow-wrap:anywhere]">
+                                        <span className="flex items-center gap-2.5">
                                             <input
                                                 type="checkbox"
-                                                checked={!!starFilters[star]}
-                                                onChange={(e) => setStarFilters({ ...starFilters, [star]: e.target.checked })}
-                                                className="h-3.5 w-3.5 border-slate-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
+                                                checked={dealFilters.exclusive}
+                                                onChange={(e) => setDealFilters((prev) => ({ ...prev, exclusive: e.target.checked }))}
+                                                className="h-4 w-4 rounded border-slate-300 accent-[#2f6fed]"
                                             />
-                                            <div className="flex items-center gap-0.5 text-amber-400">
-                                                {star > 0 ? (
-                                                    Array.from({ length: star }).map((_, i) => (
-                                                        <Star key={i} className="h-3 w-3 fill-current" />
-                                                    ))
-                                                ) : (
-                                                    <Star className="h-3 w-3 text-slate-300 fill-none" />
-                                                )}
-                                                <span className="ml-1 text-slate-700 font-medium" style={{ fontFamily: 'InterMedium, Inter, sans-serif' }}>{star} Star</span>
-                                            </div>
-                                        </div>
-                                        <span className="text-slate-400 text-[10px] font-medium">
-                                            {hotels.filter(h => (h.stars || 0) === star).length}
+                                            Agoda Exclusive Deal
                                         </span>
+                                        <span className="rounded-[3px] bg-[#f02020] px-1.5 py-0.5 text-[9px] font-extrabold text-white">NEW</span>
                                     </label>
-                                ))}
+                                    <label className="flex cursor-pointer items-center gap-2.5 text-[13px] text-[#4b5971]">
+                                        <input
+                                            type="checkbox"
+                                            checked={dealFilters.freeCancellation}
+                                            onChange={(e) => setDealFilters((prev) => ({ ...prev, freeCancellation: e.target.checked }))}
+                                            className="h-4 w-4 rounded border-slate-300 accent-[#2f6fed]"
+                                        />
+                                        Free Cancellation
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="border-b border-[#eef1f5] py-5">
+                                <div className="mb-1 flex items-baseline gap-1 text-[10px] font-extrabold uppercase tracking-wide text-[#334461]">
+                                    Price range <span className="normal-case font-medium text-[9px] text-[#8a96aa]">(per night)</span>
+                                </div>
+                                <div className="mb-4 mt-3 text-[15px] font-extrabold text-[#17243b]">
+                                    ₹0 - ₹{maxPrice.toLocaleString('en-IN')}
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max={MAX_PRICE}
+                                    step="1000"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(Number(e.target.value))}
+                                    className="h-1.5 w-full cursor-pointer accent-[#ff650d]"
+                                />
+                                <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-[#5c6b82]">
+                                    <span>₹0</span>
+                                    <span>₹{MAX_PRICE.toLocaleString('en-IN')}</span>
+                                </div>
+                            </div>
+
+                            <div className="border-b border-[#eef1f5] py-5">
+                                <div className="mb-4 text-[10px] font-extrabold uppercase tracking-wide text-[#334461]">Star rating</div>
+                                <div className="space-y-3">
+                                    {[5, 4, 3, 2, 0].map((star) => (
+                                        <label key={star} className="flex cursor-pointer items-center justify-between gap-3">
+                                            <span className="flex items-center gap-2.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!starFilters[star]}
+                                                    onChange={(e) => setStarFilters((prev) => ({ ...prev, [star]: e.target.checked }))}
+                                                    className="h-4 w-4 rounded border-slate-300 accent-[#2f6fed]"
+                                                />
+                                                {star === 0 ? (
+                                                    <span className="text-[12px] font-medium text-[#59677f]">Unrated</span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1 text-[#ff7213]">
+                                                        {Array.from({ length: star }).map((_, i) => (
+                                                            <Star key={i} size={13} className="fill-current" />
+                                                        ))}
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span className="text-[11px] font-semibold text-[#718097]">{starCount(star)}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="border-b border-[#eef1f5] py-5">
+                                <div className="mb-4 text-[10px] font-extrabold uppercase tracking-wide text-[#334461]">Guest rating</div>
+                                <div className="space-y-2.5">
+                                    {[
+                                        ['4', '4.0+  Excellent'],
+                                        ['3', '3.0+  Very Good'],
+                                        ['2', '2.0+  Good'],
+                                        ['any', 'Any Rating'],
+                                    ].map(([value, label]) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            onClick={() => setGuestRating(value)}
+                                            className={`flex h-9 w-full items-center justify-between rounded-[4px] border px-3 text-left text-[11px] font-semibold transition-colors ${
+                                                guestRating === value
+                                                    ? 'border-[#2f6fed] bg-blue-50 text-[#214b9a]'
+                                                    : 'border-[#d8e0eb] bg-white text-[#40506a] hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <span>{label}</span>
+                                            <span>{ratingCount(value)}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="pt-5">
+                                <div className="mb-4 text-[10px] font-extrabold uppercase tracking-wide text-[#334461]">Amenities</div>
+                                <div className="space-y-3">
+                                    {(showAllAmenities ? amenityItems : amenityItems.slice(0, 5)).map((item) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <label key={item.key} className="flex cursor-pointer items-center justify-between gap-3 text-[12px] text-[#4d5b72] [overflow-wrap:anywhere]">
+                                                <span className="flex items-center gap-2.5">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={amenityFilters[item.key]}
+                                                        onChange={(e) => setAmenityFilters((prev) => ({ ...prev, [item.key]: e.target.checked }))}
+                                                        className="h-4 w-4 rounded border-slate-300 accent-[#2f6fed]"
+                                                    />
+                                                    <Icon size={14} className="text-[#6d7d95]" />
+                                                    {item.label}
+                                                </span>
+                                                <span className="rounded bg-[#f1f4f8] px-1.5 py-0.5 text-[10px] font-semibold text-[#59677f]">
+                                                    {amenityCount(item.aliases, item.ratio)}
+                                                </span>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAllAmenities((prev) => !prev)}
+                                    className="mt-4 flex items-center gap-1 text-[11px] font-bold text-[#1567d8]"
+                                >
+                                    {showAllAmenities ? 'Show less' : 'Show more'} <ChevronDown size={13} className={showAllAmenities ? 'rotate-180' : ''} />
+                                </button>
                             </div>
                         </div>
 
                     </aside>
 
-                    {/* ── Hotel Listings ── */}
-                    <div className="lg:col-span-9 space-y-3">
-
-                        {/* Listings Header */}
-                        <div className="bg-white p-3 rounded border border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                            <div>
-                                Showing <strong className="text-slate-800 font-black">{filteredHotels.length}</strong> hotels
+                    {/* Results */}
+                    <section className="min-w-0">
+                        <div className="z-20 flex flex-col justify-between gap-3 rounded-[8px] border border-[#e7ebf2] bg-white px-3 py-3 shadow-[0_4px_12px_rgba(19,35,63,0.05)] sm:flex-row sm:flex-wrap sm:items-center sm:px-4 lg:sticky lg:top-[96px]">
+                            <div className="text-[12px] text-[#5c6a7f]">
+                                Showing <strong className="font-extrabold text-[#334461]">{filteredHotels.length}</strong> hotels
                             </div>
-
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400">Sort by</span>
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value)}
-                                        className="border border-slate-300 rounded px-2 py-1 bg-white text-slate-700 font-bold focus:outline-none cursor-pointer"
-                                    >
-                                        <option value="star-desc">Star - High To Low</option>
-                                        <option value="star-asc">Star - Low To High</option>
-                                        <option value="price-asc">Price - Low To High</option>
-                                        <option value="price-desc">Price - High To Low</option>
-                                    </select>
-                                </div>
-
-                                <button
-                                    onClick={() => alert("Link Copied to Clipboard!")}
-                                    className="flex items-center gap-1 border border-slate-300 rounded px-2.5 py-1 hover:bg-slate-50 text-slate-700 font-bold"
+                            <div className="flex min-w-0 flex-wrap items-center gap-2 text-[11px] text-[#68768b]">
+                                <span>Sort by:</span>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="h-9 w-full min-w-0 rounded-[5px] border border-[#dce3ed] bg-white px-3 text-[11px] font-semibold text-[#44536b] outline-none sm:w-auto sm:min-w-[170px]"
                                 >
-                                    <Share2 className="h-3 w-3 text-slate-400" />
-                                    <span>Share</span>
-                                </button>
+                                    <option value="star-desc">Star - High to Low</option>
+                                    <option value="star-asc">Star - Low to High</option>
+                                    <option value="price-asc">Price - Low to High</option>
+                                    <option value="price-desc">Price - High to Low</option>
+                                </select>
                             </div>
                         </div>
 
-                        {/* Hotels Grid list */}
-                        <div className="space-y-3">
+                        <div className="mt-3 space-y-3">
                             {loading ? (
-                                // Beautiful Skeleton Loader
                                 Array.from({ length: 3 }).map((_, i) => (
-                                    <div key={i} className="bg-white rounded border border-slate-200 p-4 flex flex-col md:flex-row gap-4 animate-pulse">
-                                        <div className="md:w-[260px] h-36 bg-slate-200 rounded shrink-0"></div>
-                                        <div className="flex-1 space-y-3 py-1">
-                                            <div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse"></div>
-                                            <div className="h-3 bg-slate-200 rounded w-1/4 animate-pulse"></div>
-                                            <div className="h-3 bg-slate-200 rounded w-1/2 animate-pulse"></div>
-                                            <div className="h-6 bg-slate-200 rounded w-1/3 mt-4 animate-pulse"></div>
+                                    <div key={i} className="grid min-h-[220px] animate-pulse grid-cols-1 overflow-hidden rounded-[7px] border border-[#e3e8f0] bg-white p-3 sm:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)]">
+                                        <div className="h-[170px] rounded-[4px] bg-slate-200 sm:h-full sm:min-h-[200px]" />
+                                        <div className="flex-1 space-y-4 p-5">
+                                            <div className="h-5 w-1/2 rounded bg-slate-200" />
+                                            <div className="h-3 w-1/4 rounded bg-slate-200" />
+                                            <div className="h-3 w-2/3 rounded bg-slate-200" />
+                                            <div className="h-3 w-1/2 rounded bg-slate-200" />
                                         </div>
                                     </div>
                                 ))
                             ) : filteredHotels.length > 0 ? (
                                 filteredHotels.map((hotel, index) => {
-                                    const totalPrice = hotel.pricePerNight * nights;
+                                    const nightly = Number(hotel?.pricePerNight || hotel?.price || 0);
+                                    const displayPrice = nightly > 0 ? nightly * nights : 0;
+                                    const starValue = Math.max(0, Math.min(5, Number(hotel?.stars || 0)));
+                                    const address = hotel?.address || `${hotel?.city || cityLabel}, India`;
 
                                     return (
-                                        <div
-                                            key={hotel.id}
-                                            className="p-3.5 min-h-[170px] bg-white rounded-none border border-slate-200 overflow-hidden flex flex-col md:flex-row relative group hover:shadow-lg hover:border-slate-300 hover:-translate-y-1 transition-all duration-300 ease-out gap-4"
+                                        <article
+                                            key={hotel?.id || hotel?._id || `${hotel?.name}-${index}`}
+                                            className="group grid min-h-[225px] grid-cols-1 overflow-hidden rounded-[7px] border border-[#e0e6ee] bg-white shadow-[0_4px_14px_rgba(19,35,63,0.035)] transition-all duration-200 hover:border-[#ccd6e4] hover:shadow-[0_10px_28px_rgba(19,35,63,0.09)] lg:grid-cols-[220px_minmax(0,1fr)_170px] xl:grid-cols-[250px_minmax(0,1fr)_190px]"
                                         >
-                                            {/* Watermark Diagonal/Repeating layout matching user screenshot */}
-                                            <div className="absolute inset-0 grid grid-cols-3 gap-8 p-12 pointer-events-none select-none overflow-hidden opacity-[0.03] z-0">
-                                                {Array.from({ length: 9 }).map((_, i) => (
-                                                    <div key={i} className="text-slate-900 font-black text-xs tracking-widest -rotate-45 whitespace-nowrap">
-                                                        SBA53850
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            {/* Image panel with square corners */}
-                                            <div className="relative md:w-[225px] h-44 overflow-hidden shrink-0 z-10 rounded-none">
+                                            <div className="relative h-[180px] overflow-hidden bg-slate-100 sm:h-[220px] lg:h-full lg:min-h-[225px]">
                                                 <img
-                                                    src={hotel.image}
-                                                    alt={hotel.name}
-                                                    className="w-full h-full object-cover rounded-none group-hover:scale-105 transition-transform duration-500 ease-out"
+                                                    src={hotel?.image || hotel?.imageUrl}
+                                                    alt={hotel?.name || 'Hotel'}
+                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]"
                                                     onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80';
                                                     }}
                                                 />
-                                                <button className="absolute top-2 right-2 h-7 w-7 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow text-slate-400 hover:text-red-500 transition-colors">
-                                                    <Heart className="h-3.5 w-3.5" />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-[#a6b0bf] shadow-md transition hover:text-[#ff5a43]"
+                                                    aria-label="Save hotel"
+                                                >
+                                                    <Heart size={18} />
                                                 </button>
                                             </div>
 
-                                            {/* Description & Details info */}
-                                            <div className="flex-1 flex flex-col md:flex-row justify-between gap-4 z-10 w-full">
-
-                                                {/* Hotel Meta description */}
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="text-[18px] text-[rgb(0,0,0)] leading-snug tracking-tight font-['InterMedium','Inter',sans-serif] font-medium">
-                                                        {hotel.name}
-                                                    </h3>
-                                                    <span className="text-[14px] text-[rgb(102,102,102)] block mt-0.5 mb-1 font-['InterRegular','Inter',sans-serif]">{hotel.city}</span>
-
-                                                    {/* Stars display */}
-                                                    <div className="flex items-center gap-1 text-amber-400 mb-2">
-                                                        {Array.from({ length: hotel.stars || 4 }).map((_, i) => (
-                                                            <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                                        ))}
-                                                    </div>
-
-                                                    {/* Address details */}
-                                                    <p className="text-[14px] text-[rgb(102,102,102)] leading-relaxed max-w-xl font-['InterRegular','Inter',sans-serif]">
-                                                        {hotel.address && hotel.address !== 'Lucknow, India' && hotel.address !== 'Pune, India' && hotel.address.length > 20 ? hotel.address : 'GATE NO 1, behind METRO, Cash and Pay Colony, Charbagh, Lucknow, Uttar Pradesh 226004'}
-                                                    </p>
-
-                                                    {/* Dynamic Badge matching screenshot style */}
-                                                    {(hotel.dealType === 'popular' || index % 2 === 0) ? (
-                                                        <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-[#f97316]/40 text-[#ea580c] text-[11px] font-semibold bg-[#fff7ed]">
-                                                            <span className="text-[11px] font-bold">%</span>
-                                                            <span>Monsoon Mega Deals</span>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-[#22c55e]/40 text-[#16a34a] text-[11px] font-semibold bg-[#f0fdf4]">
-                                                            <span className="text-[11px] font-bold">%</span>
-                                                            <span>Popular Choice</span>
-                                                        </div>
-                                                    )}
+                                            <div className="flex min-w-0 flex-col px-4 py-4 sm:px-5">
+                                                <h3 className="break-words text-[16px] font-extrabold leading-[1.25] text-[#17243b] sm:text-[18px]">{hotel?.name || 'Hotel'}</h3>
+                                                <div className="mt-1 break-words text-[12px] leading-5 text-[#7b879a]">{hotel?.city || cityLabel}</div>
+                                                <div className="mt-2 flex items-center gap-1 text-[#ff7213]">
+                                                    {starValue > 0 ? Array.from({ length: starValue }).map((_, i) => (
+                                                        <Star key={i} size={13} className="fill-current" />
+                                                    )) : <span className="text-[11px] text-slate-400">Unrated</span>}
                                                 </div>
 
-                                                {/* Price Details on Right */}
-                                                <div className="flex flex-col justify-between items-end shrink-0 md:border-l border-slate-100 md:pl-4 min-w-[140px] text-right mt-2 md:mt-0">
-                                                    <div>
-                                                        <div className="text-[18px] text-[rgb(51,51,51)] font-['InterMedium','Inter',sans-serif] font-medium leading-none">
-                                                            <span className="text-[12px] font-medium text-[rgb(102,102,102)] mr-1">INR</span>
-                                                            {totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                        </div>
-                                                        <div className="text-[11px] text-[rgb(102,102,102)] font-['InterRegular','Inter',sans-serif] mt-1 text-right">
-                                                            For {nights} night(s)
-                                                        </div>
-                                                    </div>
+                                                <p className="mt-4 max-w-[560px] break-words text-[12px] leading-5 text-[#69778d]">{address}</p>
 
-                                                    <button
-                                                        onClick={() => navigate(`/hotels/detail/${hotel.id}?checkIn=${checkIn}&checkOut=${checkOut}&rooms=${roomsCount}&adults=${adultsCount}&children=${childrenCount}&guests=${adultsCount + childrenCount}&city=${hotel.city}`)}
-                                                        className="bg-[#ff5a3d] hover:bg-[#e0452a] text-white font-bold text-xs uppercase px-5 py-2.5 rounded transition-all tracking-wider shadow-sm mt-4 w-full md:w-auto text-center"
-                                                    >
-                                                        Choose room
-                                                    </button>
+                                                <div className="mt-auto pt-5">
+                                                    <span className="inline-flex max-w-full items-center whitespace-normal rounded-[4px] bg-[#fff3e9] px-2.5 py-1.5 text-[10px] font-bold leading-4 text-[#ef6b1d]">
+                                                        %&nbsp; Monsoon Mega Deals
+                                                    </span>
                                                 </div>
-
                                             </div>
 
-                                        </div>
+                                            <div className="flex flex-col justify-end border-t border-[#eef1f5] px-4 py-4 text-left sm:px-5 sm:text-right lg:border-l lg:border-t-0">
+                                                <div>
+                                                    <div className="whitespace-nowrap text-[18px] font-extrabold leading-tight text-[#17243b] sm:text-[20px]">
+                                                        ₹ {displayPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </div>
+                                                    <div className="mt-1 text-[11px] text-[#6e7d92]">For {nights} night{nights !== 1 ? 's' : ''}</div>
+                                                    <div className="mt-1 text-[10px] text-[#8d98a9]">Includes taxes & fees</div>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate(`/hotels/detail/${hotel?.id || hotel?._id}?checkIn=${checkIn}&checkOut=${checkOut}&rooms=${roomsCount}&adults=${adultsCount}&children=${childrenCount}&guests=${adultsCount + childrenCount}&city=${encodeURIComponent(hotel?.city || cityLabel)}`)}
+                                                    className="mt-5 h-11 w-full rounded-[5px] bg-[#ff650d] text-[12px] font-extrabold text-white transition-colors hover:bg-[#ef5700]"
+                                                >
+                                                    Choose Room
+                                                </button>
+                                            </div>
+                                        </article>
                                     );
                                 })
                             ) : (
-                                <div className="bg-white rounded border border-slate-200 p-12 text-center text-slate-400">
-                                    <SlidersHorizontal className="h-8 w-8 mx-auto mb-2 text-slate-300" />
-                                    <span className="block font-bold text-slate-700 text-sm">Not found data</span>
-                                    <span className="text-xs">Try searching for another destination or dates.</span>
+                                <div className="rounded-[8px] border border-[#e3e8f0] bg-white px-6 py-16 text-center text-slate-400">
+                                    <SlidersHorizontal className="mx-auto mb-3 h-9 w-9 text-slate-300" />
+                                    <div className="text-sm font-extrabold text-[#334461]">No hotels found</div>
+                                    <p className="mt-1 text-xs">Try another destination, date, or clear some filters.</p>
                                 </div>
                             )}
                         </div>
-
-                    </div>
-
+                    </section>
                 </div>
 
-            </main>
+                <section className="mt-5 grid grid-cols-1 overflow-hidden rounded-[8px] border border-[#dce4ef] bg-white sm:grid-cols-2 xl:mt-7 xl:grid-cols-4">
+                    {[
+                        [ShieldCheck, 'Secure Booking', 'Your data is safe with us'],
+                        [PhoneCall, '24x7 Customer Support', 'We are here to help you'],
+                        [ClipboardCheck, 'Instant Confirmation', 'Get instant booking confirmation'],
+                        [RefreshCcw, 'Flexible Cancellation', 'On most of the hotels'],
+                    ].map(([Icon, title, subtitle], index) => (
+                        <div key={title} className={`flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5 ${index > 0 ? 'border-t sm:border-l sm:border-t-0' : ''} border-[#eef2f6]`}>
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4f8ff] text-[#2572e4]">
+                                <Icon size={20} />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-extrabold text-[#2f4363]">{title}</div>
+                                <div className="mt-1 text-[9px] text-[#7a879a]">{subtitle}</div>
+                            </div>
+                        </div>
+                    ))}
+                </section>
+            </div>
 
             <Footer />
         </div>

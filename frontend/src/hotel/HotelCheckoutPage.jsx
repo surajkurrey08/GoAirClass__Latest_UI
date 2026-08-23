@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Calendar, Users, MapPin, ShieldCheck, Lock, CheckCircle2, ArrowLeft, Building2, User, Mail, Phone, AlertCircle, Clock, Sparkles } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { provisionalBookHotel, confirmBookHotel } from '../services/hotelApi';
 import { createPaymentOrder } from '../services/paymentService';
@@ -248,55 +247,53 @@ export default function HotelCheckoutPage() {
 
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col font-['InterRegular',Arial,sans-serif] text-slate-800 antialiased">
-            <Navbar />
-
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-[76px] pb-12">
+        <div className="min-h-screen overflow-x-hidden bg-[#f7f9fc] flex flex-col font-['InterRegular',Arial,sans-serif] text-[#13233f] antialiased">
+            <main className="mx-auto w-full max-w-[1460px] flex-1 px-3 pb-10 pt-3 sm:px-4 sm:pt-4 lg:px-6">
                 {/* Navigation Back */}
-                <div className="py-4">
+                <div className="mb-3">
                     <button
                         onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+                        className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-[6px] border border-[#d8e1ec] bg-white px-3 text-[12px] font-extrabold text-[#244a82] shadow-sm transition hover:border-[#b8c8db] hover:bg-[#f6f9fd]"
                     >
-                        <ArrowLeft className="h-4 w-4" /> Back to Hotel Details
+                        <ArrowLeft className="h-4 w-4" /> Back
                     </button>
                 </div>
 
                 {/* Header Title */}
-                <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-none border border-slate-200 shadow-xs">
+                <div className="mb-4 flex flex-col gap-3 rounded-[8px] border border-[#dfe6ef] bg-white p-4 shadow-[0_4px_14px_rgba(19,35,63,0.035)] sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 font-['InterMedium',sans-serif]">
-                            <Building2 className="h-6 w-6 text-[#ff5a3d]" />
+                        <h1 className="flex items-center gap-2 text-[20px] font-extrabold leading-tight text-[#17243b] sm:text-[24px] font-['InterMedium',sans-serif]">
+                            <Building2 className="h-5 w-5 text-[#ff650d] sm:h-6 sm:w-6" />
                             Guest Details & Room Lock
                         </h1>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="mt-1 text-[11px] leading-5 text-[#6f7d91] sm:text-xs">
                             Complete your guest details to temporarily lock your room rate with Cleartrip.
                         </p>
                     </div>
-                    <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-none border border-emerald-200 text-xs font-bold shrink-0">
+                    <div className="flex shrink-0 items-center gap-2 rounded-[6px] border border-[#cdeee1] bg-[#f2fbf7] px-3 py-1.5 text-[11px] font-bold text-[#177b55] sm:text-xs">
                         <Clock className="h-4 w-4" /> Room Hold: 15 Mins Guaranteed
                     </div>
                 </div>
 
                 {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold p-3.5 rounded-none flex items-start gap-2">
+                    <div className="mb-4 flex items-start gap-2 rounded-[7px] border border-red-200 bg-red-50 p-3.5 text-xs font-semibold text-red-700">
                         <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                         <span>{error}</span>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12 xl:gap-5">
                     {/* Left Column: Traveler Details Form */}
-                    <div className="lg:col-span-8 space-y-6">
-                        <form onSubmit={handleSubmitProvisionalBook} className="bg-white border border-slate-200 rounded-none shadow-xs overflow-hidden">
-                            <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
-                                <h2 className="font-bold text-sm flex items-center gap-2 font-['InterMedium',sans-serif]">
-                                    <User className="h-4 w-4 text-[#ff5a3d]" /> Primary Guest Information
+                    <div className="space-y-4 xl:col-span-8">
+                        <form onSubmit={handleSubmitProvisionalBook} className="overflow-hidden rounded-[8px] border border-[#dfe6ef] bg-white shadow-[0_5px_18px_rgba(19,35,63,0.05)]">
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e8edf4] bg-[#f8fbff] px-4 py-3.5 sm:px-5">
+                                <h2 className="flex items-center gap-2 text-sm font-extrabold text-[#17243b] font-['InterMedium',sans-serif]">
+                                    <User className="h-4 w-4 text-[#1d4f91]" /> Primary Guest Information
                                 </h2>
-                                <span className="text-[10px] text-slate-400 font-semibold">* Required for Booking</span>
+                                <span className="text-[10px] font-semibold text-[#8290a3]">* Required for Booking</span>
                             </div>
 
-                            <div className="p-5 space-y-5">
+                            <div className="space-y-5 p-4 sm:p-5">
                                 {/* Title, First Name, Last Name */}
                                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                                     <div className="sm:col-span-3">
@@ -304,7 +301,7 @@ export default function HotelCheckoutPage() {
                                         <select
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold p-2.5 rounded-none focus:ring-1 focus:ring-[#ff5a3d] focus:border-[#ff5a3d] outline-none"
+                                            className="w-full rounded-[6px] border border-[#d8e1ec] bg-white p-2.5 text-xs font-semibold text-[#22324e] outline-none transition focus:border-[#2f6fed] focus:ring-2 focus:ring-blue-100"
                                         >
                                             <option value="Mr">Mr.</option>
                                             <option value="Mrs">Mrs.</option>
@@ -320,7 +317,7 @@ export default function HotelCheckoutPage() {
                                             placeholder="Enter first name"
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold p-2.5 rounded-none focus:ring-1 focus:ring-[#ff5a3d] focus:border-[#ff5a3d] outline-none"
+                                            className="w-full rounded-[6px] border border-[#d8e1ec] bg-white p-2.5 text-xs font-semibold text-[#22324e] outline-none transition focus:border-[#2f6fed] focus:ring-2 focus:ring-blue-100"
                                         />
                                     </div>
 
@@ -332,7 +329,7 @@ export default function HotelCheckoutPage() {
                                             placeholder="Enter last name"
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold p-2.5 rounded-none focus:ring-1 focus:ring-[#ff5a3d] focus:border-[#ff5a3d] outline-none"
+                                            className="w-full rounded-[6px] border border-[#d8e1ec] bg-white p-2.5 text-xs font-semibold text-[#22324e] outline-none transition focus:border-[#2f6fed] focus:ring-2 focus:ring-blue-100"
                                         />
                                     </div>
                                 </div>
@@ -349,7 +346,7 @@ export default function HotelCheckoutPage() {
                                             placeholder="e.g. john.doe@example.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold p-2.5 rounded-none focus:ring-1 focus:ring-[#ff5a3d] focus:border-[#ff5a3d] outline-none"
+                                            className="w-full rounded-[6px] border border-[#d8e1ec] bg-white p-2.5 text-xs font-semibold text-[#22324e] outline-none transition focus:border-[#2f6fed] focus:ring-2 focus:ring-blue-100"
                                         />
                                         <span className="text-[10px] text-slate-400 mt-1 block">Your booking voucher & invoice will be sent here.</span>
                                     </div>
@@ -364,7 +361,7 @@ export default function HotelCheckoutPage() {
                                             placeholder="10-digit mobile number"
                                             value={mobile}
                                             onChange={(e) => setMobile(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold p-2.5 rounded-none focus:ring-1 focus:ring-[#ff5a3d] focus:border-[#ff5a3d] outline-none"
+                                            className="w-full rounded-[6px] border border-[#d8e1ec] bg-white p-2.5 text-xs font-semibold text-[#22324e] outline-none transition focus:border-[#2f6fed] focus:ring-2 focus:ring-blue-100"
                                         />
                                         <span className="text-[10px] text-slate-400 mt-1 block">For SMS check-in updates and hotel alerts.</span>
                                     </div>
@@ -378,7 +375,7 @@ export default function HotelCheckoutPage() {
                                         placeholder="e.g., High floor room, Late check-in, Quiet room"
                                         value={specialRequests}
                                         onChange={(e) => setSpecialRequests(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold p-2.5 rounded-none focus:ring-1 focus:ring-[#ff5a3d] focus:border-[#ff5a3d] outline-none resize-none"
+                                        className="w-full resize-none rounded-[6px] border border-[#d8e1ec] bg-white p-2.5 text-xs font-semibold text-[#22324e] outline-none transition focus:border-[#2f6fed] focus:ring-2 focus:ring-blue-100"
                                     ></textarea>
                                 </div>
 
@@ -389,7 +386,7 @@ export default function HotelCheckoutPage() {
                                         id="agree"
                                         checked={agreeTerms}
                                         onChange={(e) => setAgreeTerms(e.target.checked)}
-                                        className="mt-0.5 rounded-none text-[#ff5a3d] focus:ring-[#ff5a3d]"
+                                        className="mt-0.5 h-4 w-4 rounded-[3px] border-slate-300 text-[#ff650d] focus:ring-[#ff650d]"
                                     />
                                     <label htmlFor="agree" className="text-xs text-slate-600 leading-tight">
                                         I accept GoAirClass and hotel property policies, check-in ID guidelines, and cancellation terms.
@@ -400,7 +397,7 @@ export default function HotelCheckoutPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-[#ff5a3d] hover:bg-[#e0452a] text-white font-extrabold text-sm uppercase py-3.5 px-6 rounded-none transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[7px] bg-[#ff650d] px-6 py-3.5 text-sm font-extrabold uppercase text-white shadow-[0_6px_16px_rgba(255,101,13,0.20)] transition hover:bg-[#ef5700] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {loading ? (
                                         <>
@@ -417,16 +414,16 @@ export default function HotelCheckoutPage() {
                         </form>
 
                         {/* Security Guarantees */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div className="bg-white border border-slate-200 p-3 flex items-center gap-2.5 rounded-none">
-                                <ShieldCheck className="h-6 w-6 text-indigo-600 shrink-0" />
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div className="flex items-center gap-2.5 rounded-[7px] border border-[#dfe6ef] bg-white p-3 shadow-[0_3px_10px_rgba(19,35,63,0.025)]">
+                                <ShieldCheck className="h-6 w-6 text-[#1d4f91] shrink-0" />
                                 <div>
                                     <div className="text-xs font-bold text-slate-800">100% Safe & Secure</div>
                                     <div className="text-[10px] text-slate-500">256-Bit SSL Encrypted</div>
                                 </div>
                             </div>
 
-                            <div className="bg-white border border-slate-200 p-3 flex items-center gap-2.5 rounded-none">
+                            <div className="flex items-center gap-2.5 rounded-[7px] border border-[#dfe6ef] bg-white p-3 shadow-[0_3px_10px_rgba(19,35,63,0.025)]">
                                 <Sparkles className="h-6 w-6 text-[#ff5a3d] shrink-0" />
                                 <div>
                                     <div className="text-xs font-bold text-slate-800">Instant Confirmation</div>
@@ -434,7 +431,7 @@ export default function HotelCheckoutPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white border border-slate-200 p-3 flex items-center gap-2.5 rounded-none">
+                            <div className="flex items-center gap-2.5 rounded-[7px] border border-[#dfe6ef] bg-white p-3 shadow-[0_3px_10px_rgba(19,35,63,0.025)]">
                                 <Clock className="h-6 w-6 text-emerald-600 shrink-0" />
                                 <div>
                                     <div className="text-xs font-bold text-slate-800">Price Guarantee</div>
@@ -445,37 +442,37 @@ export default function HotelCheckoutPage() {
                     </div>
 
                     {/* Right Column: Sticky Booking & Price Summary */}
-                    <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-[88px]">
-                        <div className="bg-white border border-slate-200 rounded-none shadow-xs overflow-hidden">
+                    <div className="space-y-4 xl:col-span-4 xl:sticky xl:top-4">
+                        <div className="overflow-hidden rounded-[8px] border border-[#dfe6ef] bg-white shadow-[0_5px_18px_rgba(19,35,63,0.05)]">
                             {/* Summary Header */}
-                            <div className="bg-slate-900 text-white px-4 py-3 border-b border-slate-800 font-bold text-xs flex items-center justify-between font-['InterMedium',sans-serif]">
+                            <div className="flex items-center justify-between border-b border-[#e8edf4] bg-[#f8fbff] px-4 py-3 text-xs font-bold text-[#17243b] font-['InterMedium',sans-serif]">
                                 <span>Booking Summary</span>
-                                <span className="text-[10px] text-orange-400 uppercase tracking-wider font-extrabold">Cleartrip B2B</span>
+                                <span className="rounded-[4px] bg-[#fff3e9] px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-[#ef6b1d]">Cleartrip B2B</span>
                             </div>
 
                             {/* Hotel Details Card */}
                             <div className="p-4 space-y-3.5">
                                 <div className="flex gap-3">
-                                    <div className="h-16 w-20 bg-slate-100 border border-slate-200 rounded-none overflow-hidden shrink-0">
+                                    <div className="h-16 w-20 shrink-0 overflow-hidden rounded-[6px] border border-[#dfe6ef] bg-slate-100">
                                         <img src={roomImage || hotelImage} alt={hotelName} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="space-y-1 min-w-0">
-                                        <h3 className="font-bold text-sm text-slate-900 truncate font-['InterMedium',sans-serif]">{hotelName}</h3>
-                                        <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                                        <h3 className="break-words text-sm font-extrabold leading-5 text-[#17243b] font-['InterMedium',sans-serif]">{hotelName}</h3>
+                                        <p className="flex items-start gap-1 text-[11px] leading-4 text-[#6f7d91]">
                                             <MapPin className="h-3 w-3 shrink-0 text-slate-400" /> {hotelAddress}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="p-2.5 bg-slate-50 border border-slate-150 space-y-1.5">
+                                <div className="space-y-1.5 rounded-[6px] border border-[#e8edf4] bg-[#f8fbff] p-2.5">
                                     <div className="text-xs font-extrabold text-slate-900">{roomName}</div>
-                                    <div className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 inline-block px-1.5 py-0.5">
+                                    <div className="inline-block rounded-[4px] border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[11px] font-semibold text-[#1d4f91]">
                                         Plan: {rateName}
                                     </div>
                                 </div>
 
                                 {/* Dates & Guests */}
-                                <div className="grid grid-cols-2 gap-2 text-xs py-1 border-y border-slate-150">
+                                <div className="grid grid-cols-1 gap-3 border-y border-[#edf1f5] py-2 text-xs sm:grid-cols-2">
                                     <div>
                                         <span className="text-[10px] text-slate-400 font-bold block uppercase">Check-In</span>
                                         <span className="font-bold text-slate-800 flex items-center gap-1">
@@ -490,7 +487,7 @@ export default function HotelCheckoutPage() {
                                     </div>
                                 </div>
 
-                                <div className="text-xs flex items-center justify-between text-slate-600 font-medium">
+                                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-600">
                                     <span className="flex items-center gap-1">
                                         <Users className="h-3.5 w-3.5 text-slate-400" /> Guests & Rooms:
                                     </span>
@@ -520,7 +517,7 @@ export default function HotelCheckoutPage() {
 
                                     <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-sm font-extrabold text-slate-900">
                                         <span>Total Amount</span>
-                                        <span className="text-lg font-black text-[#ff5a3d]">₹{Math.round(finalPrice).toLocaleString('en-IN')}</span>
+                                        <span className="whitespace-nowrap text-lg font-black text-[#ff650d]">₹{Math.round(finalPrice).toLocaleString('en-IN')}</span>
                                     </div>
                                     <span className="text-[10px] text-slate-400 text-right block leading-none">Inclusive of all taxes</span>
                                 </div>
@@ -533,7 +530,7 @@ export default function HotelCheckoutPage() {
             {/* Step 1: Provisional Booking Success Modal */}
             {bookingSuccess && (
                 <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white max-w-md w-full rounded-none overflow-hidden shadow-2xl border border-slate-200 space-y-0 text-center p-6">
+                    <div className="w-full max-w-md space-y-0 overflow-hidden rounded-[10px] border border-[#dfe6ef] bg-white p-5 text-center shadow-2xl sm:p-6">
                         <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
                             <Clock className="h-8 w-8 text-emerald-600" />
                         </div>
@@ -541,11 +538,11 @@ export default function HotelCheckoutPage() {
                         <h3 className="text-xl font-extrabold text-slate-900 font-['InterMedium',sans-serif]">
                             Room Temporarily Held!
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="mt-1 text-[11px] leading-5 text-[#6f7d91] sm:text-xs">
                             Cleartrip has held your room for 15 minutes. Complete payment to finalize booking.
                         </p>
 
-                        <div className="my-4 bg-slate-50 border border-slate-200 p-3.5 text-left text-xs space-y-1.5 rounded-none">
+                        <div className="my-4 space-y-1.5 rounded-[7px] border border-[#e3e8f0] bg-[#f8fbff] p-3.5 text-left text-xs">
                             <div className="flex justify-between">
                                 <span className="text-slate-500 font-medium">Provisional ID:</span>
                                 <span className="font-bold text-slate-900">{bookingSuccess.provisionalBookId}</span>
@@ -568,7 +565,7 @@ export default function HotelCheckoutPage() {
                             <button
                                 onClick={handleConfirmBooking}
                                 disabled={confirming}
-                                className="w-full bg-[#ff5a3d] hover:bg-[#e04f35] text-white font-bold text-xs uppercase py-3 rounded-none transition-colors cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+                                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[6px] bg-[#ff650d] py-3 text-xs font-bold uppercase text-white transition hover:bg-[#ef5700] disabled:opacity-50"
                             >
                                 {confirming ? (
                                     <>
@@ -588,7 +585,7 @@ export default function HotelCheckoutPage() {
                                     navigate('/');
                                 }}
                                 disabled={confirming}
-                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase py-2.5 rounded-none transition-colors cursor-pointer"
+                                className="w-full cursor-pointer rounded-[6px] border border-[#d8e1ec] bg-white py-2.5 text-xs font-bold uppercase text-[#44536b] transition hover:bg-[#f6f9fd]"
                             >
                                 Cancel & Exit
                             </button>
@@ -600,7 +597,7 @@ export default function HotelCheckoutPage() {
             {/* Step 2: Final Booking Confirmed Modal */}
             {bookingConfirmed && (
                 <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white max-w-md w-full rounded-none overflow-hidden shadow-2xl border border-slate-200 space-y-0 text-center p-6">
+                    <div className="w-full max-w-md space-y-0 overflow-hidden rounded-[10px] border border-[#dfe6ef] bg-white p-5 text-center shadow-2xl sm:p-6">
                         <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
                             <CheckCircle2 className="h-8 w-8" />
                         </div>
@@ -608,11 +605,11 @@ export default function HotelCheckoutPage() {
                         <h3 className="text-xl font-extrabold text-slate-900 font-['InterMedium',sans-serif]">
                             Booking Confirmed!
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="mt-1 text-[11px] leading-5 text-[#6f7d91] sm:text-xs">
                             Your reservation is guaranteed. A voucher has been sent to your email.
                         </p>
 
-                        <div className="my-4 bg-slate-50 border border-slate-200 p-3.5 text-left text-xs space-y-1.5 rounded-none">
+                        <div className="my-4 space-y-1.5 rounded-[7px] border border-[#e3e8f0] bg-[#f8fbff] p-3.5 text-left text-xs">
                             <div className="flex justify-between">
                                 <span className="text-slate-500 font-medium">Trip ID:</span>
                                 <span className="font-bold text-emerald-600">{bookingConfirmed.tripId}</span>
@@ -640,7 +637,7 @@ export default function HotelCheckoutPage() {
                                 setBookingConfirmed(null);
                                 navigate('/');
                             }}
-                            className="w-full bg-slate-900 hover:bg-black text-white font-bold text-xs uppercase py-3 rounded-none transition-colors cursor-pointer"
+                            className="w-full cursor-pointer rounded-[6px] bg-[#1d4f91] py-3 text-xs font-bold uppercase text-white transition hover:bg-[#173f74]"
                         >
                             Back to Home
                         </button>

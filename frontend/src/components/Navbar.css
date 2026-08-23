@@ -552,3 +552,369 @@
     font-size: 12px;
   }
 }
+
+
+/* =========================================================
+   PROFILE DROPDOWN — FINAL
+   Works with ProfileNavButton.jsx and does NOT depend on Tailwind
+========================================================= */
+
+.nav-profile-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.nav-profile-btn {
+  height: 46px;
+  min-width: 150px;
+  max-width: 190px;
+  padding: 5px 12px 5px 6px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 999px;
+  border: 1px solid #f4b33e;
+  background: linear-gradient(135deg, #f4b33e 0%, #f7941d 48%, #f15a18 100%);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 7px 20px rgba(241, 90, 24, 0.24);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.nav-profile-btn:hover,
+.nav-profile-btn.is-open {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #ffc45a 0%, #f58a1f 45%, #e94d10 100%);
+  border-color: #ffc45a;
+  box-shadow: 0 9px 24px rgba(241, 90, 24, 0.30);
+}
+
+.nav-profile-avatar {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #d95c0b;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 2px 8px rgba(126, 55, 7, 0.16);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.nav-profile-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+}
+
+.nav-profile-name {
+  display: block;
+  width: 100%;
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nav-profile-subtitle {
+  display: block;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nav-profile-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.nav-profile-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Home hero / transparent navbar */
+.gac-navbar--transparent .nav-profile-btn {
+  background: linear-gradient(135deg, #f4b33e 0%, #f7941d 48%, #f15a18 100%);
+  color: #ffffff;
+  border-color: rgba(255, 196, 90, 0.90);
+  box-shadow: 0 8px 24px rgba(26, 16, 4, 0.24);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gac-navbar--transparent .nav-profile-btn:hover,
+.gac-navbar--transparent .nav-profile-btn.is-open {
+  background: linear-gradient(135deg, #ffc45a 0%, #f58a1f 45%, #e94d10 100%);
+  border-color: #ffc45a;
+}
+
+.gac-navbar--transparent .nav-profile-avatar {
+  background: #ffffff;
+  color: #d95c0b;
+  border-color: rgba(255, 255, 255, 0.92);
+}
+
+.gac-navbar--transparent .nav-profile-subtitle {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+/* Dropdown shell */
+.nav-profile-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1300;
+  width: 250px;
+  padding: 7px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 32, 107, 0.10);
+  background: #ffffff;
+  color: #17243b;
+  box-shadow:
+    0 20px 50px rgba(3, 25, 58, 0.22),
+    0 4px 14px rgba(3, 25, 58, 0.08);
+  animation: gacProfileMenuIn 0.16s ease-out;
+}
+
+@keyframes gacProfileMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.nav-profile-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+}
+
+.nav-profile-menu-avatar {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #00206B, #0d55ae);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.nav-profile-menu-user {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-profile-menu-user strong {
+  max-width: 165px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #17243b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nav-profile-menu-user small {
+  margin-top: 2px;
+  color: #8995a6;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.nav-profile-divider {
+  height: 1px;
+  margin: 4px 3px;
+  background: #edf1f5;
+}
+
+/* Dropdown actions */
+.nav-profile-menu-item {
+  width: 100%;
+  padding: 9px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #17243b;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.nav-profile-menu-item:hover {
+  background: #f5f8fc;
+}
+
+.nav-profile-menu-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #eef5ff;
+  color: #1455a0;
+}
+
+.nav-profile-menu-icon--orange {
+  background: #fff3e9;
+  color: #ef6b1d;
+}
+
+.nav-profile-menu-icon--red {
+  background: #fff0f0;
+  color: #e54848;
+}
+
+.nav-profile-menu-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.nav-profile-menu-text strong {
+  color: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.nav-profile-menu-text small {
+  margin-top: 2px;
+  color: #8995a6;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.nav-profile-menu-item--logout {
+  color: #dc3d3d;
+}
+
+.nav-profile-menu-item--logout:hover {
+  background: #fff5f5;
+}
+
+/* Prevent old standalone logout from appearing beside profile */
+.gac-navbar__actions .gac-logout-btn {
+  display: none !important;
+}
+
+/* =========================================================
+   PROFILE RESPONSIVE
+========================================================= */
+
+@media (max-width: 1440px) {
+  .nav-profile-btn {
+    height: 40px;
+    min-width: 132px;
+    max-width: 155px;
+    padding-right: 10px;
+  }
+
+  .nav-profile-avatar {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .nav-profile-name {
+    max-width: 72px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .nav-profile-menu {
+    right: 0;
+    left: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .nav-profile-btn {
+    width: 38px;
+    min-width: 38px;
+    max-width: 38px;
+    height: 38px;
+    padding: 3px;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .nav-profile-avatar {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+  }
+
+  .nav-profile-copy,
+  .nav-profile-chevron {
+    display: none;
+  }
+
+  .nav-profile-menu {
+    position: fixed;
+    top: 64px;
+    right: 10px;
+    left: auto;
+    width: min(250px, calc(100vw - 20px));
+  }
+}
+
+@media (max-width: 520px) {
+  .nav-profile-menu {
+    top: 62px;
+    right: 8px;
+    width: min(250px, calc(100vw - 16px));
+  }
+}
+
+
+/* Profile pill text is always white on the gold/orange background */
+.nav-profile-btn .nav-profile-name {
+  color: #ffffff;
+}
+
+.nav-profile-btn .nav-profile-chevron {
+  color: #ffffff;
+}
+
+/* Keep Manage Booking completely absent for logged-out state.
+   Navbar.jsx conditionally renders it, this just prevents layout artifacts. */
+.gac-navbar__link[aria-hidden="true"] {
+  display: none !important;
+}

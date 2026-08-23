@@ -1,7 +1,7 @@
 {
-  "sessionId": "65273301_5863e9d6-c7e1-4023-a860-2588bd5e22e4-260820200009",
-  "searchId": "DC_Search-997f45d7-12d2-4c2a-bd4e-1498f7ce715c",
-  "dataId": "AVN+Z52LIKdrW0inPV9pRV0NBe1br9D6vnMlxHTalmoQK8OTYroQZd1ld6YNbXyv/VXmjaeZ/3uC3uPUnkPZKajI9AhxqNPGx5Pm2eTAvhSBvcKxmY+iG3PZdbfylg7V0R0uq4HAsT7FgcBYa6jQjZSDdNuXFSOu73wWirWZ8swfDa1xKtCa+W4YZQ2WKejqxFfiE2kppdjc65naAUla/Me2uN9U+pkvHIapN+GH37Oeg7U6SEMggc5+/IqEjt99scDbAv4=",
+  "sessionId": "65273301_e37684d2-d3df-4f1b-be57-ce4f1d3c93e0-260823124405",
+  "searchId": "DC_Search-d02a3fa7-3989-4ba8-a87a-885442e0b952",
+  "dataId": "AVN+Z511k1/ix+ZNgWFvJOOcz6kaQK5YeM2aM/XkhEDuKFaJ9PtGYhGkZrCvmlkpbFwBO73UCeGxB82frG14PktiCPExhcVbiD3YDsVZjmE7DuonVhVoiXo6rohCd79oicqsYorJBY8kz5s2lcQ7lj291q81MSSE7PanM756HFWIBA4U9EPFR2Jtr4U83QlupatKAasVTvOWUeYmYYHYNvk/kVdlt4N3dfCGPXul6zuMPqlCEcnSkZlDI249TUsJpZ694fk=",
   "flightPreviewCriteria": {
     "isMultiFareRequest": false,
     "maxFareCount": 0,
@@ -13,8 +13,8 @@
       {
         "index": 1,
         "origin": "PNQ",
-        "destination": "BOM",
-        "departDate": "26/08/2026",
+        "destination": "BLR",
+        "departDate": "23/08/2026",
         "cabinType": "ECONOMY",
         "paxInfos": [
           {
@@ -28,12 +28,12 @@
   },
   "travelOptions": {
     "J1": {
-      "travelOptionId": "SG-937-PNQ-DEL-1787703900__SG-162-DEL-BOM-1787755200",
-      "price": 12074,
+      "travelOptionId": "IX-2874-PNQ-BLR-1787490300",
+      "price": 2752,
       "subTravelOptions": [
         {
-          "subTravelOptionId": "SG-937-PNQ-DEL-1787703900__SG-162-DEL-BOM-1787755200",
-          "fareId": "REGULAR__26/08/2026__SG^SG__SG^SG__PNQ_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S055__HOLIDAY FARE,HOLIDAY FARE__AVN+Z50gMINc0hAtMfhNaQbVXw9WgQ1Cbz+XXOHBxMpb3BuF7Sh9K7mablWy+MQlw9Bed3sjoB/VcMPk1SUd84wXH3j+ruELTvrt/HmErwo1Zs3Lp41kSXHEcOvmsC+IgNk+VqLQAkfb4lJ4vd4oiIqdoXXiP/XEaA9/rkA6f/FpbJ/eOXc44Y+CZzjIn3uybNL6olIdad/7Xq7Cb4BnfiTpCNba4juYs4alf7PJXBTF+ksvGozPz0wZ3H2LmkllyxN5NWbMCns1EwWeXozkf2mhcwk/e6qbKZV3Au1AsG+Pk+rbH60Sr/eCfsPssUwFTVw=~~V3"
+          "subTravelOptionId": "IX-2874-PNQ-BLR-1787490300",
+          "fareId": "REGULAR__23/08/2026__IX__IX__PNQ_BLR__false__RETAIL_STUDENT__E__DOM__OW__UNKNOWN__S034__STUDENT_REGULAR__AVN+Z51ex6hXRMWKMkg3Gc6adiZ1aQzil2YLg7H7ATyolBK8R5zHpkZ7u3FhNHc9pLrDCv+twNOhhxLey5bodlmcIkSwdS+y/Siq8EdAAhGqM4AKcUurWGLy+23x/tJCc9XntfJUxuTVkFh2FsQfZRCGroa15wpnKkLiVNQedDCiffvmiH3GMFJKpuXYLYrvgYGrZ+q95/2wLgqaQPlZgDNmuWHARFuxBz+ISlbUa/YtrLEEHzshqc6BJtFU9m0aGCfgD+ph99y9xgNNBQ==~~V3"
         }
       ]
     }

@@ -1224,7 +1224,7 @@ export default function SeatAndAncillarySelectionPage() {
             <div className="min-h-screen bg-slate-50 flex flex-col justify-between pt-[75px]">
                 <Navbar />
                 <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-                    <div className="w-16 h-16 bg-red-100 text-red-600 rounded-none flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
                         <Plane className="w-8 h-8" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-900">
@@ -1237,7 +1237,7 @@ export default function SeatAndAncillarySelectionPage() {
                     </p>
                     <button
                         onClick={handleSearchAgain}
-                        className="bg-[#b89565] hover:bg-[#a38053] text-white font-bold py-3 px-8 rounded-none transition-all shadow-md"
+                        className="bg-[#d8942f] hover:bg-[#b9791f] text-white font-bold py-3 px-8 rounded-lg transition-all shadow-md"
                     >
                         Start New Search
                     </button>
@@ -1248,57 +1248,69 @@ export default function SeatAndAncillarySelectionPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between font-sans pt-[75px]">
+        <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between font-body pt-[75px]">
             <Navbar />
 
             {/* Stepper Header Bar */}
-            <div className="bg-slate-900 text-white py-6 border-b border-slate-800 shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3">
+            <div className="bg-[#00206B] text-white px-4 sm:px-6 py-5 shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
+                <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
                         <button
                             onClick={() => navigate(-1)}
-                            className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-none transition-colors"
+                            className="flex items-center gap-1.5 shrink-0 bg-white/12 hover:bg-white/20 border border-white/25 text-white px-2.5 py-1.5 rounded-md text-xs font-bold transition-all"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft size={14} /> Back
                         </button>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold uppercase tracking-wider text-[#b89565]">Step 3: Add-on Perks & Seats</span>
-                                <span className="text-slate-500">•</span>
-                                <span className="text-xs text-slate-400 font-mono">Flight: {flight.airlineName} ({flight.segments?.map(s => s.flightNumber).join(' → ') || primarySegment.flightNumber})</span>
-                            </div>
-                            <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2 mt-0.5">
+                        <div className="w-10 h-10 rounded-lg border border-white/50 bg-white/10 flex items-center justify-center shrink-0">
+                            <Plane size={23} className="text-white" strokeWidth={1.8} />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-lg md:text-xl leading-tight font-extrabold tracking-tight text-white flex items-center gap-2 flex-wrap">
                                 {flight?.isRoundTripCombined
                                     ? `${flight.segments[0]?.origin} ⇄ ${flight.segments[0]?.destination} (Round Trip)`
-                                    : `${primarySegment.origin} ➔ ${lastSegment.destination}`
+                                    : (
+                                        <>
+                                            <span>{primarySegment.origin}</span>
+                                            <span className="text-white/80 font-semibold">→</span>
+                                            <span>{lastSegment.destination}</span>
+                                        </>
+                                    )
                                 }
-                                <span className="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/30">
+                            </h1>
+                            <div className="flex gap-1.5 flex-wrap items-center mt-1.5">
+                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                                    <Sparkles size={11} className="text-[#ff9d3c]" /> Step 3: Add-on Perks &amp; Seats
+                                </span>
+                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                                    <Plane size={11} className="text-[#ff9d3c]" /> {flight.airlineName} ({flight.segments?.map(s => s.flightNumber).join(' → ') || primarySegment.flightNumber})
+                                </span>
+                                <span className="bg-emerald-400/15 border border-emerald-300/40 text-emerald-200 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm">
                                     Passenger: {passengers[0]?.firstName || 'Traveller'} {passengers[0]?.lastName || ''}
                                 </span>
-                            </h1>
+                            </div>
                         </div>
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex items-center gap-2 text-xs font-bold">
-                        <div className="flex items-center gap-2 text-emerald-400">
-                            <div className="w-6 h-6 rounded-none bg-emerald-500/20 border border-emerald-500 flex items-center justify-center text-emerald-400">1</div>
-                            <span>Flight Select</span>
+                    <div className="flex items-center gap-2 text-xs font-bold shrink-0">
+                        <div className="flex items-center gap-2 text-emerald-300">
+                            <div className="w-6 h-6 rounded-md bg-emerald-400/20 border border-emerald-300/60 flex items-center justify-center text-emerald-300">1</div>
+                            <span className="hidden sm:inline">Flight Select</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                        <div className="flex items-center gap-2 text-emerald-400">
-                            <div className="w-6 h-6 rounded-none bg-emerald-500/20 border border-emerald-500 flex items-center justify-center text-emerald-400">2</div>
-                            <span>Passenger Info</span>
+                        <ChevronRight className="w-4 h-4 text-white/40" />
+                        <div className="flex items-center gap-2 text-emerald-300">
+                            <div className="w-6 h-6 rounded-md bg-emerald-400/20 border border-emerald-300/60 flex items-center justify-center text-emerald-300">2</div>
+                            <span className="hidden sm:inline">Passenger Info</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                        <div className="flex items-center gap-2 text-[#b89565]">
-                            <div className="w-6 h-6 rounded-none bg-[#b89565] text-slate-950 flex items-center justify-center font-bold">3</div>
-                            <span className="underline decoration-[#b89565] underline-offset-4">Seats & Meals</span>
+                        <ChevronRight className="w-4 h-4 text-white/40" />
+                        <div className="flex items-center gap-2 text-white">
+                            <div className="w-6 h-6 rounded-md bg-[#d8942f] text-[#00206B] flex items-center justify-center font-bold shadow-sm">3</div>
+                            <span className="underline decoration-[#ff9d3c] underline-offset-4">Seats &amp; Meals</span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-600" />
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <div className="w-6 h-6 rounded-none bg-slate-800 border border-slate-700 flex items-center justify-center">4</div>
-                            <span>Payment</span>
+                        <ChevronRight className="w-4 h-4 text-white/40" />
+                        <div className="flex items-center gap-2 text-white/55">
+                            <div className="w-6 h-6 rounded-md bg-white/10 border border-white/20 flex items-center justify-center">4</div>
+                            <span className="hidden sm:inline">Payment</span>
                         </div>
                     </div>
                 </div>
@@ -1310,44 +1322,44 @@ export default function SeatAndAncillarySelectionPage() {
 
                     {/* Left Column: Interactive Seat Grid & Tabs */}
                     <div className="lg:col-span-8 space-y-6">
-                        <div className="bg-white border border-slate-200 rounded-none shadow-sm overflow-hidden">
+                        <div className="bg-white border border-[#c9dcff] rounded-lg shadow-sm overflow-hidden">
                             {/* Tab Controls */}
-                            <div className="bg-slate-900 text-white px-6 py-4 flex flex-wrap justify-between items-center border-b border-slate-800 gap-4">
+                            <div className="bg-[#00206B] text-white px-6 py-4 flex flex-wrap justify-between items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <Sparkles className="w-5 h-5 text-[#b89565]" />
+                                    <Sparkles className="w-5 h-5 text-[#d8942f]" />
                                     <div>
                                         <h3 className="font-bold text-sm text-white">Select Seat, Meal & Extra Baggage</h3>
                                         {ancillariesUnavailable ? (
-                                            <span className="text-[10px] text-amber-400 font-mono block">
+                                            <span className="text-[10px] text-amber-300 font-mono block">
                                                 ⚠️ Airline API Offline - Local Fallback Seats Active
                                             </span>
                                         ) : (
-                                            <span className="text-[10px] text-emerald-400 font-mono block">
+                                            <span className="text-[10px] text-emerald-300 font-mono block">
                                                 📡 Cleartrip Live Ancillaries API Connected
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 bg-slate-800 p-1 border border-slate-700">
+                                <div className="flex items-center gap-2 bg-white/10 p-1 rounded-md border border-white/15">
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('seats')}
-                                        className={`px-4 py-1.5 text-xs font-bold transition-all ${activeTab === 'seats' ? 'bg-[#b89565] text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'}`}
+                                        className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${activeTab === 'seats' ? 'bg-[#d8942f] text-[#00206B] shadow-sm' : 'text-white/70 hover:text-white'}`}
                                     >
                                         💺 Seat Map
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('meals')}
-                                        className={`px-4 py-1.5 text-xs font-bold transition-all ${activeTab === 'meals' ? 'bg-[#b89565] text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'}`}
+                                        className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${activeTab === 'meals' ? 'bg-[#d8942f] text-[#00206B] shadow-sm' : 'text-white/70 hover:text-white'}`}
                                     >
                                         🍽️ In-flight Meals
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('baggage')}
-                                        className={`px-4 py-1.5 text-xs font-bold transition-all ${activeTab === 'baggage' ? 'bg-[#b89565] text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white'}`}
+                                        className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${activeTab === 'baggage' ? 'bg-[#d8942f] text-[#00206B] shadow-sm' : 'text-white/70 hover:text-white'}`}
                                     >
                                         🧳 Extra Baggage
                                     </button>
@@ -1356,7 +1368,7 @@ export default function SeatAndAncillarySelectionPage() {
 
                             <div className="p-6">
                                 {ancillariesUnavailable && (
-                                    <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs font-semibold rounded-none shadow-sm flex items-start gap-3">
+                                    <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs font-semibold rounded-lg shadow-sm flex items-start gap-3">
                                         <span className="text-lg">⚠️</span>
                                         <div>
                                             <strong className="block font-bold mb-0.5 text-amber-800">In-Flight Services Temporarily Unavailable</strong>
@@ -1367,8 +1379,8 @@ export default function SeatAndAncillarySelectionPage() {
 
                                 {/* City Pair Tabs (Level 1 Selector) */}
                                 {cityPairs.length > 1 && (
-                                    <div className="mb-6 p-4 bg-slate-900 text-white rounded-none shadow-sm">
-                                        <label className="block text-xs font-bold text-[#b89565] uppercase tracking-wider mb-2">
+                                    <div className="mb-6 p-4 bg-[#00206B] text-white rounded-lg shadow-sm">
+                                        <label className="block text-xs font-bold text-[#ff9d3c] uppercase tracking-wider mb-2">
                                             Select City Pair (Sector):
                                         </label>
                                         <div className="flex flex-wrap gap-3">
@@ -1383,10 +1395,10 @@ export default function SeatAndAncillarySelectionPage() {
                                                             setActiveLegIdx(0);
                                                             toast.info(`Switched to Sector ${cpIdx + 1}: ${cp.origin} ➔ ${cp.destination}`);
                                                         }}
-                                                        className={`flex-1 min-w-[180px] p-3 text-left border transition-all ${
+                                                        className={`flex-1 min-w-[180px] p-3 rounded-md text-left border transition-all ${
                                                             isCPActive
-                                                                ? 'bg-[#b89565] border-[#b89565] text-slate-950 font-black shadow-md'
-                                                                : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white'
+                                                                ? 'bg-[#d8942f] border-[#d8942f] text-[#00206B] font-black shadow-md'
+                                                                : 'bg-white/10 border-white/15 text-white/75 hover:bg-white/15 hover:text-white'
                                                         }`}
                                                     >
                                                         <div className="flex items-center justify-between font-bold text-sm">
@@ -1407,7 +1419,7 @@ export default function SeatAndAncillarySelectionPage() {
 
                                 {/* Leg Tabs within Selected City Pair (Level 2 Selector for Connecting Flights) */}
                                 {activeLegs.length > 1 && (
-                                    <div className="mb-6 p-4 bg-slate-100 border border-slate-200">
+                                    <div className="mb-6 p-4 rounded-lg bg-slate-100 border border-slate-200">
                                         <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                                             Connecting Flights for {activeCityPair.origin} ➔ {activeCityPair.destination}:
                                         </label>
@@ -1439,14 +1451,14 @@ export default function SeatAndAncillarySelectionPage() {
                                                             setActiveLegIdx(lIdx);
                                                             toast.info(`Showing seat map for Leg ${lIdx + 1}: ${leg.origin} ➔ ${leg.destination}`);
                                                         }}
-                                                        className={`flex-1 min-w-[170px] py-2.5 px-4 text-xs font-bold transition-all border text-left ${
+                                                        className={`flex-1 min-w-[170px] py-2.5 px-4 rounded-md text-xs font-bold transition-all border text-left ${
                                                             isLegActive
-                                                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm font-black'
+                                                                ? 'bg-[#00206B] border-[#00206B] text-white shadow-sm font-black'
                                                                 : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
                                                         }`}
                                                     >
                                                         <div>Leg {lIdx + 1}: {leg.origin} ➔ {leg.destination}</div>
-                                                        <div className={`text-[10px] font-normal mt-0.5 ${legHasSeats ? 'text-emerald-400 font-bold' : isLegActive ? 'text-slate-300' : 'text-slate-500'}`}>
+                                                        <div className={`text-[10px] font-normal mt-0.5 ${legHasSeats ? (isLegActive ? 'text-emerald-300 font-bold' : 'text-emerald-600 font-bold') : isLegActive ? 'text-white/70' : 'text-slate-500'}`}>
                                                             {legHasSeats ? '🟢 Live API Seat Map' : '⚪ Standard Seating'}
                                                         </div>
                                                     </button>
@@ -1458,7 +1470,7 @@ export default function SeatAndAncillarySelectionPage() {
 
                                 {/* Passenger Selector Strip for Multi-Passenger Bookings */}
                                 {passengers.length > 1 && (
-                                    <div className="mb-6 p-4 bg-slate-50 border border-slate-200">
+                                    <div className="mb-6 p-4 rounded-lg bg-slate-50 border border-slate-200">
                                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                                             Select Traveller to Assign Seats & Perks ({activeCityPair.origin} ➔ {activeCityPair.destination}):
                                         </label>
@@ -1473,14 +1485,14 @@ export default function SeatAndAncillarySelectionPage() {
                                                         key={p.id || idx}
                                                         type="button"
                                                         onClick={() => setActivePassengerIdx(idx)}
-                                                        className={`flex-1 min-w-[140px] p-3 text-left border transition-all ${isActive
-                                                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm font-bold'
+                                                        className={`flex-1 min-w-[140px] p-3 rounded-md text-left border transition-all ${isActive
+                                                                ? 'bg-[#00206B] border-[#00206B] text-white shadow-sm font-bold'
                                                                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                                                             }`}
                                                     >
                                                         <span className="block text-xs font-black truncate">{p.title || 'Mr.'} {p.firstName} {p.lastName}</span>
-                                                        <span className="block text-[10px] text-slate-400 font-mono mt-1">
-                                                            Seat: <strong className={isActive ? 'text-[#b89565]' : 'text-slate-800'}>{selSeat}</strong> {selMeal} {selBag}
+                                                        <span className={`block text-[10px] font-mono mt-1 ${isActive ? 'text-white/60' : 'text-slate-400'}`}>
+                                                            Seat: <strong className={isActive ? 'text-[#ff9d3c]' : 'text-slate-800'}>{selSeat}</strong> {selMeal} {selBag}
                                                         </span>
                                                     </button>
                                                 );
@@ -1496,12 +1508,12 @@ export default function SeatAndAncillarySelectionPage() {
                                         <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 border border-slate-200 text-xs">
                                             <div className="flex items-center gap-4 flex-wrap font-semibold text-slate-700">
                                                 <span className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 bg-white border border-slate-400"></div> Available</span>
-                                                <span className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 bg-[#b89565] text-white flex items-center justify-center font-bold text-[9px]">✓</div> Selected</span>
+                                                <span className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 bg-[#d8942f] text-white flex items-center justify-center font-bold text-[9px]">✓</div> Selected</span>
                                                 <span className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 bg-amber-100 border border-amber-400"></div> Front Legroom</span>
                                                 <span className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 bg-slate-300"></div> Occupied</span>
                                             </div>
                                             <span className="font-bold text-slate-900 bg-white px-3 py-1 border border-slate-200">
-                                                Selected Seat: <strong className="text-[#b89565] text-sm">{selectedSeat || 'None'}</strong>
+                                                Selected Seat: <strong className="text-[#d8942f] text-sm">{selectedSeat || 'None'}</strong>
                                             </span>
                                         </div>
 
@@ -1555,17 +1567,17 @@ export default function SeatAndAncillarySelectionPage() {
                                                                                     type="button"
                                                                                     disabled={isOccupied || isSelectedByOther(seatId)}
                                                                                     onClick={() => setSelectedSeat(seatId)}
-                                                                                    className={`w-10 h-10 text-xs font-bold rounded-none border transition-all flex items-center justify-center ${isOccupied
+                                                                                    className={`w-10 h-10 text-xs font-bold rounded-md border transition-all flex items-center justify-center ${isOccupied
                                                                                         ? 'bg-slate-300 border-slate-400 text-slate-500 cursor-not-allowed'
                                                                                         : isSelected
-                                                                                            ? 'bg-[#b89565] border-[#967547] text-white shadow-md scale-105 ring-2 ring-[#b89565]/30'
+                                                                                            ? 'bg-[#00206B] border-[#00206B] text-white shadow-md scale-105 ring-2 ring-[#d8942f]'
                                                                                             : isSelectedByOther(seatId)
                                                                                                 ? 'bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed'
                                                                                                 : isFrontRow
                                                                                                     ? 'bg-amber-50 border-amber-400 text-amber-900 hover:bg-amber-100'
                                                                                                     : isExitRow
                                                                                                         ? 'bg-blue-50 border-blue-400 text-blue-900 hover:bg-blue-100'
-                                                                                                        : 'bg-white border-slate-300 text-slate-800 hover:border-[#b89565] hover:bg-amber-50/50'
+                                                                                                        : 'bg-white border-slate-300 text-slate-800 hover:border-[#00206B] hover:bg-blue-50/50'
                                                                                         }`}
                                                                                     title={`${seatId} • ₹${seatPrice} • ${isOccupied ? 'Occupied' : isSelectedByOther(seatId) ? 'Selected by other passenger' : 'Available'}`}
                                                                                 >
@@ -1602,17 +1614,17 @@ export default function SeatAndAncillarySelectionPage() {
                                                                                     type="button"
                                                                                     disabled={isOccupied || isSelectedByOther(seatId)}
                                                                                     onClick={() => setSelectedSeat(seatId)}
-                                                                                    className={`w-10 h-10 text-xs font-bold rounded-none border transition-all flex items-center justify-center ${isOccupied
+                                                                                    className={`w-10 h-10 text-xs font-bold rounded-md border transition-all flex items-center justify-center ${isOccupied
                                                                                         ? 'bg-slate-300 border-slate-400 text-slate-500 cursor-not-allowed'
                                                                                         : isSelected
-                                                                                            ? 'bg-[#b89565] border-[#967547] text-white shadow-md scale-105 ring-2 ring-[#b89565]/30'
+                                                                                            ? 'bg-[#00206B] border-[#00206B] text-white shadow-md scale-105 ring-2 ring-[#d8942f]'
                                                                                             : isSelectedByOther(seatId)
                                                                                                 ? 'bg-slate-200 border-slate-300 text-slate-400 cursor-not-allowed'
                                                                                                 : isFrontRow
                                                                                                     ? 'bg-amber-50 border-amber-400 text-amber-900 hover:bg-amber-100'
                                                                                                     : isExitRow
                                                                                                         ? 'bg-blue-50 border-blue-400 text-blue-900 hover:bg-blue-100'
-                                                                                                        : 'bg-white border-slate-300 text-slate-800 hover:border-[#b89565] hover:bg-amber-50/50'
+                                                                                                        : 'bg-white border-slate-300 text-slate-800 hover:border-[#00206B] hover:bg-blue-50/50'
                                                                                         }`}
                                                                                     title={`${seatId} • ₹${seatPrice} • ${isOccupied ? 'Occupied' : isSelectedByOther(seatId) ? 'Selected by other passenger' : 'Available'}`}
                                                                                 >
@@ -1654,15 +1666,15 @@ export default function SeatAndAncillarySelectionPage() {
                                                 <div
                                                     key={m.id}
                                                     onClick={() => setSelectedMeal(m.id)}
-                                                    className={`p-4 border rounded-none cursor-pointer transition-all flex justify-between items-start gap-4 ${selectedMeal === m.id
-                                                        ? 'bg-amber-50/60 border-[#b89565] shadow-sm'
+                                                    className={`p-4 border rounded-lg cursor-pointer transition-all flex justify-between items-start gap-4 ${selectedMeal === m.id
+                                                        ? 'bg-blue-50/60 border-[#00206B] shadow-sm'
                                                         : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
                                                         }`}
                                                 >
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2">
                                                             <h4 className="font-bold text-sm text-slate-900">{m.title}</h4>
-                                                            <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-none uppercase">
+                                                            <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
                                                                 {m.tag}
                                                             </span>
                                                         </div>
@@ -1672,7 +1684,7 @@ export default function SeatAndAncillarySelectionPage() {
                                                         <span className="text-xs font-bold text-emerald-600 block">
                                                             {m.price === 0 ? 'FREE' : `+₹${m.price}`}
                                                         </span>
-                                                        <div className={`w-5 h-5 rounded-none border flex items-center justify-center mt-2 ml-auto ${selectedMeal === m.id ? 'bg-[#b89565] border-[#b89565] text-white' : 'border-slate-300 bg-white'
+                                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center mt-2 ml-auto ${selectedMeal === m.id ? 'bg-[#00206B] border-[#00206B] text-white' : 'border-slate-300 bg-white'
                                                             }`}>
                                                             {selectedMeal === m.id && <Check className="w-3.5 h-3.5" />}
                                                         </div>
@@ -1681,7 +1693,7 @@ export default function SeatAndAncillarySelectionPage() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-8 border border-slate-200 text-center bg-slate-50">
+                                        <div className="p-8 border border-slate-200 rounded-lg text-center bg-slate-50">
                                             <Utensils className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                                             <h4 className="font-bold text-sm text-slate-700">No Meals Add-on in Cleartrip Response</h4>
                                             <p className="text-xs text-slate-500 mt-1">Cleartrip API did not return advance meal options for this flight sector.</p>
@@ -1697,13 +1709,13 @@ export default function SeatAndAncillarySelectionPage() {
                                                 <div
                                                     key={b.id}
                                                     onClick={() => setSelectedBaggage(b.id)}
-                                                    className={`p-4 border rounded-none cursor-pointer transition-all flex flex-col justify-between ${selectedBaggage === b.id
-                                                        ? 'bg-amber-50/60 border-[#b89565] shadow-sm'
+                                                    className={`p-4 border rounded-lg cursor-pointer transition-all flex flex-col justify-between ${selectedBaggage === b.id
+                                                        ? 'bg-blue-50/60 border-[#00206B] shadow-sm'
                                                         : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
                                                         }`}
                                                 >
                                                     <div>
-                                                        <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-none uppercase inline-block mb-2">
+                                                        <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase inline-block mb-2">
                                                             {b.tag}
                                                         </span>
                                                         <h4 className="font-bold text-sm text-slate-900 mb-1">{b.title}</h4>
@@ -1713,7 +1725,7 @@ export default function SeatAndAncillarySelectionPage() {
                                                         <span className="text-sm font-bold text-slate-900">
                                                             {b.price === 0 ? 'Included' : `+₹${b.price.toLocaleString()}`}
                                                         </span>
-                                                        <div className={`w-5 h-5 rounded-none border flex items-center justify-center ${selectedBaggage === b.id ? 'bg-[#b89565] border-[#b89565] text-white' : 'border-slate-300 bg-white'
+                                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${selectedBaggage === b.id ? 'bg-[#00206B] border-[#00206B] text-white' : 'border-slate-300 bg-white'
                                                             }`}>
                                                             {selectedBaggage === b.id && <Check className="w-3.5 h-3.5" />}
                                                         </div>
@@ -1722,7 +1734,7 @@ export default function SeatAndAncillarySelectionPage() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="p-8 border border-slate-200 text-center bg-slate-50">
+                                        <div className="p-8 border border-slate-200 rounded-lg text-center bg-slate-50">
                                             <Luggage className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                                             <h4 className="font-bold text-sm text-slate-700">No Extra Baggage Add-on in Cleartrip Response</h4>
                                             <p className="text-xs text-slate-500 mt-1">Cleartrip API did not return additional baggage options for this flight sector.</p>
@@ -1735,7 +1747,7 @@ export default function SeatAndAncillarySelectionPage() {
                         {/* Continue to Payment Button */}
                         <div className="pt-2">
                             {sessionExpired ? (
-                                <div className="border-2 border-red-200 bg-red-50 p-5 text-center">
+                                <div className="border-2 border-red-200 bg-red-50 rounded-lg p-5 text-center">
                                     <h4 className="font-black text-sm text-red-700 uppercase tracking-wide">Your Search Session Has Expired</h4>
                                     <p className="text-xs text-red-600 mt-1.5 leading-relaxed">
                                         The airline only holds a fare session for a few minutes. Refreshing this page won't help —
@@ -1744,7 +1756,7 @@ export default function SeatAndAncillarySelectionPage() {
                                     <button
                                         type="button"
                                         onClick={handleSearchAgain}
-                                        className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-3 px-8 rounded-none transition-all shadow-md"
+                                        className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-3 px-8 rounded-lg transition-all shadow-md"
                                     >
                                         Search Again
                                     </button>
@@ -1755,7 +1767,7 @@ export default function SeatAndAncillarySelectionPage() {
                                         type="button"
                                         onClick={handleProceedToPayment}
                                         disabled={isHolding}
-                                        className={`w-full text-white py-4 font-bold text-sm tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.99] ${isHolding ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#b89565] hover:bg-[#a38053]'
+                                        className={`w-full text-white py-4 rounded-md font-extrabold text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2 active:scale-[0.99] ${isHolding ? 'bg-slate-400 cursor-not-allowed shadow-md' : 'bg-gradient-to-br from-[#f4b33e] to-[#f15a18] hover:from-[#ffc45a] hover:to-[#e94d10] shadow-[0_6px_14px_rgba(241,90,24,0.18)]'
                                             }`}
                                     >
                                         <Lock className="w-4 h-4" /> {isHolding ? 'Holding Booking...' : `Confirm Seat${passengers.length > 1 ? 's' : ` (${selectedSeat})`} & Proceed to Pay`}
@@ -1772,13 +1784,13 @@ export default function SeatAndAncillarySelectionPage() {
                     <div className="lg:col-span-4 space-y-6">
 
                         {/* Selections Summary Card */}
-                        <div className="bg-slate-900 text-white p-6 border border-slate-800 rounded-none shadow-sm space-y-4 max-h-[350px] overflow-y-auto">
-                            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                                <h4 className="font-bold text-xs uppercase tracking-wider text-[#b89565]">YOUR SELECTIONS</h4>
-                                <span className="text-[11px] text-emerald-400 font-bold">✓ Confirmed</span>
+                        <div className="bg-white border border-[#c9dcff] rounded-lg shadow-sm p-6 space-y-4 max-h-[350px] overflow-y-auto">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h4 className="font-bold text-xs uppercase tracking-wider text-[#00206B]">YOUR SELECTIONS</h4>
+                                <span className="text-[11px] text-emerald-600 font-bold">✓ Confirmed</span>
                             </div>
 
-                            <div className="space-y-4 divide-y divide-slate-800">
+                            <div className="space-y-4 divide-y divide-slate-100">
                                 {passengers.map((p, idx) => {
                                             const pSel = selections[idx] || {};
                                     const seatsList = [];
@@ -1820,20 +1832,20 @@ export default function SeatAndAncillarySelectionPage() {
                                     return (
                                         <div key={p.id || idx} className="pt-3 first:pt-0 space-y-2 text-xs">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-250 font-semibold">{p.firstName} {p.lastName}</span>
+                                                <span className="text-slate-900 font-semibold">{p.firstName} {p.lastName}</span>
                                                 <span className="text-[10px] text-slate-500 uppercase font-bold">{p.type}</span>
                                             </div>
                                             <div className="flex justify-between items-center pl-2">
-                                                <span className="text-slate-400">Seat</span>
-                                                <strong className="text-[#b89565] bg-slate-800 px-2 py-0.5 border border-slate-700 font-mono">{pSeat}</strong>
+                                                <span className="text-slate-500">Seat</span>
+                                                <strong className="text-[#00206B] bg-slate-50 px-2 py-0.5 rounded border border-slate-200 font-mono">{pSeat}</strong>
                                             </div>
                                             <div className="flex justify-between items-center pl-2">
-                                                <span className="text-slate-400">Meal</span>
-                                                <span className="text-emerald-400 font-medium truncate max-w-[120px]" title={pMeal}>{pMeal}</span>
+                                                <span className="text-slate-500">Meal</span>
+                                                <span className="text-emerald-600 font-medium truncate max-w-[120px]" title={pMeal}>{pMeal}</span>
                                             </div>
                                             <div className="flex justify-between items-center pl-2">
-                                                <span className="text-slate-400">Baggage</span>
-                                                <span className="text-blue-400 font-medium truncate max-w-[120px]" title={pBag}>{pBag}</span>
+                                                <span className="text-slate-500">Baggage</span>
+                                                <span className="text-blue-600 font-medium truncate max-w-[120px]" title={pBag}>{pBag}</span>
                                             </div>
                                         </div>
                                     );
@@ -1842,7 +1854,7 @@ export default function SeatAndAncillarySelectionPage() {
                         </div>
 
                         {/* Total Price Card */}
-                        <div className="bg-white border border-slate-200 p-6 rounded-none shadow-sm space-y-4">
+                        <div className="bg-white border border-[#c9dcff] rounded-lg shadow-sm p-6 space-y-4">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                                 <div>
                                     <span className="font-bold text-xs uppercase tracking-wider text-slate-500 block">TOTAL FARE</span>
