@@ -345,6 +345,7 @@ function PremiumFlightTicket({
   bookingEmail,
   onPrint,
   navigate,
+  cabinClass,
 }) {
   const firstFlight = flights?.[0] || {};
 
@@ -779,7 +780,7 @@ function PremiumFlightTicket({
                     </span>
 
                     <strong className="block text-[10px]">
-                      Economy Class
+                      {cabinClass || "ECONOMY"} Class
                     </strong>
                   </div>
                 </div>
@@ -1935,6 +1936,10 @@ export default function FlightBookingSuccessPage() {
     );
   }
 
+  const searchParamsStored = localStorage.getItem('flightSearchParams');
+  const parsedSearchParams = searchParamsStored ? JSON.parse(searchParamsStored) : {};
+  const storedCabinClass = parsedSearchParams.travelClass || "ECONOMY";
+
   return (
     <>
       {loadingLiveDetails && (
@@ -1953,6 +1958,7 @@ export default function FlightBookingSuccessPage() {
         bookingEmail={bookingEmail}
         onPrint={handlePrint}
         navigate={navigate}
+        cabinClass={storedCabinClass}
       />
     </>
   );

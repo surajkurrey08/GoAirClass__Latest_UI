@@ -106,6 +106,7 @@ function TopSearchBar({ fromVal, toVal, dateVal, returnDateVal, tripTypeVal, sea
 
     const handleSearch = () => {
         if (!from.trim() || !to.trim()) { toast.error('Please select both origin and destination'); return; }
+        if (from.trim().toLowerCase() === to.trim().toLowerCase()) { toast.error('Source and destination cannot be the same'); return; }
         if (!date) { toast.error('Please select a departure date'); return; }
         if (tripType === 'roundTrip' && !returnDate) { toast.error('Please select a return date'); return; }
 
@@ -224,6 +225,7 @@ function TopSearchBar({ fromVal, toVal, dateVal, returnDateVal, tripTypeVal, sea
                             ref={departInputRef}
                             type="date"
                             value={date}
+                            min={new Date().toISOString().split('T')[0]}
                             onChange={e => setDate(e.target.value)}
                             className="absolute inset-0 opacity-0 cursor-pointer"
                             aria-label="Departure date"

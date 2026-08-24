@@ -181,7 +181,8 @@ export default function Payment() {
               state: {
                 ...location.state,
                 bookingData: bookData,
-                pnr: bookData?.pnr || bookData?.bookingId || location.state?.holdData?.tripId,
+                pnr: bookData?.pnr || null,
+                bookingId: bookData?.bookingId || location.state?.holdData?.tripId || location.state?.holdData?.booking_details?.trip_id || null,
                 paymentId: response.razorpay_payment_id
               }
             });

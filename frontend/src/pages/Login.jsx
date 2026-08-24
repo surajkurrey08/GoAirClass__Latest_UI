@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { sendOtp, verifyOtp, forgotPassword, resetPassword } from '../services/auth';
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
@@ -24,6 +24,15 @@ export default function Login() {
   
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    // TC_32: Clear stale session on login page to prevent mixed state
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    localStorage.removeItem('userName');
+    sessionStorage.clear();
+  }, []);
 
   const handleSendOtp = async (e) => {
     e.preventDefault();

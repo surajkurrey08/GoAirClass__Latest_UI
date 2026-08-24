@@ -27,6 +27,10 @@ export default function FlightBookingDetailsPage() {
         infantsCount = 0
     } = location.state || {};
 
+    const searchParamsStored = localStorage.getItem('flightSearchParams');
+    const parsedSearchParams = searchParamsStored ? JSON.parse(searchParamsStored) : {};
+    const storedCabinClass = parsedSearchParams.travelClass || "ECONOMY";
+
     // Live state updated asynchronously in background
     const [liveSessionId, setLiveSessionId] = useState(initialSessionId || null);
     const [livePreview, setLivePreview] = useState(initialPreview || null);
@@ -218,7 +222,7 @@ export default function FlightBookingDetailsPage() {
                                                 departDate: pSeg.departureDateTime
                                                     ? new Date(pSeg.departureDateTime).toLocaleDateString('en-GB')
                                                     : new Date().toLocaleDateString('en-GB'),
-                                                cabinType: pSeg.cabinType || "ECONOMY",
+                                                cabinType: pSeg.cabinType || storedCabinClass,
                                                 paxInfos: paxInfosList
                                             }]
                                         },
@@ -328,7 +332,7 @@ export default function FlightBookingDetailsPage() {
                                             departDate: outboundSeg.departureDateTime
                                                 ? new Date(outboundSeg.departureDateTime).toLocaleDateString('en-GB')
                                                 : new Date().toLocaleDateString('en-GB'),
-                                            cabinType: outboundSeg.cabinType || "ECONOMY",
+                                            cabinType: outboundSeg.cabinType || storedCabinClass,
                                             paxInfos: paxInfosList
                                         },
                                         {
@@ -338,7 +342,7 @@ export default function FlightBookingDetailsPage() {
                                             departDate: returnSeg.departureDateTime
                                                 ? new Date(returnSeg.departureDateTime).toLocaleDateString('en-GB')
                                                 : new Date().toLocaleDateString('en-GB'),
-                                            cabinType: returnSeg.cabinType || "ECONOMY",
+                                            cabinType: returnSeg.cabinType || storedCabinClass,
                                             paxInfos: paxInfosList
                                         }
                                     ]
@@ -374,7 +378,7 @@ export default function FlightBookingDetailsPage() {
                                         origin: primarySegment.origin || "BLR",
                                         destination: lastSegment.destination || "BOM",
                                         departDate: primarySegment.departureDateTime ? new Date(primarySegment.departureDateTime).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
-                                        cabinType: primarySegment.cabinType || "ECONOMY",
+                                        cabinType: primarySegment.cabinType || storedCabinClass,
                                         paxInfos: paxInfosList
                                     }]
                                 },
@@ -649,7 +653,7 @@ export default function FlightBookingDetailsPage() {
                             departDate: outboundSeg.departureDateTime
                                 ? new Date(outboundSeg.departureDateTime).toLocaleDateString('en-GB')
                                 : new Date().toLocaleDateString('en-GB'),
-                            cabinType: outboundSeg.cabinType || "ECONOMY",
+                            cabinType: outboundSeg.cabinType || storedCabinClass,
                             paxInfos: paxInfosList
                         },
                         {
@@ -659,7 +663,7 @@ export default function FlightBookingDetailsPage() {
                             departDate: returnSeg.departureDateTime
                                 ? new Date(returnSeg.departureDateTime).toLocaleDateString('en-GB')
                                 : new Date().toLocaleDateString('en-GB'),
-                            cabinType: returnSeg.cabinType || "ECONOMY",
+                            cabinType: returnSeg.cabinType || storedCabinClass,
                             paxInfos: paxInfosList
                         }
                     ];
@@ -680,7 +684,7 @@ export default function FlightBookingDetailsPage() {
                         origin: primarySegment.origin || "BLR",
                         destination: lastSegment.destination || "BOM",
                         departDate: primarySegment.departureDateTime ? new Date(primarySegment.departureDateTime).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
-                        cabinType: primarySegment.cabinType || "ECONOMY",
+                        cabinType: primarySegment.cabinType || storedCabinClass,
                         paxInfos: paxInfosList
                     }];
                 }

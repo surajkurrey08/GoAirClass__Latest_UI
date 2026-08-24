@@ -27,7 +27,8 @@ API.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Handle unauthorized access globally
       localStorage.removeItem('token');
-      // window.location.href = '/login'; // Optional: Redirect to login
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

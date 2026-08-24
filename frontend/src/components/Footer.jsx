@@ -32,31 +32,31 @@ export default function Footer() {
         {/* SERVICES */}
         <div className="footer__col">
           <h4>Services</h4>
-          <Link to="/search?type=flights">Flights</Link>
-          <Link to="/search?type=hotels">Hotels</Link>
-          <a href="#offers">Holidays</a>
-          <a href="#">Manage Booking</a>
-          <a href="#">Travel Insurance</a>
+          <Link to="/flights">Flights</Link>
+          <Link to="/hotels">Hotels</Link>
+          <Link to="/">Holidays</Link>
+          <Link to="/profile">Manage Booking</Link>
+          <Link to="/inquiry">Travel Insurance</Link>
         </div>
 
         {/* COMPANY */}
         <div className="footer__col">
           <h4>Company</h4>
-          <a href="#">About Us</a>
-          <a href="#">Careers</a>
-          <a href="#">Press</a>
-          <a href="#">Blog</a>
+          <Link to="/inquiry">About Us</Link>
+          <Link to="/inquiry">Careers</Link>
+          <Link to="/inquiry">Press</Link>
+          <Link to="/inquiry">Blog</Link>
           <Link to="/inquiry">Contact Us</Link>
         </div>
 
         {/* SUPPORT */}
         <div className="footer__col">
           <h4>Support</h4>
-          <a href="#">Help Center</a>
-          <a href="#">FAQs</a>
-          <a href="#">Cancellation Policy</a>
-          <a href="#">Refund Policy</a>
-          <a href="#">Terms & Conditions</a>
+          <Link to="/inquiry">Help Center</Link>
+          <Link to="/inquiry">FAQs</Link>
+          <Link to="/inquiry">Cancellation Policy</Link>
+          <Link to="/inquiry">Refund Policy</Link>
+          <Link to="/inquiry">Terms & Conditions</Link>
         </div>
 
         {/* CONTACT */}

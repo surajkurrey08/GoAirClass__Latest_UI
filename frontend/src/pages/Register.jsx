@@ -32,7 +32,8 @@ export default function Register() {
     if (!emailRegex.test(formData.email.trim())) return setError('Invalid email address format');
 
     if (!formData.mobileNumber.trim()) return setError('Mobile number is required');
-    if (formData.mobileNumber.length !== 10) return setError('Mobile number must be 10 digits');
+    const mobileRegex = /^\d{10}$/;
+    if (!mobileRegex.test(formData.mobileNumber.trim())) return setError('Mobile number must be exactly 10 digits');
 
     if (!formData.password) return setError('Password is required');
     if (formData.password.length < 8) return setError('Password must be at least 8 characters');

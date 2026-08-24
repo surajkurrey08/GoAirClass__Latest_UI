@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight, ArrowLeftRight, ChevronRight, ChevronDown, ChevronLeft, Calendar, Users,
   BadgePercent, ShieldCheck, Headphones, FileCheck, Plane, TrendingDown,
-  ClipboardCheck, Mail, BedDouble, Luggage, Globe, Star, Clock, MapPin, X, UserRound
+  ClipboardCheck, Mail, BedDouble, Luggage, Globe, Star, Clock, MapPin, X
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Navbar from '../components/Navbar'
@@ -122,7 +122,7 @@ const ROUTES_TRUST = [
 const emptySector = () => ({ fromCity: '', fromAirport: '', toCity: '', toAirport: '', date: '' })
 
 /* ── City / airport autocomplete field ────────────────── */
-function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetchSuggestions, icon: Icon = MapPin, wide }) {
+function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetchSuggestions, icon: Icon = MapPin, wide, error }) {
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
@@ -181,7 +181,7 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
   }
 
   return (
-    <div className="search2__field" style={wide ? { flex: 1.6 } : undefined} ref={wrapRef}>
+    <div className="search2__field relative" style={wide ? { flex: 1.6 } : undefined} ref={wrapRef}>
       <label>{label}</label>
       <div className="search2__field-icon">
         <input
@@ -216,6 +216,9 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
             <div className="search2__suggestion-loading">No results found</div>
           )}
         </div>
+      )}
+      {error && (
+        <span className="absolute bottom-[-18px] left-0 text-[10px] text-red-500 font-semibold">{error}</span>
       )}
     </div>
   )
@@ -468,6 +471,9 @@ export default function Home() {
   const [travelClass, setTravelClass] = useState('Economy')
   const [searchingFlights, setSearchingFlights] = useState(false)
   const [multiCitySectors, setMultiCitySectors] = useState([emptySector(), emptySector()])
+  const [showOverlapWarning, setShowOverlapWarning] = useState(false)
+
+  const [travelersOpen, setTravelersOpen] = useState(false);
 
   // Destinations tab
   const [destTab, setDestTab] = useState('Domestic')
@@ -477,6 +483,26 @@ export default function Home() {
   const [fares, setFares] = useState({})
 
   const today = new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('flightSearchParams');
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.from) setFrom(p.from);
+        if (p.to) setTo(p.to);
+        if (p.departDate && p.departDate >= today) setDepartDate(p.departDate);
+        if (p.returnDate && p.returnDate >= today) setReturnDate(p.returnDate);
+        if (p.tripType) setTripType(p.tripType);
+        if (p.adults) setAdults(p.adults);
+        if (p.children !== undefined) setChildren(p.children);
+        if (p.infants !== undefined) setInfants(p.infants);
+        if (p.travelClass) setTravelClass(p.travelClass);
+        if (p.multiCitySectors && p.multiCitySectors.length) setMultiCitySectors(p.multiCitySectors);
+      }
+    } catch(e) {}
+  }, [today]);
+
 
   useEffect(() => {
     if (activeTab === 'flights' && from && to && from.length >= 3 && to.length >= 3) {
@@ -564,39 +590,54 @@ export default function Home() {
     setMultiCitySectors(prev => prev.filter((_, i) => i !== index))
   }
 
+  const executeMultiCitySearch = async () => {
+    setSearchingFlights(true)
+    try {
+      const resolvedSectors = await Promise.all(multiCitySectors.map(async (s) => ({
+        fromCity: await resolveAirport(s.fromCity),
+        fromAirport: s.fromAirport || '',
+        toCity: await resolveAirport(s.toCity),
+        toAirport: s.toAirport || '',
+        date: s.date,
+      })))
+      localStorage.setItem('flightSearchParams', JSON.stringify({ from, to, departDate, returnDate, tripType, adults, children, infants, travelClass, multiCitySectors }));
+      const travellersLabel = `${travelers} Traveller${travelers > 1 ? 's' : ''}`
+      navigate(
+        `/flights/list?tripType=multiCity&sectors=${encodeURIComponent(JSON.stringify(resolvedSectors))}` +
+        `&cabin=${encodeURIComponent(travelClass)}&travellers=${encodeURIComponent(travellersLabel)}&adults=${adults}&children=${children}&infants=${infants}`
+      )
+    } finally {
+      setSearchingFlights(false)
+    }
+  }
+
   const handleSearch = async () => {
     if (activeTab === 'flights') {
       if (tripType === 'multicity') {
         for (let i = 0; i < multiCitySectors.length; i++) {
           const sec = multiCitySectors[i]
           if (!sec.fromCity.trim() || !sec.toCity.trim()) { toast.error(`Please select departure and destination cities for Flight ${i + 1}`); return }
+          if (sec.fromCity.trim().toLowerCase() === sec.toCity.trim().toLowerCase()) { return }
           if (!sec.date) { toast.error(`Please select a date for Flight ${i + 1}`); return }
         }
-        setSearchingFlights(true)
-        try {
-          const resolvedSectors = await Promise.all(multiCitySectors.map(async (s) => ({
-            fromCity: await resolveAirport(s.fromCity),
-            fromAirport: s.fromAirport || '',
-            toCity: await resolveAirport(s.toCity),
-            toAirport: s.toAirport || '',
-            date: s.date,
-          })))
-          const travellersLabel = `${travelers} Traveller${travelers > 1 ? 's' : ''}`
-          navigate(
-            `/flights/list?tripType=multiCity&sectors=${encodeURIComponent(JSON.stringify(resolvedSectors))}` +
-            `&cabin=${encodeURIComponent(travelClass)}&travellers=${encodeURIComponent(travellersLabel)}&adults=${adults}&children=${children}&infants=${infants}`
-          )
-        } finally {
-          setSearchingFlights(false)
+
+        const hasSameDate = multiCitySectors.some((sec, i) => i > 0 && sec.date === multiCitySectors[i - 1].date);
+        if (hasSameDate) {
+          setShowOverlapWarning(true);
+          return;
         }
+        executeMultiCitySearch();
         return
       }
 
       if (!from.trim()) { toast.error('Please enter departure city'); return }
       if (!to.trim()) { toast.error('Please enter destination city'); return }
+      if (from.trim().toLowerCase() === to.trim().toLowerCase()) { return }
       if (!departDate) { toast.error('Please select departure date'); return }
       if (tripType === 'roundtrip' && !returnDate) { toast.error('Please select return date'); return }
 
+      localStorage.setItem('flightSearchParams', JSON.stringify({ from, to, departDate, returnDate, tripType, adults, children, infants, travelClass, multiCitySectors }));
+      
       setSearchingFlights(true)
       try {
         const [fromResolved, toResolved] = await Promise.all([resolveAirport(from), resolveAirport(to)])
@@ -722,6 +763,7 @@ export default function Home() {
                     onSelect={(s) => setTo(s.main)}
                     placeholder="Select destination"
                     fetchSuggestions={fetchAirportSuggestions}
+                    error={from && to && from.trim().toLowerCase() === to.trim().toLowerCase() ? "Source and destination cannot be the same" : null}
                   />
 
                   <DateField label="Depart" value={departDate} min={today} onChange={setDepartDate} fares={fares} />
@@ -735,14 +777,64 @@ export default function Home() {
                     fares={fares}
                   />
 
-                  <TravelersField
-                    label="Travelers & Class"
-                    mode="flights"
-                    adults={adults} setAdults={setAdults}
-                    children={children} setChildren={setChildren}
-                    infants={infants} setInfants={setInfants}
-                    travelClass={travelClass} setTravelClass={setTravelClass}
-                  />
+                  <div className="search2__field search2__field--travelers">
+                    <label>Travelers &amp; Class</label>
+                    <button className="search2__travelers-btn" onClick={() => setTravelersOpen(o => !o)}>
+                      {travelers} Traveler{travelers > 1 ? 's' : ''}, {travelClass}
+                      <ChevronDown size={13} />
+                    </button>
+                    {travelersOpen && (
+                      <div className="search2__travelers-pop">
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Adults</span>
+                            <small>12+ Years</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                            <span>{adults}</span>
+                            <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Children</span>
+                            <small>2 - 12 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
+                            <span>{children}</span>
+                            <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Infants</span>
+                            <small>Below 2 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
+                            <span>{infants}</span>
+                            <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        
+                        <div className="search2__travelers-cabin-title">CABIN CLASS</div>
+                        <div className="search2__travelers-row search2__travelers-row--classes">
+                          {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
+                            <button
+                              key={c}
+                              className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
+                              onClick={() => setTravelClass(c)}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>APPLY</button>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -778,6 +870,7 @@ export default function Home() {
                           onSelect={(s) => updateSector(idx, { toCity: s.main, toAirport: s.sub })}
                           placeholder="Select destination"
                           fetchSuggestions={fetchAirportSuggestions}
+                          error={sector.fromCity && sector.toCity && sector.fromCity.trim().toLowerCase() === sector.toCity.trim().toLowerCase() ? "Source and destination cannot be the same" : null}
                         />
 
                         <DateField
@@ -798,14 +891,64 @@ export default function Home() {
                     <button type="button" className="search2__sector-add" onClick={addSector}>+ Add Flight</button>
                   </div>
 
-                  <TravelersField
-                    label="Travelers & Class"
-                    mode="flights"
-                    adults={adults} setAdults={setAdults}
-                    children={children} setChildren={setChildren}
-                    infants={infants} setInfants={setInfants}
-                    travelClass={travelClass} setTravelClass={setTravelClass}
-                  />
+                  <div className="search2__field search2__field--travelers">
+                    <label>Travelers &amp; Class</label>
+                    <button className="search2__travelers-btn" onClick={() => setTravelersOpen(o => !o)}>
+                      {travelers} Traveler{travelers > 1 ? 's' : ''}, {travelClass}
+                      <ChevronDown size={13} />
+                    </button>
+                    {travelersOpen && (
+                      <div className="search2__travelers-pop">
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Adults</span>
+                            <small>12+ Years</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                            <span>{adults}</span>
+                            <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Children</span>
+                            <small>2 - 12 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
+                            <span>{children}</span>
+                            <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        <div className="search2__travelers-row">
+                          <div className="search2__travelers-info">
+                            <span>Infants</span>
+                            <small>Below 2 yrs</small>
+                          </div>
+                          <div className="search2__stepper">
+                            <button onClick={() => setInfants(t => Math.max(0, t - 1))}>-</button>
+                            <span>{infants}</span>
+                            <button onClick={() => setInfants(t => Math.min(9, t + 1))}>+</button>
+                          </div>
+                        </div>
+                        
+                        <div className="search2__travelers-cabin-title">CABIN CLASS</div>
+                        <div className="search2__travelers-row search2__travelers-row--classes">
+                          {['Economy', 'Premium Economy', 'Business', 'First Class'].map(c => (
+                            <button
+                              key={c}
+                              className={`search2__class-chip ${travelClass === c ? 'active' : ''}`}
+                              onClick={() => setTravelClass(c)}
+                            >
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                        <button className="search2__travelers-done" onClick={() => setTravelersOpen(false)}>APPLY</button>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -1052,6 +1195,39 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {showOverlapWarning && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-amber-50 p-6 flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Same Date Selected</h3>
+              <p className="text-sm text-slate-600">
+                You have selected the same date for consecutive flights. The arrival time of the previous flight might overlap with the departure time of the next.
+              </p>
+            </div>
+            <div className="p-4 bg-slate-50 flex gap-3 justify-end border-t border-slate-100">
+              <button
+                onClick={() => setShowOverlapWarning(false)}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowOverlapWarning(false);
+                  executeMultiCitySearch();
+                }}
+                className="px-4 py-2 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors"
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

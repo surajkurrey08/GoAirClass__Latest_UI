@@ -628,7 +628,7 @@ export default function FlightsPage() {
                                     <div className="mb-3">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cabin Class</div>
                                         <div className="flex flex-wrap gap-1.5">
-                                            {['Economy', 'Premium Economy', 'Business', 'First Class'].map((cls) => (
+                                            {['Economy', 'Premium Economy', 'Business'].map((cls) => (
                                                 <button
                                                     key={cls}
                                                     type="button"

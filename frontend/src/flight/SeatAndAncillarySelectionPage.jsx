@@ -188,7 +188,12 @@ export default function SeatAndAncillarySelectionPage() {
             const paxSel = updated[activePassengerIdx] || {};
             const currentMeals = { ...(paxSel.selectedMeals || {}) };
 
-            if (!mealInput || mealInput === 'None' || (typeof mealInput === 'object' && mealInput.id === 'None')) {
+            const currentSelected = typeof currentMeals[activeSegKey] === 'object' 
+                ? (currentMeals[activeSegKey].mealId || currentMeals[activeSegKey].mealCode) 
+                : currentMeals[activeSegKey];
+            const mealIdInput = typeof mealInput === 'object' ? (mealInput.id || mealInput.code) : mealInput;
+
+            if (!mealInput || mealIdInput === 'None' || currentSelected === mealIdInput) {
                 delete currentMeals[activeSegKey];
             } else {
                 const segFlightId = activeLeg.id || activeLeg.segmentId || `${activeLeg.flightNumber || 'FL'}-${activeLeg.origin}-${activeLeg.destination}`;
@@ -223,7 +228,7 @@ export default function SeatAndAncillarySelectionPage() {
             const updated = [...prev];
             const paxSel = updated[activePassengerIdx] || {};
             const currentBaggage = typeof paxSel.selectedBaggage === 'object' ? { ...paxSel.selectedBaggage } : {};
-            if (baggageId === 'None') {
+            if (baggageId === 'None' || currentBaggage[activeCityPairIdx] === baggageId) {
                 delete currentBaggage[activeCityPairIdx];
             } else {
                 currentBaggage[activeCityPairIdx] = baggageId;
@@ -1000,9 +1005,7 @@ export default function SeatAndAncillarySelectionPage() {
                         index: idx + 1,
                         origin: pSeg.origin,
                         destination: lSeg.destination,
-                        departDate: pSeg.departureDateTime
-                            ? new Date(pSeg.departureDateTime).toLocaleDateString('en-GB')
-                            : new Date().toLocaleDateString('en-GB'),
+                        departDate: pSeg.departureDateTime ? new Date(pSeg.departureDateTime).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
                         cabinType: pSeg.cabinType || "ECONOMY",
                         paxInfos: paxInfosList
                     };
@@ -1050,9 +1053,7 @@ export default function SeatAndAncillarySelectionPage() {
                         index: 1,
                         origin: outboundSeg.origin,
                         destination: outboundSeg.destination,
-                        departDate: outboundSeg.departureDateTime
-                            ? new Date(outboundSeg.departureDateTime).toLocaleDateString('en-GB')
-                            : new Date().toLocaleDateString('en-GB'),
+                        departDate: outboundSeg.departureDateTime ? new Date(outboundSeg.departureDateTime).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
                         cabinType: outboundSeg.cabinType || "ECONOMY",
                         paxInfos: paxInfosList
                     },
@@ -1060,9 +1061,7 @@ export default function SeatAndAncillarySelectionPage() {
                         index: 2,
                         origin: returnSeg.origin,
                         destination: returnSeg.destination,
-                        departDate: returnSeg.departureDateTime
-                            ? new Date(returnSeg.departureDateTime).toLocaleDateString('en-GB')
-                            : new Date().toLocaleDateString('en-GB'),
+                        departDate: returnSeg.departureDateTime ? new Date(returnSeg.departureDateTime).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
                         cabinType: returnSeg.cabinType || "ECONOMY",
                         paxInfos: paxInfosList
                     }
@@ -1093,9 +1092,7 @@ export default function SeatAndAncillarySelectionPage() {
                     index: 1,
                     origin: primarySegment.origin || "BLR",
                     destination: lastSegment.destination || "BOM",
-                    departDate: primarySegment.departureDateTime
-                        ? new Date(primarySegment.departureDateTime).toLocaleDateString('en-GB')
-                        : new Date().toLocaleDateString('en-GB'),
+                    departDate: primarySegment.departureDateTime ? new Date(primarySegment.departureDateTime).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'),
                     cabinType: primarySegment.cabinType || "ECONOMY",
                     paxInfos: paxInfosList
                 }];
@@ -1193,13 +1190,13 @@ export default function SeatAndAncillarySelectionPage() {
                     return {
                         ...p,
                         selectedSeats: pSel.selectedSeats || {},
-                        selectedSeat: p.type === 'INF' ? 'None' : (pSel.selectedSeats?.[0] || 'None'),
-                        selectedReturnSeat: p.type === 'INF' ? 'None' : (pSel.selectedSeats?.[1] || 'None'),
+                        selectedSeat: p.type === 'INF' ? null : (pSel.selectedSeats?.[0] || null),
+                        selectedReturnSeat: p.type === 'INF' ? null : (pSel.selectedSeats?.[1] || null),
                         selectedMeals: selectedMealsMap,
-                        selectedMealObj: firstMealObj,
-                        selectedMeal: typeof firstMealObj === 'object' ? (firstMealObj.mealId || firstMealObj.mealCode || 'None') : firstMealObj,
+                        selectedMealObj: firstMealObj === 'None' ? null : firstMealObj,
+                        selectedMeal: typeof firstMealObj === 'object' ? (firstMealObj.mealId || firstMealObj.mealCode || null) : (firstMealObj === 'None' ? null : firstMealObj),
                         mealHoldStatus: mealStatus,
-                        selectedBaggage: pSel.selectedBaggage || 'None'
+                        selectedBaggage: pSel.selectedBaggage === 'None' ? null : (pSel.selectedBaggage || null)
                     };
                 });
 
