@@ -10,3 +10,7 @@ node_modules/
 
 frontend/dist/
 admin-frontend/dist/
+
+backend/*_debug.json
+backend/last_preview_req.json
+backend/ancillaries_preview_reg_log.json
