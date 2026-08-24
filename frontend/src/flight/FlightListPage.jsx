@@ -1170,20 +1170,50 @@ export default function FlightListPage() {
 
         // 2. Resolve cancellation and rescheduling penalties
         const penaltiesList = [];
+        const seenPenaltyTypes = new Set();
         const penaltiesMap = bulkBenefits.data?.penalties || bulkBenefits.penalties || {};
         const penaltyIds = benefitsInfo.penaltyIds || [];
         penaltyIds.forEach(id => {
             const penalty = penaltiesMap[id];
             if (penalty) {
                 const typeLabel = penalty.penaltyType === 'CANCEL' ? 'Cancellation' : 'Amend/Reschedule';
+                
+                // Deduplicate: Don't add if we already have this type of penalty
+                if (seenPenaltyTypes.has(typeLabel)) return;
+                seenPenaltyTypes.add(typeLabel);
+
                 // Parse timelines
                 const timelines = penalty.timeLines || [];
                 const timelineDetails = timelines.map(t => {
-                    const permittedLabel = t.permitted ? 'Allowed' : 'Not Allowed';
+                    const permitted = t.permitted === true;
+                    const permittedLabel = permitted ? 'Allowed' : 'Not Allowed';
+                    
                     const chargeInfo = t.passengerFareRuleCharges?.ADT?.charges?.[0] || {};
-                    const amountStr = chargeInfo.amount !== undefined ? `₹${chargeInfo.amount.toLocaleString()} ${chargeInfo.currency || 'INR'}` : '';
-                    const timeLabel = t.endTime ? `${t.endTime.replace('PT', '').replace('H', ' hours')}` : 'departure';
-                    return { permittedLabel, amountStr, timeLabel };
+                    let amountStr = chargeInfo.amount !== undefined ? `₹${chargeInfo.amount.toLocaleString()} ${chargeInfo.currency || 'INR'}` : '';
+                    
+                    // If not permitted, prefer showing "Not Allowed" instead of the price
+                    if (!permitted) {
+                        amountStr = 'Not Allowed';
+                    } else if (!amountStr) {
+                        amountStr = permittedLabel;
+                    }
+
+                    const startStr = t.startTime ? t.startTime.replace('PT', '').replace('S', ' hrs').replace('H', ' hrs') : '';
+                    const endStr = t.endTime ? t.endTime.replace('PT', '').replace('H', ' hrs') : '';
+                    
+                    let timeLabel = '';
+                    if (startStr && endStr) {
+                        timeLabel = `${startStr} to ${endStr}`;
+                    } else if (endStr) {
+                        timeLabel = `Within ${endStr}`;
+                    } else {
+                        timeLabel = 'departure';
+                    }
+                    
+                    // Cleanup Edge Cases: "0 hrs to 3 hrs"
+                    timeLabel = timeLabel.replace('0 hrs to', '0 to');
+
+                    return { permittedLabel, amountStr, timeLabel, permitted };
                 });
                 penaltiesList.push({ type: typeLabel, timelines: timelineDetails, raw: penalty });
             }
@@ -1711,6 +1741,7 @@ export default function FlightListPage() {
 
                                 return (
                                     <button
+                                        type="button"
                                         key={formattedDate}
                                         onClick={() => {
                                             if (tripTypeVal === 'multiCity') {
@@ -1770,6 +1801,7 @@ export default function FlightListPage() {
                             return (
                                 <button
                                     key={key}
+                                    type="button"
                                     onClick={() => setActiveSectorKey(key)}
                                     className={`flex items-center gap-2 px-4 py-2.5 border font-semibold text-xs transition-all uppercase tracking-wider ${isActive
                                         ? 'bg-[#00206B] border-[#00206B] text-white shadow-md'
@@ -1842,6 +1874,7 @@ export default function FlightListPage() {
 
                                 return (
                                     <button
+                                        type="button"
                                         key={formattedDate}
                                         onClick={() => {
                                             if (tripTypeVal === 'multiCity') {
@@ -2671,6 +2704,7 @@ export default function FlightListPage() {
                                                         {availableFares.map((fare) => (
                                                             <button
                                                                 key={fare.fareId}
+                                                                type="button"
                                                                 onClick={() => handleFareSelection(fare.fareId)}
                                                                 className={`shrink-0 min-w-[200px] text-left p-4 rounded-none border-2 transition-all ${selectedFareId === fare.fareId ? 'border-[#d8942f] bg-amber-50/50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300'}`}
                                                             >
@@ -2723,6 +2757,36 @@ export default function FlightListPage() {
                                                         <ChevronRight size={18} />
                                                     </button>
                                                 </div>
+
+                                                {/* Selected Fare Detailed Rules */}
+                                                {(() => {
+                                                    const resolved = getResolvedBenefits();
+                                                    if (resolved && resolved.penaltiesList && resolved.penaltiesList.length > 0) {
+                                                        return (
+                                                            <div className="mt-4 p-4 bg-slate-50 border border-slate-200 text-xs rounded-none text-slate-700">
+                                                                <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider mb-2">Detailed Rules for Selected Fare:</strong>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                    {resolved.penaltiesList.map((pen, pIdx) => (
+                                                                        <div key={pIdx} className="bg-white p-2 border border-slate-100 rounded-none shadow-3xs">
+                                                                            <div className="font-bold text-[11px] text-slate-900 mb-1 flex items-center gap-1 border-b border-slate-100 pb-1">
+                                                                                <span>{pen.type === 'Cancellation' ? '❌' : '🔄'} {pen.type} Rules</span>
+                                                                            </div>
+                                                                            <div className="flex flex-col gap-1 text-[10px] pt-1">
+                                                                                {pen.timelines.map((time, tIdx) => (
+                                                                                    <div key={tIdx} className="flex justify-between text-slate-650">
+                                                                                        <span>{time.timeLabel}:</span>
+                                                                                        <span className={`font-bold ${time.permitted ? 'text-emerald-700' : 'text-red-600'}`}>{time.amountStr}</span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </div>
                                         )}
 
@@ -2768,93 +2832,89 @@ export default function FlightListPage() {
                                                         <span>BENEFITS & RULES</span>
                                                     </div>
 
-                                                    <div className="flex flex-col gap-2 mt-2">
-                                                        {previewFlight.benefits && previewFlight.benefits.length > 0 ? (
-                                                            previewFlight.benefits.map((ben, bIdx) => (
-                                                                <div key={bIdx} className="flex justify-between items-center text-xs py-1 border-b border-slate-100/60 last:border-0">
-                                                                    <span className="text-slate-600 font-medium flex items-center gap-1.5">
-                                                                        {ben.type === 'MEAL' ? '🍽️' : ben.type === 'SEAT' ? '💺' : ben.type === 'BAGGAGE' ? '🧳' : '🛡️'} {ben.description || ben.type}
-                                                                    </span>
-                                                                    <span className="font-bold text-slate-900">{ben.value || 'INCLUDED'}</span>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div className="flex justify-between items-center text-xs py-1">
-                                                                <span className="text-slate-600 font-medium">Fare Rules</span>
-                                                                <span className="font-bold text-slate-900">{selectedFareData.isRefundable ? 'Refund Allowed as per Fare Rules' : 'Non-Refundable Fare'}</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {loadingBenefits && (
+                                                    {loadingBenefits ? (
                                                         <div className="mt-3 p-2 bg-blue-50/50 border border-blue-100 text-center rounded-sm">
                                                             <span className="text-xs text-blue-600 font-medium animate-pulse flex items-center justify-center gap-1.5">
-                                                                🔄 Loading Live Rules (Bulk Benefits)...
+                                                                🔄 Loading Live Rules...
                                                             </span>
                                                         </div>
-                                                    )}
+                                                    ) : (() => {
+                                                        const resolved = bulkBenefits ? getResolvedBenefits() : null;
+                                                        
+                                                        if (resolved && (resolved.baggageList.length > 0 || resolved.penaltiesList.length > 0 || resolved.benefitsList.length > 0)) {
+                                                            return (
+                                                                <div className="mt-3 flex flex-col gap-4 text-xs text-slate-700">
+                                                                    {/* Baggage Mappings */}
+                                                                    {resolved.baggageList.length > 0 && (
+                                                                        <div className="space-y-1">
+                                                                            <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider">Baggage Limit:</strong>
+                                                                            <div className="flex flex-col gap-1 pl-1">
+                                                                                {resolved.baggageList.map((bag, bIdx) => (
+                                                                                    <span key={bIdx} className="text-slate-700">💼 {bag.type}: <strong className="font-bold text-slate-900">{bag.weight}</strong></span>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
 
-                                                    {bulkBenefits && (() => {
-                                                        const resolved = getResolvedBenefits();
-                                                        return resolved ? (
-                                                            <div className="mt-3 p-3.5 bg-slate-50 border border-slate-200 text-xs rounded-none text-slate-700 space-y-3">
-                                                                <div className="font-bold text-[#00206B] border-b border-slate-200 pb-1 flex items-center gap-1.5">
-                                                                    <span>📋 Cleartrip Live Rules (Bulk Benefits)</span>
+                                                                    {/* Penalties Mappings */}
+                                                                    {resolved.penaltiesList.length > 0 && (
+                                                                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                                                                            <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider">Fare Rules & Penalties:</strong>
+                                                                            <div className="flex flex-col gap-2 pl-1">
+                                                                                {resolved.penaltiesList.map((pen, pIdx) => (
+                                                                                    <div key={pIdx} className="bg-white p-2 border border-slate-200 rounded shadow-3xs">
+                                                                                        <div className="font-bold text-xs text-slate-900 mb-1 flex items-center gap-1">
+                                                                                            <span>{pen.type === 'Cancellation' ? '❌' : '🔄'} {pen.type} Rules</span>
+                                                                                        </div>
+                                                                                        <div className="flex flex-col gap-1 text-[11px]">
+                                                                                            {pen.timelines.map((time, tIdx) => (
+                                                                                                <div key={tIdx} className="flex justify-between text-slate-650 border-b border-slate-50 pb-0.5 last:border-0 last:pb-0">
+                                                                                                    <span>{time.timeLabel}:</span>
+                                                                                                    <span className={`font-bold ${time.permitted ? 'text-emerald-700' : 'text-red-600'}`}>{time.amountStr}</span>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Meal & Seat Benefits */}
+                                                                    {resolved.benefitsList.length > 0 && (
+                                                                        <div className="space-y-1 pt-2 border-t border-slate-100">
+                                                                            <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider">In-Flight Services:</strong>
+                                                                            <div className="flex flex-col gap-1 pl-1">
+                                                                                {resolved.benefitsList.map((ben, idx) => (
+                                                                                    <span key={idx} className="text-slate-700">
+                                                                                        {ben.type === 'MEAL' ? '🍽️' : '💺'} {ben.description}: <strong className="font-bold text-slate-900">{ben.value}</strong>
+                                                                                    </span>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
+                                                            );
+                                                        }
 
-                                                                {/* Baggage Mappings */}
-                                                                {resolved.baggageList.length > 0 && (
-                                                                    <div className="space-y-1">
-                                                                        <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider">Resolved Baggage Limit:</strong>
-                                                                        <div className="flex flex-col gap-1 pl-1">
-                                                                            {resolved.baggageList.map((bag, bIdx) => (
-                                                                                <span key={bIdx} className="text-slate-700">💼 {bag.type}: <strong className="font-bold text-slate-900">{bag.weight}</strong></span>
-                                                                            ))}
+                                                        // Fallback UI if resolved benefits not available
+                                                        return (
+                                                            <div className="flex flex-col gap-2 mt-2">
+                                                                {previewFlight.benefits && previewFlight.benefits.length > 0 ? (
+                                                                    previewFlight.benefits.map((ben, bIdx) => (
+                                                                        <div key={bIdx} className="flex justify-between items-center text-xs py-1 border-b border-slate-100/60 last:border-0">
+                                                                            <span className="text-slate-600 font-medium flex items-center gap-1.5">
+                                                                                {ben.type === 'MEAL' ? '🍽️' : ben.type === 'SEAT' ? '💺' : ben.type === 'BAGGAGE' ? '🧳' : '🛡️'} {ben.description || ben.type}
+                                                                            </span>
+                                                                            <span className="font-bold text-slate-900">{ben.value || 'INCLUDED'}</span>
                                                                         </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="flex justify-between items-center text-xs py-1">
+                                                                        <span className="text-slate-600 font-medium">Fare Rules</span>
+                                                                        <span className="font-bold text-slate-900">{selectedFareData.isRefundable ? 'Refund Allowed as per Fare Rules' : 'Non-Refundable Fare'}</span>
                                                                     </div>
                                                                 )}
-
-                                                                {/* Penalties Mappings */}
-                                                                {resolved.penaltiesList.length > 0 && (
-                                                                    <div className="space-y-2 pt-1.5 border-t border-slate-100">
-                                                                        <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider">Fare Rules & Penalties:</strong>
-                                                                        <div className="flex flex-col gap-2 pl-1">
-                                                                            {resolved.penaltiesList.map((pen, pIdx) => (
-                                                                                <div key={pIdx} className="bg-white p-2 border border-slate-100 rounded-none shadow-3xs">
-                                                                                    <div className="font-bold text-xs text-slate-900 mb-1 flex items-center gap-1">
-                                                                                        <span>{pen.type === 'Cancellation' ? '❌' : '🔄'} {pen.type} Rules</span>
-                                                                                    </div>
-                                                                                    <div className="flex flex-col gap-1 text-[11px]">
-                                                                                        {pen.timelines.map((time, tIdx) => (
-                                                                                            <div key={tIdx} className="flex justify-between text-slate-650 border-b border-slate-50 pb-0.5 last:border-0 last:pb-0">
-                                                                                                <span>Within {time.timeLabel}:</span>
-                                                                                                <span className="font-bold text-slate-850">{time.permittedLabel} ({time.amountStr})</span>
-                                                                                            </div>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Meal & Seat Benefits */}
-                                                                {resolved.benefitsList.length > 0 && (
-                                                                    <div className="space-y-1 pt-1.5 border-t border-slate-100">
-                                                                        <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider">In-Flight Services:</strong>
-                                                                        <div className="flex flex-col gap-1 pl-1">
-                                                                            {resolved.benefitsList.map((ben, idx) => (
-                                                                                <span key={idx} className="text-slate-700">
-                                                                                    {ben.type === 'MEAL' ? '🍽️' : '💺'} {ben.description}: <strong className="font-bold text-slate-900">{ben.value}</strong>
-                                                                                </span>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-[10px] font-mono whitespace-pre-wrap max-h-[140px] overflow-y-auto bg-slate-100 p-2 border border-slate-200 mt-1">
-                                                                {JSON.stringify(bulkBenefits, null, 2)}
                                                             </div>
                                                         );
                                                     })()}
