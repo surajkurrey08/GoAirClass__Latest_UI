@@ -12,6 +12,8 @@ import { searchAirports, getFareCalendar } from '../services/flightApi'
 import API from '../services/axios'
 import './Home.css'
 
+import HOTEL_HERO_IMAGE from '../assets/hotel-hero.jpg'
+
 const HERO_IMAGE = '/hero2.png'
 
 const TABS = [
@@ -225,7 +227,7 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
 }
 
 /* ── Travelers & class popover ───────────────────────── */
-function TravelersField({ label, mode = 'flights', adults, setAdults, children, setChildren, infants, setInfants, travelClass, setTravelClass }) {
+function TravelersField({ label, mode = 'flights', rooms, setRooms, adults, setAdults, children, setChildren, infants, setInfants, travelClass, setTravelClass }) {
   const [open, setOpen] = useState(false)
   const [openUp, setOpenUp] = useState(false)
   const ref = useRef(null)
@@ -251,7 +253,7 @@ function TravelersField({ label, mode = 'flights', adults, setAdults, children, 
   const buttonLabel = mode === 'flights'
     ? `${travelers} Traveler${travelers > 1 ? 's' : ''}, ${travelClass}`
     : mode === 'hotels'
-      ? `${travelers} Guest${travelers > 1 ? 's' : ''}`
+      ? `${rooms || 1} Room${(rooms || 1) > 1 ? 's' : ''}, ${adults + children} Guest${adults + children > 1 ? 's' : ''}`
       : `${travelers} Traveler${travelers > 1 ? 's' : ''}`
 
   return (
@@ -313,10 +315,44 @@ function TravelersField({ label, mode = 'flights', adults, setAdults, children, 
               </div>
               <button className="search2__travelers-done" onClick={() => setOpen(false)}>APPLY</button>
             </>
+          ) : mode === 'hotels' ? (
+            <>
+              <div className="search2__travelers-row">
+                <div className="search2__travelers-info">
+                  <span>Rooms</span>
+                </div>
+                <div className="search2__stepper">
+                  <button onClick={() => setRooms(t => Math.max(1, t - 1))}>-</button>
+                  <span>{rooms || 1}</span>
+                  <button onClick={() => setRooms(t => Math.min(5, t + 1))}>+</button>
+                </div>
+              </div>
+              <div className="search2__travelers-row">
+                <div className="search2__travelers-info">
+                  <span>Adults</span>
+                </div>
+                <div className="search2__stepper">
+                  <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
+                  <span>{adults}</span>
+                  <button onClick={() => setAdults(t => Math.min(9, t + 1))}>+</button>
+                </div>
+              </div>
+              <div className="search2__travelers-row">
+                <div className="search2__travelers-info">
+                  <span>Children</span>
+                </div>
+                <div className="search2__stepper">
+                  <button onClick={() => setChildren(t => Math.max(0, t - 1))}>-</button>
+                  <span>{children}</span>
+                  <button onClick={() => setChildren(t => Math.min(9, t + 1))}>+</button>
+                </div>
+              </div>
+              <button className="search2__travelers-done" onClick={() => setOpen(false)}>Done</button>
+            </>
           ) : (
             <>
               <div className="search2__travelers-row">
-                <span>{mode === 'hotels' ? 'Guests' : 'Travelers'}</span>
+                <span>Travelers</span>
                 <div className="search2__stepper">
                   <button onClick={() => setAdults(t => Math.max(1, t - 1))}>-</button>
                   <span>{travelers}</span>
@@ -464,6 +500,7 @@ export default function Home() {
   const [to, setTo] = useState('')
   const [departDate, setDepartDate] = useState('')
   const [returnDate, setReturnDate] = useState('')
+  const [rooms, setRooms] = useState(1)
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
   const [infants, setInfants] = useState(0)
@@ -657,7 +694,7 @@ export default function Home() {
       if (!departDate) { toast.error('Please select check-in date'); return }
       navigate(
         `/hotels/list?destination=${encodeURIComponent(to.trim())}&checkIn=${departDate}&checkOut=${returnDate}` +
-        `&rooms=1&adults=${travelers}&children=0&guests=${travelers}`
+        `&rooms=${rooms}&adults=${adults}&children=${children}&guests=${adults + children}`
       )
     } else {
       if (!to.trim()) { toast.error('Please enter a destination'); return }
@@ -691,7 +728,7 @@ export default function Home() {
           </button>
         )} */}
 
-        <img src={HERO_IMAGE} alt="Travel beyond boundaries" className="hero2__img" />
+        <img src={activeTab === 'hotels' ? HOTEL_HERO_IMAGE : HERO_IMAGE} alt="Travel beyond boundaries" className="hero2__img" />
         <div className="hero2__overlay" />
 
         {!isMultiCityOpen && (
@@ -968,6 +1005,7 @@ export default function Home() {
                   <TravelersField
                     label="Guests & Rooms"
                     mode="hotels"
+                    rooms={rooms} setRooms={setRooms}
                     adults={adults} setAdults={setAdults}
                     children={children} setChildren={setChildren}
                     infants={infants} setInfants={setInfants}

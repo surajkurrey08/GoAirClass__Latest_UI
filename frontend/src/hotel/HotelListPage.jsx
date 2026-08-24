@@ -21,6 +21,7 @@ import {
     Waves,
     Car,
     Dumbbell,
+    Building2,
 } from 'lucide-react';
 import Footer from '../components/Footer';
 import { searchHotelsByLocation } from '../services/hotelApi';
@@ -89,7 +90,10 @@ export default function HotelListPage() {
 
     const [showGuestsDropdown, setShowGuestsDropdown] = useState(false);
     const guestsRef = useRef(null);
-    const calendarRef = useRef(null);
+    const [checkInOpen, setCheckInOpen] = useState(false);
+    const [checkOutOpen, setCheckOutOpen] = useState(false);
+    const checkInRef = useRef(null);
+    const checkOutRef = useRef(null);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [dealFilters, setDealFilters] = useState({
@@ -167,6 +171,12 @@ export default function HotelListPage() {
         const handleOutsideClick = (e) => {
             if (guestsRef.current && !guestsRef.current.contains(e.target)) {
                 setShowGuestsDropdown(false);
+            }
+            if (checkInRef.current && !checkInRef.current.contains(e.target)) {
+                setCheckInOpen(false);
+            }
+            if (checkOutRef.current && !checkOutRef.current.contains(e.target)) {
+                setCheckOutOpen(false);
             }
         };
 
@@ -317,27 +327,6 @@ export default function HotelListPage() {
         return actual || Math.round(hotels.length * fallbackRatio);
     };
 
-    const scrollCalendar = (direction) => {
-        calendarRef.current?.scrollBy({
-            left: direction * 360,
-            behavior: 'smooth',
-        });
-    };
-
-    const calendarDates = useMemo(() => {
-        const start = safeDate(checkIn);
-        return Array.from({ length: 14 }).map((_, index) => {
-            const d = new Date(start);
-            d.setDate(start.getDate() + index);
-            const iso = d.toISOString().split('T')[0];
-            const day = d.toLocaleDateString('en-US', { weekday: 'short' });
-            const month = d.toLocaleDateString('en-US', { month: 'short' });
-            const dayNumber = d.getDate();
-            const variation = ((d.getDate() * 173 + index * 97) % 950) - 300;
-            const price = Math.max(990, Math.round(minHotelPrice + variation));
-            return { iso, day, month, dayNumber, price };
-        });
-    }, [checkIn, minHotelPrice]);
 
     const amenityItems = [
         { key: 'wifi', label: 'Free Wi-Fi', icon: Wifi, aliases: ['wifi', 'wi-fi'], ratio: 0.82 },
@@ -389,41 +378,46 @@ export default function HotelListPage() {
                             </div>
                         </div>
 
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-2 relative" ref={checkInRef}>
                             <label className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-[#61708a]">Check-in</label>
-                            <div className="relative flex h-[44px] items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3">
+                            <div 
+                                className="relative flex h-[44px] cursor-pointer items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3 hover:border-[#bfcadc]"
+                                onClick={() => { setCheckInOpen(!checkInOpen); setCheckOutOpen(false); }}
+                            >
                                 <Calendar size={16} className="text-[#315f9d]" />
                                 <div className="min-w-0">
                                     <div className="whitespace-nowrap text-[13px] font-bold leading-tight text-[#22324e]">{formatSlashDate(checkIn)}</div>
                                     <div className="text-[10px] font-semibold text-[#ff5a16]">{formatWeekday(checkIn)}</div>
                                 </div>
-                                <input
-                                    type="date"
-                                    value={checkIn}
-                                    onChange={(e) => handleCheckInChange(e.target.value)}
-                                    className="absolute inset-0 cursor-pointer opacity-0"
-                                    aria-label="Check-in date"
-                                />
                             </div>
+                            {checkInOpen && (
+                                <MiniCalendar
+                                    value={checkIn}
+                                    min={getTodayDateString()}
+                                    onSelect={(d) => { handleCheckInChange(d); setCheckInOpen(false); }}
+                                />
+                            )}
                         </div>
 
-                        <div className="lg:col-span-2">
+                        <div className="lg:col-span-2 relative" ref={checkOutRef}>
                             <label className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-[#61708a]">Check-out</label>
-                            <div className="relative flex h-[44px] items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3">
+                            <div 
+                                className="relative flex h-[44px] cursor-pointer items-center gap-2 rounded-[6px] border border-[#dce3ed] bg-white px-3 hover:border-[#bfcadc]"
+                                onClick={() => { setCheckOutOpen(!checkOutOpen); setCheckInOpen(false); }}
+                            >
                                 <Calendar size={16} className="text-[#315f9d]" />
                                 <div className="min-w-0">
                                     <div className="whitespace-nowrap text-[13px] font-bold leading-tight text-[#22324e]">{formatSlashDate(checkOut)}</div>
                                     <div className="text-[10px] font-semibold text-[#f04c39]">{formatWeekday(checkOut)}</div>
                                 </div>
-                                <input
-                                    type="date"
+                            </div>
+                            {checkOutOpen && (
+                                <MiniCalendar
                                     value={checkOut}
                                     min={checkIn}
-                                    onChange={(e) => setCheckOut(e.target.value)}
-                                    className="absolute inset-0 cursor-pointer opacity-0"
-                                    aria-label="Check-out date"
+                                    onSelect={(d) => { setCheckOut(d); setCheckOutOpen(false); }}
                                 />
-                            </div>
+                            )}
                         </div>
 
                         <div ref={guestsRef} className="relative lg:col-span-2">
@@ -478,68 +472,6 @@ export default function HotelListPage() {
                     </form>
                 </section>
 
-                {/* Compact date/price calendar — scrolls with page until it reaches the top, then stays fixed */}
-                <section className="sticky top-0 z-40 mt-3 rounded-[8px] border border-[#dfe6ef] bg-white px-2.5 py-2 shadow-[0_5px_16px_rgba(19,35,63,0.06)] sm:px-3">
-                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                        <div className="text-[9px] font-extrabold leading-tight text-[#17243b] sm:text-[10px]">
-                            Check-in: {formatWeekday(checkIn)}, {safeDate(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            <span className="mx-2 text-[#c9d2df]">|</span>
-                            {nights} Night Stay
-                        </div>
-                    </div>
-
-                    <div className="flex items-stretch gap-2 sm:gap-2.5">
-                        <div className="flex min-w-0 flex-1 items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => scrollCalendar(-1)}
-                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#dce5ef] bg-white text-[#1d4f91] shadow-sm transition hover:bg-[#f2f6fb] sm:h-8 sm:w-8"
-                                aria-label="Previous dates"
-                            >
-                                <ChevronLeft size={16} strokeWidth={2.4} />
-                            </button>
-
-                            <div ref={calendarRef} className="flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth px-0.5 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                                {calendarDates.map((item) => {
-                                    const selected = item.iso === checkIn;
-                                    return (
-                                        <button
-                                            key={item.iso}
-                                            type="button"
-                                            onClick={() => handleCheckInChange(item.iso)}
-                                            className={`flex h-[60px] min-w-[92px] shrink-0 flex-col items-center justify-center rounded-[7px] border px-2 text-center leading-tight transition-all sm:h-[64px] sm:min-w-[108px] sm:px-2.5 ${
-                                                selected
-                                                    ? 'border-[#0a3c91] bg-gradient-to-b from-[#0d489f] to-[#062d73] text-white shadow-[0_8px_18px_rgba(7,48,122,0.20)]'
-                                                    : 'border-[#dce4ee] bg-white text-[#35435c] hover:border-[#a9bfdc] hover:bg-[#f8fbff]'
-                                            }`}
-                                        >
-                                            <div className={`whitespace-nowrap text-[10px] font-extrabold leading-none ${selected ? 'text-white' : 'text-[#4a5970]'}`}>{item.day}</div>
-                                            <div className={`mt-1 whitespace-nowrap text-[10px] leading-none ${selected ? 'text-blue-100' : 'text-[#718097]'}`}>{item.month} {item.dayNumber}</div>
-                                            <div className={`mt-1.5 whitespace-nowrap text-[13px] font-black leading-none ${selected ? 'text-white' : 'text-[#17243b]'}`}>₹{item.price.toLocaleString('en-IN')}</div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => scrollCalendar(1)}
-                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#dce5ef] bg-white text-[#1d4f91] shadow-sm transition hover:bg-[#f2f6fb] sm:h-8 sm:w-8"
-                                aria-label="Next dates"
-                            >
-                                <ChevronRight size={16} strokeWidth={2.4} />
-                            </button>
-                        </div>
-
-                        <div className="hidden w-[205px] shrink-0 items-center rounded-[7px] border border-[#cdeee1] bg-gradient-to-r from-[#f5fffb] to-[#effbf7] px-3 xl:flex">
-                            <ShieldCheck className="mr-3 shrink-0 text-[#20a86b]" size={22} strokeWidth={2} />
-                            <div>
-                                <div className="text-[11px] font-extrabold text-[#1e3655]">Best Price Guarantee</div>
-                                <p className="mt-0.5 text-[9px] leading-3.5 text-[#52647b]">Found a lower price?<br />We'll match it.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 {/* Mobile/tablet filter control */}
                 <button
@@ -829,10 +761,14 @@ export default function HotelListPage() {
                                     );
                                 })
                             ) : (
-                                <div className="rounded-[8px] border border-[#e3e8f0] bg-white px-6 py-16 text-center text-slate-400">
-                                    <SlidersHorizontal className="mx-auto mb-3 h-9 w-9 text-slate-300" />
-                                    <div className="text-sm font-extrabold text-[#334461]">No hotels found</div>
-                                    <p className="mt-1 text-xs">Try another destination, date, or clear some filters.</p>
+                                <div className="flex flex-col items-center justify-center rounded-[8px] border border-[#e3e8f0] bg-white px-6 py-20 text-center shadow-[0_4px_12px_rgba(19,35,63,0.03)]">
+                                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#f4f8ff] text-[#2572e4]">
+                                        <Building2 size={32} />
+                                    </div>
+                                    <h3 className="mb-2 text-[16px] font-extrabold text-[#17243b]">No hotels found</h3>
+                                    <p className="max-w-[300px] text-[13px] leading-5 text-[#69778d]">
+                                        We couldn't find any hotels matching your search. Try adjusting your dates, destination, or filters.
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -860,6 +796,59 @@ export default function HotelListPage() {
             </div>
 
             <Footer />
+        </div>
+    );
+}
+
+function MiniCalendar({ value, min, onSelect, openUp, fares = {} }) {
+    const initial = value ? new Date(`${value}T00:00:00`) : (min ? new Date(`${min}T00:00:00`) : new Date());
+    const [viewYear, setViewYear] = useState(initial.getFullYear());
+    const [viewMonth, setViewMonth] = useState(initial.getMonth());
+
+    const firstDayWeekday = new Date(viewYear, viewMonth, 1).getDay();
+    const offset = (firstDayWeekday + 6) % 7;
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const monthStr = String(viewMonth + 1).padStart(2, '0');
+    const minDate = min ? new Date(`${min}T00:00:00`) : null;
+
+    const goPrev = () => { if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); } else setViewMonth(m => m - 1); };
+    const goNext = () => { if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0); } else setViewMonth(m => m + 1); };
+
+    return (
+        <div className={`mini-cal ${openUp ? 'mini-cal--up' : ''}`} onMouseDown={(e) => e.stopPropagation()}>
+            <div className="mini-cal__header">
+                <button type="button" onClick={goPrev}><ChevronLeft size={15} /></button>
+                <span>{new Date(viewYear, viewMonth, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}</span>
+                <button type="button" onClick={goNext}><ChevronRight size={15} /></button>
+            </div>
+            <div className="mini-cal__weekdays">
+                {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(d => <span key={d}>{d}</span>)}
+            </div>
+            <div className="mini-cal__grid">
+                {Array.from({ length: offset }).map((_, i) => <span key={`e${i}`} />)}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1;
+                    const dateStr = `${viewYear}-${monthStr}-${String(day).padStart(2, '0')}`;
+                    const dateObj = new Date(viewYear, viewMonth, day);
+                    const isDisabled = minDate && dateObj < minDate;
+                    const isSelected = value === dateStr;
+                    const fareObj = fares[dateStr];
+                    const price = fareObj ? (fareObj.price || fareObj.fare || (typeof fareObj === 'number' ? fareObj : null)) : null;
+
+                    return (
+                        <button
+                            type="button"
+                            key={i}
+                            disabled={isDisabled}
+                            className={`mini-cal__day ${isSelected ? 'selected' : ''}`}
+                            onClick={() => onSelect(dateStr)}
+                        >
+                            <div className="mini-cal__day-num">{day}</div>
+                            {price && !isDisabled && <div className="mini-cal__day-fare">₹{price}</div>}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 }

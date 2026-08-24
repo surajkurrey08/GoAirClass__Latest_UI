@@ -172,12 +172,17 @@ const resolveCleartripLocation = async (destination) => {
         console.error('[Cleartrip Locations] Local lookup error in resolve:', err.message);
     }
 
-    const locations = await findLocationsInCleartrip(destination, 50);
+    try {
+        const locations = await findLocationsInCleartrip(destination, 50);
 
-    return locations.find(loc => loc.cityName?.toLowerCase() === destinationCity) ||
-        locations.find(loc => loc.name?.toLowerCase().includes(destinationCity)) ||
-        locations[0] ||
-        null;
+        return locations.find(loc => loc.cityName?.toLowerCase() === destinationCity) ||
+            locations.find(loc => loc.name?.toLowerCase().includes(destinationCity)) ||
+            locations[0] ||
+            null;
+    } catch (err) {
+        console.error('[Cleartrip Locations] API error in resolve:', err.message);
+        return null;
+    }
 };
 
 // Autocomplete Location Search directly from Cleartrip
@@ -268,51 +273,9 @@ const searchHotelsByLocation = async (req, res) => {
         }
 
         if (!locationId) {
+            console.log('[Hotel Search] locationId not resolved, returning empty list.');
             return res.json({ success: true, hotels: [] });
         }
-
-        // Dynamically generate fallback mock hotels for the searched city if API returns empty
-        const dynamicFallback = [
-            {
-                id: 'h1',
-                name: `Boutique Stay by One Tree, ${cityName}`,
-                city: cityName,
-                stars: 4,
-                address: `, Kharadi Gaon, Kharadi, ${cityName}`,
-                image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
-                pricePerNight: 2158.48,
-                totalNights: 3,
-                dealType: 'exclusive',
-                rating: 4.2,
-                reviewsCount: 128
-            },
-            {
-                id: 'h2',
-                name: `Oxford Golf Resort, ${cityName}`,
-                city: cityName,
-                stars: 5,
-                address: `Off Bypass Road, Near Landmark Point, ${cityName}`,
-                image: 'https://images.unsplash.com/photo-1540548976849-655e2a7f665a?auto=format&fit=crop&w=800&q=80',
-                pricePerNight: 5477.60,
-                totalNights: 3,
-                dealType: 'popular',
-                rating: 4.7,
-                reviewsCount: 345
-            },
-            {
-                id: 'h3',
-                name: `Sayaji Hotel, ${cityName}`,
-                city: cityName,
-                stars: 4,
-                address: `135/136, Highway Bypass, Wakad Area, ${cityName}`,
-                image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80',
-                pricePerNight: 4100.00,
-                totalNights: 3,
-                dealType: 'none',
-                rating: 4.4,
-                reviewsCount: 1540
-            }
-        ];
 
         const baseUrl = process.env.CLEARTRIP_HOTEL_BASE_URL;
         const apiKey = process.env.CLEARTRIP_HOTEL_API_KEY;
@@ -454,7 +417,7 @@ const searchHotelsByLocation = async (req, res) => {
             res.json({ success: true, hotels });
         } catch (apiErr) {
             console.error('[Hotel Search] Cleartrip API Error:', apiErr.message);
-            res.json({ success: false, error: apiErr.message, hotels: [] });
+            res.json({ success: true, hotels: [] });
         }
     } catch (err) {
         console.error('searchHotelsByLocation error:', err.message);
