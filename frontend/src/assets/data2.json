@@ -403,61 +403,6 @@
                 ],
                 "id": "046568b346f8ae54e3bd1dedd3e0a3ef"
             },
-            "0302f198123a1bca662c7e244ab14d32": {
-                "penaltyInfoText": "",
-                "penaltyType": "AMEND_HIGHER_FARE",
-                "timeLines": [
-                    {
-                        "permitted": false,
-                        "passengerFareRuleCharges": {
-                            "ADT": {
-                                "charges": [
-                                    {
-                                        "amount": 5609,
-                                        "currency": "INR",
-                                        "type": "AIRLINE_CHARGES"
-                                    }
-                                ]
-                            }
-                        },
-                        "startTime": "PT0S",
-                        "endTime": "PT2H"
-                    },
-                    {
-                        "permitted": true,
-                        "passengerFareRuleCharges": {
-                            "ADT": {
-                                "charges": [
-                                    {
-                                        "amount": 1069,
-                                        "currency": "INR",
-                                        "type": "AIRLINE_CHARGES"
-                                    }
-                                ]
-                            }
-                        },
-                        "startTime": "PT2H",
-                        "endTime": "PT72H"
-                    },
-                    {
-                        "permitted": true,
-                        "passengerFareRuleCharges": {
-                            "ADT": {
-                                "charges": [
-                                    {
-                                        "amount": 0,
-                                        "currency": "INR",
-                                        "type": "AIRLINE_CHARGES"
-                                    }
-                                ]
-                            }
-                        },
-                        "startTime": "PT72H",
-                        "endTime": "PT8760H"
-                    }
-                ],
-                "id": "0302f198123a1bca662c7e244ab14d32"
-            },
             "9ac2a0264d313008882ad353409d580a": {
                 "penaltyInfoText": "",
                 "penaltyType": "AMEND_HIGHER_FARE",
@@ -512,6 +457,61 @@
                     }
                 ],
                 "id": "9ac2a0264d313008882ad353409d580a"
+            },
+            "0302f198123a1bca662c7e244ab14d32": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5609,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT2H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1069,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT2H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "0302f198123a1bca662c7e244ab14d32"
             }
         },
         "baggageAllowances": {
@@ -595,7 +595,39 @@
             }
         },
         "fares": {
-            "FARE_FAMILY__25/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z51V3N2DP6tK5Ly2gHJtfkD8FqOWRapONExGphTmVLB6sgWmpMNyYQ72JGJnkAwSet+mjNPzlboPxvqko0t3ixHoENxf4pfTE+gW481Wptl8fW6oql/G6s8awCC0He8rMmwkMi0XheJ3+PR1hGE7mkVv3hb3tC5hk33NJ3CSMgY4eq2/5w6X4Fod3PS2h9Tni4fc6Z6leqQpUu6qLIhnpZ0iFS5JrRynp5ZjaSVu1nQhNul+tG6HcvmLSG8vLctKg5V5ZDMHnPOPAiVlewTnqKGKBt0=~~V3": {
+            "REGULAR__24/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z52OeOGcXqw9dBCNSA7ZkHkzv4wtylRfKwFbcagKSZqMVh9GfM5N0IEQRbX1i4fTB1bRA2usjw1xpEreQ9qTwiYzTLQgFl5pAv4IJYNs8XtjYHloiQjCo7YfgmUFqHOyEKIo6ZrNshnzdBFPTHRWT4yb4heki/DufTvwmUJGs/16jBm8BLHBHXLNMaSUVsXhgxdiKCanwBIgBOKHcZvXjqTTJ7BELxJZO1QYH77+IAOfSkueV2pQj2q7AWQAhNhXhiEpL86ooE7UxGYUKf8oRYWGVSo=~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "a5a593cf1b324579690d05c8e9a69943"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_NAG": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "9ac2a0264d313008882ad353409d580a",
+                                "ecdcef4b85d8c6d9bbe1821b5f6edb8e",
+                                "a5a593cf1b324579690d05c8e9a69943"
+                            ],
+                            "benefitIds": [
+                                "ef1aca914ab769cf9a7b7bbdb9700227",
+                                "c4dc95e02115dd97155a99031cb89b60"
+                            ],
+                            "flightBenefits": {
+                                "BLR_NAG": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "FARE_FAMILY__24/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z53ObI4zWtlF2pqaMxO/AauWJpoIJlnyGHzw2zAku6XhsZ8RJd2vgEDZe+q+kBw88R5y0IVoaLsnE/mU6l8X+qaLtFV3iC2C/ApdD+lLz5IUPg5BNmNT+1c5304jYfrWE7fXO/gWmecAj4nl7YJ6ncpZN8juy72D+NWpPlSCVbOn19464LQSJa1nj8UiZ6HX3q7WnD7+mgYmGb1ekDozySBveE+vNJYPyUDU23uiG4LS43VVKlLz6a31S+H1k30ds9cAAqHrOfI4WylBu2wk473hmb0=~~V3": {
                 "benefitIds": [],
                 "penaltyIds": [
                     "5828e11d34c82085be5f2ee4551d95e6"
@@ -627,7 +659,7 @@
                     }
                 }
             },
-            "FARE_FAMILY__25/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z51As5rq1MlPW18GpDlyE+bMfYbThNKdV0hjuSgpXAIsRORfJ7Rw72o5BjHSmmqEMIjNUgZq97HWxl1Z2Yx5MU7kZkTgaI2soNh2C/bqbO5H0Wu+Y4rO8FZ3sjiEkkchn4CAYmiY32/ATwZep8IHBHpOLQ6iOfV1na61KFohg8wQ3zTIw725FJO/XiVtCBZKMgk8JRRQFBV7QHXyWfjZm9jmrAlDSnqWxTFdkun0e2pX4aX63/lYuizpUFDOjk4GwhoQLe5XwLY85l4D5JNzFQnqQYI=~~V3": {
+            "FARE_FAMILY__24/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z50mlZL4IdEiX8GMhHlJ6Nth4pRom3aVvjDoWOthmuzTrmhjk6Tj1hjDjPQyWSJLSIqdQbdpzkMw2FKyt2ymunzlAI+fJBoR0uchoN3CbtX3rPQ7BfWaNKIfxDA2CUsSlIwUe1W64+ZOsi851sltKI5iaIXkjURWZKF6GhAUQZwergchaWaqaDAUWF3QUa/NKg7dVr+2hfjWQRFYX0mKoNEbqDVsPJGZDOOmFnksflFsRJ3JIiM3mR5myojw0NliTVYyM9Ok6r33O9jTphog4PmaSgE=~~V3": {
                 "benefitIds": [],
                 "penaltyIds": [
                     "f200f7fe11f44fb5a17aa14cd29a8b15"
@@ -651,38 +683,6 @@
                                         {
                                             "paxType": "ADT",
                                             "baggageAllowanceId": "c74bc80af43c5b6b951704e9ee64ec10"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "REGULAR__25/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z504/7DZ3f1+X8SCW0rZVtmiQjgs3ATey8WHbbXXMllfI6mylnTbWfJ6JYP2Oq6qOS9D8ENLiAAyNfODH0cVXolZNu+nplXBvTapu34JcUUwmjxAwcQkL48U9Q67bDV6RgmJRv7HfPUm2LbkCMDENOXZjLTYklTZM2HV+McWwnFnc7+YnkgcHBR14QNRojdbsfTRHv2BX5nFFZHwEUWpGG++8xyAqA0neTJ2D/jPh5HTO38epZDxawUxreMWryz7uuu7Euvhmryrb+la3HD8Rd+25cE=~~V3": {
-                "benefitIds": [],
-                "penaltyIds": [
-                    "a5a593cf1b324579690d05c8e9a69943"
-                ],
-                "subTravelOptionBenefits": {
-                    "BLR_NAG": {
-                        "benefits": {
-                            "penaltyIds": [
-                                "9ac2a0264d313008882ad353409d580a",
-                                "ecdcef4b85d8c6d9bbe1821b5f6edb8e",
-                                "a5a593cf1b324579690d05c8e9a69943"
-                            ],
-                            "benefitIds": [
-                                "ef1aca914ab769cf9a7b7bbdb9700227",
-                                "c4dc95e02115dd97155a99031cb89b60"
-                            ],
-                            "flightBenefits": {
-                                "BLR_NAG": {
-                                    "benefitIds": [],
-                                    "baggageAllowances": [
-                                        {
-                                            "paxType": "ADT",
-                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
                                         }
                                     ]
                                 }
