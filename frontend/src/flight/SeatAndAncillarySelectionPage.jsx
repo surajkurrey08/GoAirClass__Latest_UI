@@ -22,6 +22,7 @@ export default function SeatAndAncillarySelectionPage() {
     const [isLoadingAncillaries, setIsLoadingAncillaries] = useState(false);
     const [ancillariesUnavailable, setAncillariesUnavailable] = useState(false);
     const [isHolding, setIsHolding] = useState(false);
+    const [showLoginRequired, setShowLoginRequired] = useState(false);
     const [sessionExpired, setSessionExpired] = useState(false);
     const ancillaryRanRef = useRef(false);
 
@@ -730,7 +731,36 @@ export default function SeatAndAncillarySelectionPage() {
         return null;
     };
 
+    const isUserLoggedIn = () => {
+        const authKeys = ['token', 'accessToken', 'authToken', 'jwt', 'userToken'];
+        const hasToken = authKeys.some((key) => sessionStorage.getItem(key) || localStorage.getItem(key));
+        const explicitLoginFlag = sessionStorage.getItem('isLoggedIn') === 'true' || localStorage.getItem('isLoggedIn') === 'true';
+        return hasToken || explicitLoginFlag;
+    };
+
+    const closeLoginRequired = () => {
+        setShowLoginRequired(false);
+    };
+
+    const goToLogin = () => {
+        const returnUrl = `${window.location.pathname}${window.location.search}`;
+        sessionStorage.setItem('post_login_redirect', returnUrl);
+        sessionStorage.setItem('booking_intent', 'flight');
+        setShowLoginRequired(false);
+        navigate('/login', {
+            state: {
+                from: returnUrl,
+                bookingIntent: true
+            }
+        });
+    };
+
     const handleProceedToPayment = async () => {
+        if (!isUserLoggedIn()) {
+            setShowLoginRequired(true);
+            return;
+        }
+
         const activeSessionId = sessionId || sessionStorage.getItem('flight_session_id');
         const pId = flightPreview?.flightPreviewId ||
             flightPreview?.id ||
@@ -1876,6 +1906,58 @@ export default function SeatAndAncillarySelectionPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Login required modal - shown before payment */}
+            {showLoginRequired && (
+                <div
+                    className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-[2px]"
+                    onClick={closeLoginRequired}
+                    role="presentation"
+                >
+                    <div
+                        className="w-full max-w-[430px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.28)]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="bg-[#00206B] px-6 py-5 pb-6">
+                            <div className="mb-2 flex items-center gap-3 text-blue-100">
+                                <Shield size={24} className="opacity-90" />
+                                <span className="text-[11px] font-bold uppercase tracking-wider">Secure Booking</span>
+                            </div>
+                            <h3 className="text-2xl font-extrabold text-white">Login required</h3>
+                        </div>
+                        <div className="px-6 pb-6 pt-5">
+                            <p className="mb-5 text-sm font-medium text-slate-600">
+                                Please login to your GoAirClass account before continuing to payment.
+                            </p>
+
+                            <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50/50 p-3.5">
+                                <div className="flex items-start gap-3">
+                                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                                    <p className="text-xs font-semibold leading-relaxed text-blue-900">
+                                        Your selected flight search will stay available when you return.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={goToLogin}
+                                className="mt-5 flex h-12 w-full items-center justify-center rounded-md bg-gradient-to-br from-[#f4b33e] to-[#f15a18] px-4 text-sm font-extrabold text-white shadow-[0_8px_18px_rgba(241,90,24,0.22)] transition-all hover:from-[#ffc45a] hover:to-[#e94d10]"
+                            >
+                                Login to Continue Booking
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={closeLoginRequired}
+                                className="mt-2.5 h-10 w-full rounded-md border border-slate-200 bg-white text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </div>

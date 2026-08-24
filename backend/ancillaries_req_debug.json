@@ -1,40 +1,43 @@
 {
   "headers": {
-    "host": "localhost:5000",
-    "connection": "close",
-    "content-length": "857",
+    "host": "localhost:5010",
+    "connection": "keep-alive",
+    "content-length": "1016",
     "sec-ch-ua-platform": "\"Windows\"",
-    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhODZlZTVlNTQzNDExZmU2ZTdiMWRiNSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg3MzEwMDg5LCJleHAiOjE3ODk5MDIwODl9.ORmfdUSZDgChVJnGhc29uCegQZK3kSPSYJywOnCthUs",
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
     "accept": "application/json, text/plain, */*",
     "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
     "content-type": "application/json",
     "sec-ch-ua-mobile": "?0",
     "origin": "http://localhost:5173",
-    "sec-fetch-site": "same-origin",
+    "sec-fetch-site": "same-site",
     "sec-fetch-mode": "cors",
     "sec-fetch-dest": "empty",
-    "referer": "http://localhost:5173/flight/seat-selection",
+    "referer": "http://localhost:5173/",
     "accept-encoding": "gzip, deflate, br, zstd",
-    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8,hi;q=0.7",
-    "cookie": "rzp_unified_session_id=TSONA6tiPQo7I0"
+    "accept-language": "en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,hi;q=0.6"
   },
   "body": {
-    "sessionId": "65273301_1e7f22ce-3c84-46ee-922f-9387eb20396e-260821165405",
-    "flightPreviewId": "503dbf2e-3c4a-41fb-bbd6-d4dc294ec940",
+    "sessionId": "65273301_46e407d8-1767-4e50-a719-0df1e4150cc9-260824094612",
+    "flightPreviewId": "005dacdc-51f4-4729-b0e2-146b4899fc2a",
     "travelOptions": [
       {
-        "id": "IX-2680-BLR-PNQ-1787329200",
-        "searchIntent": "BLR_PNQ",
+        "id": "AI-2840-BLR-BOM-1787590800__AI-2581-BOM-NAG-1787617500",
+        "searchIntent": "BLR_NAG",
         "subTravelOptions": [
           {
-            "id": "IX-2680-BLR-PNQ-1787329200",
-            "fareId": "REGULAR__21/08/2026__IX__IX__BLR_PNQ__false__RETAIL_STUDENT__E__DOM__OW__UNKNOWN__S034__STUDENT_REGULAR__AVN+Z507PO4LI3aKoktfHOjTFPrESrqbb1u+KXoM2Vys6EureWPIKBJAvYbHwfEDmIcOD9Wl/k9qM6Nz6a092XN/OPe35W94YVgxWNEbWzl935vWgUtE7QJ1bsd2AOGmcitlfKyRPRduq1axSv0X+kOTA7ktZ4Lt9YpAnjxCSrd/KxmHAO2sadBeMDtoToPfiu4VNjiArbGJQFae4KhjBXqPskktTylSVuSJgreY95NhDLbj8gZGSThBvavpgXwf743DLKVAw+3/3c0ugfc=~~V3",
+            "id": "AI-2840-BLR-BOM-1787590800__AI-2581-BOM-NAG-1787617500",
+            "fareId": "FARE_FAMILY__24/08/2026__AI^AI__AI^AI__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S043__ECO CLASSIC,ECO CLASSIC__AVN+Z50obd/eiaN7PQYu/Cg3V4k6VsFY5ug5jtQ0YAscxF5EPQ9YTnVApFV+wGmJGs3LX4yb+PgoAqVtzrsvbWsW2cw7OE2A3x+A9ocdFBey0weqUzHcUUZj0tP3zpRTSFgRRgp9O8qkXRPJSNO6EJbRUREI4LrAE1QKYBsnKLBW7CpFXC/Yrz6/aT02U48TjXxXjtgCU1/y4coeDHo4afmO95q2DZ8yxPEtXoG6WQ92eAZiRexwGCsv3mO5gVa/4QheKqtXO4MWTn2JIa59VIeyJaL9IlEilaFs~~V3",
             "flights": [
               {
-                "id": "IX-2680-BLR-PNQ-1787329200",
+                "id": "AI-2840-BLR-BOM-1787590800",
                 "departureCode": "BLR",
-                "arrivalCode": "PNQ"
+                "arrivalCode": "BOM"
+              },
+              {
+                "id": "AI-2581-BOM-NAG-1787617500",
+                "departureCode": "BOM",
+                "arrivalCode": "NAG"
               }
             ]
           }
@@ -46,6 +49,6 @@
       "MEAL",
       "BAGGAGE"
     ],
-    "searchId": "DC_Search-8b37d928-865b-4e44-bc55-2d6ada7b63bc"
+    "searchId": "DC_Search-fdfdac63-7624-4c9f-b783-c5f89e1cf57e"
   }
 }

@@ -294,6 +294,8 @@ export default function FlightListPage() {
     const [bookingTermsAccepted, setBookingTermsAccepted] = useState(false);
     const [showLoginRequired, setShowLoginRequired] = useState(false);
     const [pendingLoginFlight, setPendingLoginFlight] = useState(null);
+    const [pendingLoginAction, setPendingLoginAction] = useState(null);
+
     const [activePreviewSection, setActivePreviewSection] = useState('preview-overview');
     const fareUpgradeScrollRef = useRef(null);
     const fareUpgradeDragRef = useRef({ dragging: false, moved: false, startX: 0, scrollLeft: 0, pointerId: null, target: null });
@@ -810,15 +812,16 @@ export default function FlightListPage() {
         const airlineName = f.airlineName || 'Airline';
 
         // Airline filter
-        if (!allAirlinesChecked && selectedAirlines.length > 0 && !selectedAirlines.includes(airlineName)) {
-            return false;
+        if (!allAirlinesChecked) {
+            if (selectedAirlines.length === 0) return false;
+            if (!selectedAirlines.includes(airlineName)) return false;
         }
 
         // Stops filter
         const stopsCount = f.stopsCount || 0;
         if (maxStops !== 'all') {
-            if (maxStops === '0' && stopsCount > 0) return false;
-            if (maxStops === '1' && stopsCount > 1) return false;
+            if (maxStops === '0' && stopsCount !== 0) return false;
+            if (maxStops === '1' && stopsCount !== 1) return false;
             if (maxStops === '2+' && stopsCount < 2) return false;
         }
 
@@ -865,59 +868,6 @@ export default function FlightListPage() {
     useEffect(() => {
         setCurrentPage(1);
     }, [flights, sortBy, selectedAirlines, allAirlinesChecked, maxStops, filterRefundable, filterNonRefundable, maxPrice, maxDepHour, maxArrHour]);
-
-    // Manual sticky-fallback positioning for the filters column — pins just
-    // below the fixed route/date header once that header has locked in place.
-    useEffect(() => {
-        const TOP_OFFSET = headerFixed ? headerHeight : 0;
-        let ticking = false;
-
-        const updatePosition = () => {
-            ticking = false;
-            const wrap = filterWrapRef.current;
-            const box = filterBoxRef.current;
-            if (!wrap || !box) return;
-
-            if (window.innerWidth < 1024) {
-                // Below the lg breakpoint the layout stacks to a single
-                // column — leave the filters box in normal flow.
-                setFilterStyle(prev => (prev.position === 'static' ? prev : { position: 'static' }));
-                return;
-            }
-
-            const wrapRect = wrap.getBoundingClientRect();
-            // scrollHeight (not offsetHeight) so this still reflects the
-            // full content height even while the box itself is clamped
-            // with its own overflow-y below.
-            const naturalHeight = box.scrollHeight;
-            const wrapWidth = wrap.offsetWidth;
-            const availableHeight = Math.max(200, window.innerHeight - TOP_OFFSET - 16);
-            const clamp = { maxHeight: availableHeight, overflowY: 'auto', overscrollBehavior: 'contain' };
-
-            if (wrapRect.top > TOP_OFFSET) {
-                setFilterStyle(prev => (prev.position === 'static' ? prev : { position: 'static' }));
-            } else if (wrapRect.bottom < TOP_OFFSET + naturalHeight) {
-                setFilterStyle({ position: 'absolute', top: wrap.offsetHeight - naturalHeight, left: 0, width: wrapWidth, zIndex: 40, ...clamp });
-            } else {
-                setFilterStyle({ position: 'fixed', top: TOP_OFFSET, left: wrapRect.left, width: wrapWidth, zIndex: 40, ...clamp });
-            }
-        };
-
-        const onScroll = () => {
-            if (!ticking) {
-                window.requestAnimationFrame(updatePosition);
-                ticking = true;
-            }
-        };
-
-        updatePosition();
-        window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', updatePosition);
-        return () => {
-            window.removeEventListener('scroll', onScroll);
-            window.removeEventListener('resize', updatePosition);
-        };
-    }, [filteredFlights.length, loading, headerFixed, headerHeight]);
 
     // Manual sticky-fallback for the route/date banner + fare calendar strip
     useEffect(() => {
@@ -1301,36 +1251,20 @@ export default function FlightListPage() {
     // Booking auth gate ------------------------------------------------------
     // If your app stores the auth token under a different key, add it here.
     const isUserLoggedIn = () => {
-        const authKeys = ['token', 'accessToken', 'authToken', 'jwt', 'userToken'];
-
-        const hasToken = authKeys.some((key) =>
-            Boolean(localStorage.getItem(key) || sessionStorage.getItem(key))
-        );
-
-        const explicitLoginFlag =
-            localStorage.getItem('isLoggedIn') === 'true' ||
-            sessionStorage.getItem('isLoggedIn') === 'true';
-
+        const hasToken = !!localStorage.getItem('token') || !!sessionStorage.getItem('token');
+        const explicitLoginFlag = localStorage.getItem('isLoggedIn') === 'true';
         return hasToken || explicitLoginFlag;
     };
 
-    const requestLoginForBooking = (flight) => {
+    const requestLoginForBooking = (flight, action) => {
         setPendingLoginFlight(flight || null);
+        setPendingLoginAction(action || null);
         setShowLoginRequired(true);
-    };
-
-    const handleBookNowClick = (flight) => {
-        if (!isUserLoggedIn()) {
-            requestLoginForBooking(flight);
-            return;
-        }
-
-        handleCardClick(flight);
     };
 
     const handleContinueBooking = (flight) => {
         if (!isUserLoggedIn()) {
-            requestLoginForBooking(flight);
+            requestLoginForBooking(flight, 'booking');
             return;
         }
 
@@ -1339,8 +1273,6 @@ export default function FlightListPage() {
 
     const goToLogin = () => {
         const returnUrl = `${window.location.pathname}${window.location.search}`;
-
-        // Keep the current search page so your login page can return the user here.
         sessionStorage.setItem('post_login_redirect', returnUrl);
         sessionStorage.setItem('booking_intent', 'flight');
 
@@ -1350,7 +1282,6 @@ export default function FlightListPage() {
 
         setShowLoginRequired(false);
 
-        // Change '/login' here only if your actual login route is different.
         navigate('/login', {
             state: {
                 from: returnUrl,
@@ -1361,8 +1292,20 @@ export default function FlightListPage() {
     };
 
     const closeLoginRequired = () => {
+        const flight = pendingLoginFlight;
+        const action = pendingLoginAction;
+        
         setShowLoginRequired(false);
         setPendingLoginFlight(null);
+        setPendingLoginAction(null);
+
+        if (flight) {
+            if (action === 'card') {
+                handleCardClick(flight);
+            } else if (action === 'booking') {
+                handleBooking(flight);
+            }
+        }
     };
 
     const closeDrawer = () => {
@@ -1604,24 +1547,24 @@ export default function FlightListPage() {
                 style={headerFixed ? { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1001 } : undefined}
             >
             {/* Search Overview Banner */}
-            <div className="bg-gradient-to-b from-[#3169db] to-[#0d2569] text-white px-4 sm:px-6 pt-3 pb-7 overflow-hidden relative">
+            <div className="bg-gradient-to-b from-[#3169db] to-[#0d2569] text-white px-4 sm:px-6 pt-2 pb-5 overflow-hidden relative">
                 <div className="hidden"></div>
-                <div className="max-w-[1600px] mx-auto relative flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                <div className="max-w-[1600px] mx-auto relative flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
                         {headerFixed && (
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="flex items-center gap-1.5 shrink-0 bg-white/12 hover:bg-white/20 border border-white/25 text-white px-2.5 py-1.5 rounded-md text-xs font-bold transition-all"
+                                className="flex items-center gap-1 shrink-0 bg-white/12 hover:bg-white/20 border border-white/25 text-white px-2 py-1 rounded-md text-[11px] font-bold transition-all"
                             >
-                                <ArrowLeft size={14} /> Back
+                                <ArrowLeft size={12} /> Back
                             </button>
                         )}
-                        <div className="w-10 h-10 rounded-lg border border-white/50 bg-white/10 flex items-center justify-center shrink-0">
-                            <Plane size={23} className="text-white" strokeWidth={1.8} />
+                        <div className="w-8 h-8 rounded-lg border border-white/50 bg-white/10 flex items-center justify-center shrink-0">
+                            <Plane size={18} className="text-white" strokeWidth={1.8} />
                         </div>
                         <div className={`min-w-0 ${headerFixed ? 'text-center md:absolute md:left-1/2 md:-translate-x-1/2 md:w-max' : ''}`}>
-                            <h2 className={`text-lg md:text-xl leading-tight font-extrabold tracking-tight text-white flex items-center gap-2 flex-wrap ${headerFixed ? 'justify-center' : ''}`}>
+                            <h2 className={`text-base md:text-lg leading-tight font-extrabold tracking-tight text-white flex items-center gap-2 flex-wrap ${headerFixed ? 'justify-center' : ''}`}>
                                 {tripTypeVal === 'multiCity' && multiCitySectors.length > 0 ? (
                                     multiCitySectors.map((sec, sIdx) => (
                                         <React.Fragment key={sIdx}>
@@ -1638,20 +1581,20 @@ export default function FlightListPage() {
                                     </>
                                 )}
                             </h2>
-                            <div className={`flex gap-1.5 flex-wrap items-center mt-1.5 ${headerFixed ? 'justify-center' : ''}`}>
-                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
+                            <div className={`flex gap-1 flex-wrap items-center mt-1 ${headerFixed ? 'justify-center' : ''}`}>
+                                <span className="bg-white/14 border border-white/15 text-white px-1.5 py-0.5 rounded text-[9px] font-semibold flex items-center gap-1 shadow-sm">
                                     <Calendar size={11} className="text-[#ff9d3c]" /> Depart: {formatDisplayDate(stickyDepartDate, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                 </span>
                                 {returnDateVal && (
-                                    <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
-                                        <Calendar size={11} className="text-[#ff9d3c]" /> Return: {formatDisplayDate(returnDateVal, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                                    <span className="bg-white/14 border border-white/15 text-white px-1.5 py-0.5 rounded text-[9px] font-semibold flex items-center gap-1 shadow-sm">
+                                        <Calendar size={10} className="text-[#ff9d3c]" /> Return: {formatDisplayDate(returnDateVal, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
                                     </span>
                                 )}
-                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
-                                    <Users size={11} className="text-[#ff9d3c]" /> {travellersVal}
+                                <span className="bg-white/14 border border-white/15 text-white px-1.5 py-0.5 rounded text-[9px] font-semibold flex items-center gap-1 shadow-sm">
+                                    <Users size={10} className="text-[#ff9d3c]" /> {travellersVal}
                                 </span>
-                                <span className="bg-white/14 border border-white/15 text-white px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 shadow-sm">
-                                    <Briefcase size={11} className="text-[#ff9d3c]" /> {cabinVal}
+                                <span className="bg-white/14 border border-white/15 text-white px-1.5 py-0.5 rounded text-[9px] font-semibold flex items-center gap-1 shadow-sm">
+                                    <Briefcase size={10} className="text-[#ff9d3c]" /> {cabinVal}
                                 </span>
                             </div>
                         </div>
@@ -1660,9 +1603,9 @@ export default function FlightListPage() {
                     <button
                         type="button"
                         onClick={handleShareTrip}
-                        className="self-start md:self-center flex items-center gap-1.5 bg-white/12 hover:bg-white/20 border border-white/15 text-white px-3 py-1.5 rounded-md text-[11px] font-bold transition-all"
+                        className="self-start md:self-center flex items-center gap-1 bg-white/12 hover:bg-white/20 border border-white/15 text-white px-2.5 py-1 rounded-md text-[10px] font-bold transition-all"
                     >
-                        <Share2 size={13} /> Share Trip
+                        <Share2 size={12} /> Share Trip
                     </button>
                 </div>
             </div>
@@ -1717,8 +1660,8 @@ export default function FlightListPage() {
             </div>
 
             {/* Horizontal Lowest Fare Date Calendar Strip */}
-            <div className="bg-slate-50 px-4 sm:px-6 pb-2 -mt-5 relative z-10">
-                <div className="max-w-[1600px] mx-auto bg-white border border-slate-200 rounded-lg shadow-[0_8px_20px_rgba(15,23,42,0.08)] px-3.5 sm:px-4 py-2.5 relative">
+            <div className="bg-slate-50 px-4 sm:px-6 pb-2 -mt-3 relative z-10">
+                <div className="max-w-[1600px] mx-auto bg-white border border-slate-200 rounded-lg shadow-[0_4px_12px_rgba(15,23,42,0.06)] px-3 sm:px-4 py-2 relative">
                     <div className="flex items-center justify-between mb-2.5 gap-4">
                         <div className="flex items-center gap-2.5 min-w-0">
                             <span className="w-7 h-7 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1948,18 +1891,10 @@ export default function FlightListPage() {
             <div className="max-w-[1780px] mx-auto my-5 px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8">
 
                 {/* ==================================================
-                    LEFT SIDEBAR (Sticky Filters) — the outer cell stretches
-                    to match the (much taller) results column's height so the
-                    inner sticky box has room to stay stuck throughout the
-                    whole results scroll, instead of unsticking as soon as
-                    its own short content runs out.
+                    LEFT SIDEBAR (Sticky Filters)
                    ================================================== */}
-                <div ref={filterWrapRef} className="relative">
-                <div
-                    ref={filterBoxRef}
-                    className="bg-white border border-slate-200 rounded-xl p-5 shadow-[0_10px_24px_rgba(15,23,42,0.06)]"
-                    style={filterStyle}
-                >
+                <div className="relative">
+                <div className="lg:sticky lg:top-[140px] lg:h-fit lg:max-h-[calc(100vh-160px)] overflow-y-auto no-scrollbar bg-white border border-slate-200 rounded-xl p-5 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
                     <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                             <Filter size={16} className="text-slate-700" /> Filters
@@ -2309,7 +2244,7 @@ export default function FlightListPage() {
                                             className="h-11 w-full max-w-[280px] lg:max-w-none flex items-center justify-center gap-1.5 bg-gradient-to-br from-[#f4b33e] to-[#f15a18] hover:from-[#ffc45a] hover:to-[#e94d10] text-white font-extrabold text-sm px-3 rounded-md transition-all shadow-[0_6px_14px_rgba(241,90,24,0.18)] whitespace-nowrap"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleBookNowClick(flight);
+                                                handleCardClick(flight);
                                             }}
                                         >
                                             Book Now
@@ -2976,6 +2911,7 @@ export default function FlightListPage() {
                     </div>
                 </div>
             )}
+
             {/* Login required modal - shown before any booking action */}
             {showLoginRequired && (
                 <div

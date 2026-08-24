@@ -1,7 +1,7 @@
 {
-  "sessionId": "65273301_e37684d2-d3df-4f1b-be57-ce4f1d3c93e0-260823124405",
-  "searchId": "DC_Search-d02a3fa7-3989-4ba8-a87a-885442e0b952",
-  "dataId": "AVN+Z511k1/ix+ZNgWFvJOOcz6kaQK5YeM2aM/XkhEDuKFaJ9PtGYhGkZrCvmlkpbFwBO73UCeGxB82frG14PktiCPExhcVbiD3YDsVZjmE7DuonVhVoiXo6rohCd79oicqsYorJBY8kz5s2lcQ7lj291q81MSSE7PanM756HFWIBA4U9EPFR2Jtr4U83QlupatKAasVTvOWUeYmYYHYNvk/kVdlt4N3dfCGPXul6zuMPqlCEcnSkZlDI249TUsJpZ694fk=",
+  "sessionId": "65273301_46e407d8-1767-4e50-a719-0df1e4150cc9-260824094612",
+  "searchId": "DC_Search-a1f234fd-9e8c-424a-8f6b-67ba20cb91bb",
+  "dataId": "AVN+Z5116pB8rREsHQaSvX1rj1apCy4OnbyuT/fOkEtj0xh2ggW4QXVHXFfz9GQ2gr0jz3UKx3QfLwVeTJu6Tg7/9fDGZVf3N720lHP0n8dH6z2RVc/aXP6P/8X8hNq8JzZw2JZeNcGjuZWI2f4EZ01YvWJZXO7SOfjBov7P6m7FEqYIipAEppf8yCgQqvw2FDpzD9nwPIkvuuGXe9uEdfFCNKQagmKcN4saWNVhed4KYVudzW9AHUolFFq4tJyfORXKxVo=",
   "flightPreviewCriteria": {
     "isMultiFareRequest": false,
     "maxFareCount": 0,
@@ -12,9 +12,9 @@
     "sectors": [
       {
         "index": 1,
-        "origin": "PNQ",
-        "destination": "BLR",
-        "departDate": "23/08/2026",
+        "origin": "BLR",
+        "destination": "NAG",
+        "departDate": "24/08/2026",
         "cabinType": "ECONOMY",
         "paxInfos": [
           {
@@ -28,12 +28,12 @@
   },
   "travelOptions": {
     "J1": {
-      "travelOptionId": "IX-2874-PNQ-BLR-1787490300",
-      "price": 2752,
+      "travelOptionId": "6E-6891-BLR-NAG-1787571900",
+      "price": 5609,
       "subTravelOptions": [
         {
-          "subTravelOptionId": "IX-2874-PNQ-BLR-1787490300",
-          "fareId": "REGULAR__23/08/2026__IX__IX__PNQ_BLR__false__RETAIL_STUDENT__E__DOM__OW__UNKNOWN__S034__STUDENT_REGULAR__AVN+Z51ex6hXRMWKMkg3Gc6adiZ1aQzil2YLg7H7ATyolBK8R5zHpkZ7u3FhNHc9pLrDCv+twNOhhxLey5bodlmcIkSwdS+y/Siq8EdAAhGqM4AKcUurWGLy+23x/tJCc9XntfJUxuTVkFh2FsQfZRCGroa15wpnKkLiVNQedDCiffvmiH3GMFJKpuXYLYrvgYGrZ+q95/2wLgqaQPlZgDNmuWHARFuxBz+ISlbUa/YtrLEEHzshqc6BJtFU9m0aGCfgD+ph99y9xgNNBQ==~~V3"
+          "subTravelOptionId": "6E-6891-BLR-NAG-1787571900",
+          "fareId": "FARE_FAMILY__24/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z53ObI4zWtlF2pqaMxO/AauWJpoIJlnyGHzw2zAku6XhsZ8RJd2vgEDZe+q+kBw88R5y0IVoaLsnE/mU6l8X+qaLtFV3iC2C/ApdD+lLz5IUPg5BNmNT+1c5304jYfrWE7fXO/gWmecAj4nl7YJ6ncpZN8juy72D+NWpPlSCVbOn19464LQSJa1nj8UiZ6HX3q7WnD7+mgYmGb1ekDozySBveE+vNJYPyUDU23uiG4LS43VVKlLz6a31S+H1k30ds9cAAqHrOfI4WylBu2wk473hmb0=~~V3"
         }
       ]
     }

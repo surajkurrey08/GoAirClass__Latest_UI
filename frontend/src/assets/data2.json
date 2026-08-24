@@ -1,1990 +1,697 @@
 {
     "success": true,
     "data": {
-        "searchId": "DC_Search-0f2f61a0-0529-469f-91cf-0f1c44042f60",
-        "dataId": "AVN+Z5381OeYy5zTSqNsp6+6D6Wc8ZrEVaCTSfR3k8aGKX0ro/Q21P4Arlrso3ApB+PqkOExClbx1XkESPnkoEAGatINgnthhKLR28bwmS2An5VdvdEGGye5oRYvZrRabHrhyUfBsRSBMyCXfLnO1hiaBiHwPgKgjiBo+4WXIgCDJ/EYHiQ37JI=",
-        "benefits": {},
-        "baggageAllowances": {},
-        "penalties": {},
-        "searchIntent": {
-            "J1": {
-                "seq": 1,
-                "journeyId": "J1",
-                "origin": "BOM",
-                "destination": "NAG",
-                "departDate": "20/08/2026",
-                "cabin": "ECONOMY",
-                "paxCriteria": [
+        "penalties": {
+            "b8c469057956db891e1b54abdd9f226e": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
                     {
-                        "type": "ADT",
-                        "count": 2,
-                        "supportedPaxCategories": [
-                            "DEFAULT"
-                        ]
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 9467,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 249,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
                     }
-                ]
+                ],
+                "id": "b8c469057956db891e1b54abdd9f226e"
             },
-            "J2": {
-                "seq": 2,
-                "journeyId": "J2",
-                "origin": "NAG",
-                "destination": "BOM",
-                "departDate": "25/08/2026",
-                "cabin": "ECONOMY",
-                "paxCriteria": [
+            "ecdcef4b85d8c6d9bbe1821b5f6edb8e": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
                     {
-                        "type": "ADT",
-                        "count": 2,
-                        "supportedPaxCategories": [
-                            "DEFAULT"
-                        ]
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5337,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
                     }
-                ]
+                ],
+                "id": "ecdcef4b85d8c6d9bbe1821b5f6edb8e"
+            },
+            "f200f7fe11f44fb5a17aa14cd29a8b15": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 9467,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1499,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "f200f7fe11f44fb5a17aa14cd29a8b15"
+            },
+            "a5a593cf1b324579690d05c8e9a69943": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5337,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 4999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "a5a593cf1b324579690d05c8e9a69943"
+            },
+            "050d62543e8ed307037064e0db074803": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 9467,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 249,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "050d62543e8ed307037064e0db074803"
+            },
+            "5828e11d34c82085be5f2ee4551d95e6": {
+                "penaltyInfoText": "",
+                "penaltyType": "CANCEL",
+                "timeLines": [
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5609,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3850,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT24H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 3850,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT24H",
+                        "endTime": "PT576H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2499,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT576H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "5828e11d34c82085be5f2ee4551d95e6"
+            },
+            "046568b346f8ae54e3bd1dedd3e0a3ef": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_SAME_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5609,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT2H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1069,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT2H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "046568b346f8ae54e3bd1dedd3e0a3ef"
+            },
+            "0302f198123a1bca662c7e244ab14d32": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5609,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT2H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 1069,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT2H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 0,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "0302f198123a1bca662c7e244ab14d32"
+            },
+            "9ac2a0264d313008882ad353409d580a": {
+                "penaltyInfoText": "",
+                "penaltyType": "AMEND_HIGHER_FARE",
+                "timeLines": [
+                    {
+                        "permitted": false,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 5337,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT0S",
+                        "endTime": "PT3H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT3H",
+                        "endTime": "PT72H"
+                    },
+                    {
+                        "permitted": true,
+                        "passengerFareRuleCharges": {
+                            "ADT": {
+                                "charges": [
+                                    {
+                                        "amount": 2999,
+                                        "currency": "INR",
+                                        "type": "AIRLINE_CHARGES"
+                                    }
+                                ]
+                            }
+                        },
+                        "startTime": "PT72H",
+                        "endTime": "PT8760H"
+                    }
+                ],
+                "id": "9ac2a0264d313008882ad353409d580a"
             }
         },
-        "travelOptions": {
-            "J2": [
+        "baggageAllowances": {
+            "c74bc80af43c5b6b951704e9ee64ec10": [
                 {
-                    "travelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700",
-                    "travelOptionKey": "NAG_BOM",
-                    "subTravelOptionIds": [
-                        "6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700"
-                    ],
-                    "defaultFare": {
-                        "associations": [
-                            {
-                                "subTravelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700",
-                                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z50ePGp6ggq085X1dCrYr/JExrHm7+4NNabIXcsrG1Gtbt/DL8fmJAAxAd8OfSeU8uHROX4O6ATr6r63mRUclZXWC0nQ/4wtNDUCjZl15y0bzBpUHUJ6yz3kL7l3F7IrantG0VgLydFaTpjKDwGpQiM+/ic8W5UShDUR5fcrV8cusCj1dhpS7NNJgrgNNWIhG/CXg+9u1aQPLMDSaB235SbxgK7h4vU1lpqtgJfxYV6xaLEJJ7pLaQImaWObNW7r1sa3DK+yZUaB015lPIyTL375rAfAgOwogvaAD9LdQ/jHGsDS8BCwsY0DfmY=~~V3"
-                            }
-                        ]
-                    }
+                    "type": "BAGGAGE_CABIN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 7,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
                 },
                 {
-                    "travelOptionId": "6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800",
-                    "travelOptionKey": "NAG_BOM",
-                    "subTravelOptionIds": [
-                        "6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800"
-                    ],
-                    "defaultFare": {
-                        "associations": [
-                            {
-                                "subTravelOptionId": "6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800",
-                                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z510UsM/doffLU48bV6r8AP/q6bCTTj3CJtJm2wDZf+5mp7e70BGsLj4TP/uC8HZ8CiJvw/+sLjt/iVrwRARYoMliI7qRUdByIGXXalyNWrrIn20F+TG8L4V4K26214lNHIS/IkGDXejGZCFSuyqtQucS4h+kx03tS3uOAaup9fxs0RDBqxFfViPBXjsx3snVjztcBXgDIfgqsVP9uQp+kbzrMJPkL74Z2K4u71hQZ81RWcHLMFOPPmPb3U1W+9lxs5j6+QJnRpc/QlaE7ZfaNcQMUOm4Op5Zk8N5GOcEfiiPiKl0ONoO1XFeb0=~~V3"
-                            }
-                        ]
-                    }
+                    "type": "BAGGAGE_CHECK_IN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 20,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
+                }
+            ],
+            "acd372200d87083dfd31172adfa65d95": [
+                {
+                    "type": "BAGGAGE_CABIN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 7,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
                 },
                 {
-                    "travelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200",
-                    "travelOptionKey": "NAG_BOM",
-                    "subTravelOptionIds": [
-                        "6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200"
-                    ],
-                    "defaultFare": {
-                        "associations": [
-                            {
-                                "subTravelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200",
-                                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51ucnPYe7eX3IC+q3o3M5p1qMU2wTfYh28eEqV2hVtc5SneTpjJeLWyCcqXN9t5uSE58znF0Oz1SY+ChLvWgqjlpjX0JemIS3efznrl74g8Tq5kilMwVNqeMx4YHyxKN/ykjlH7XavppGvJLO60+2ARypHKhsyt+1jqQf1/Vq+fMBO+Ep8n+pNj0DyrP8Wo4oJnyASYtuK3YKl62vXtXv7aSVF33ZNO6aw3VW4HLH1Kr1KIEFwrzWPADCdVI3rCkYsZjYE4ArrkQTXRUa6Za3t7OT2D7OHZIsgYpf6vBVPjX8RVbJNtV2gq+ZU=~~V3"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "travelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500",
-                    "travelOptionKey": "NAG_BOM",
-                    "subTravelOptionIds": [
-                        "6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500"
-                    ],
-                    "defaultFare": {
-                        "associations": [
-                            {
-                                "subTravelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500",
-                                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z503TtKQy4fOCIDzALqD+H4QWuEtPTLVNrAoPGbRQaGjAazNsvfbiBYFE4+JT6wa35BmCiNsVeTjEQTzkQDhevHpuFcaTykUCx04LUGD5pw7M6Keap6E2TaB76aOfxt3BGGyNNKDt4W87O5i5Zx4h3QJvuaFhDImRAItm7r7Z2vdSV542Fn/AfBgiSP8nmfDzhRdyHNbVn+iEfpYQ5jd4trFIP8CwM//4sQ7w1Q+s0vou/s2B8KDPYzYdfXtS2RRbxAvrKlcBXNqFqyqXRiT6Q2g5Zpu5xfyzo3yEhm15idh4lRwoBlHWe7PKqE=~~V3"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "travelOptionId": "6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400",
-                    "travelOptionKey": "NAG_BOM",
-                    "subTravelOptionIds": [
-                        "6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400"
-                    ],
-                    "defaultFare": {
-                        "associations": [
-                            {
-                                "subTravelOptionId": "6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400",
-                                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51H925kViLpMq3wFtQuJyxhjFH6hhJMuOVL+bylagzncWFvPvI1RBGYvtVZEhzivAiqZ069ofsVWETw0PbzSAKC+Nbicng5COIsd/N15iW5LvYI7A8OFCkIGDlGnW8u/R91TeFUf1tF4I35UOb1alhhH+uVluRaYFy5dltQBowmnQTFUDxVEvdxtGYJlgwUYQc53dtQqMAkK+U+9+XyhYY1im6tS/eXS7+Yuls4JYzTu2upKJ3//AwIzXKtTNEic+LjMiUmmeAUyvUyBR8iErN4yCTRA8ZQ1pG7dJsGKjLfNm+BEssamUBxi8E=~~V3"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "travelOptionId": "6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600",
-                    "travelOptionKey": "NAG_BOM",
-                    "subTravelOptionIds": [
-                        "6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600"
-                    ],
-                    "defaultFare": {
-                        "associations": [
-                            {
-                                "subTravelOptionId": "6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600",
-                                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51Hxip6ESfMfQfup2soo/2KaaHhH7pyJFMowSe5NM8TIn/GFQx+g4R9+uTXAtivEs5Jd04EwNEDmpqjp1p66j9q8Wy+O0wQIl3ungXLYIEMm7+UXJcdaJeyzN99ZJFtpsSWj0+BYPNjFURMFIYj+z5rhXgWP/f2cvwyIn4Vuz86VMG0Twrt37z1lWNnXxD+6j3LFPOrSszgmahLigXjSNShv8wdjwgEh7kKvTkTIeEZ9wr5WHWayJAqxpLnZtEu+XnJUDRt/tOpKRXF7g4mC80ndEqFf2PJSmJm797vAu7Wc6k44HOjKEeUiuw=~~V3"
-                            }
-                        ]
-                    }
+                    "type": "BAGGAGE_CHECK_IN",
+                    "allowedBaggages": [
+                        {
+                            "piece": 1,
+                            "quantity": 15,
+                            "text": "",
+                            "unit": "KG"
+                        }
+                    ]
                 }
             ]
         },
-        "flights": {
-            "6E-5143-HYD-BOM-1787693400": {
-                "id": "6E-5143-HYD-BOM-1787693400",
-                "fltNo": "5143",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-26T03:00:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "BOM",
-                    "terminal": {
-                        "name": "1",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-26T04:30:00+05:30"
-                },
-                "stops": []
+        "benefits": {
+            "c4dc95e02115dd97155a99031cb89b60": {
+                "benefitType": "MEAL",
+                "value": "PAID",
+                "description": "Paid",
+                "shortDescription": "Paid Meal",
+                "amount": 0
             },
-            "6E-7695-NAG-HYD-1787669100": {
-                "id": "6E-7695-NAG-HYD-1787669100",
-                "fltNo": "7695",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "NAG",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T20:15:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T21:45:00+05:30"
-                },
-                "stops": []
+            "0d02e47132a139c314fcd95280b6ec2e": {
+                "benefitType": "SEAT",
+                "value": "FREE",
+                "description": "Free",
+                "shortDescription": "Free Seat",
+                "amount": 0
             },
-            "6E-7548-NAG-HYD-1787627100": {
-                "id": "6E-7548-NAG-HYD-1787627100",
-                "fltNo": "7548",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "NAG",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T08:35:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T10:05:00+05:30"
-                },
-                "stops": []
+            "27b38941e0985d11b6eb05be8bd0afa3": {
+                "benefitType": "MEAL",
+                "value": "FREE",
+                "description": "Free",
+                "shortDescription": "Free Meal",
+                "amount": 0
             },
-            "6E-6363-HYD-BOM-1787680800": {
-                "id": "6E-6363-HYD-BOM-1787680800",
-                "fltNo": "6363",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T23:30:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "BOM",
-                    "terminal": {
-                        "name": "2",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-26T01:00:00+05:30"
-                },
-                "stops": []
-            },
-            "6E-5259-HYD-BOM-1787659200": {
-                "id": "6E-5259-HYD-BOM-1787659200",
-                "fltNo": "5259",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T17:30:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "BOM",
-                    "terminal": {
-                        "name": "1",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T18:50:00+05:30"
-                },
-                "stops": []
-            },
-            "6E-5384-HYD-BOM-1787642700": {
-                "id": "6E-5384-HYD-BOM-1787642700",
-                "fltNo": "5384",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T12:55:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "BOM",
-                    "terminal": {
-                        "name": "1",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T14:25:00+05:30"
-                },
-                "stops": []
-            },
-            "6E-5099-HYD-BOM-1787647500": {
-                "id": "6E-5099-HYD-BOM-1787647500",
-                "fltNo": "5099",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T14:15:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "BOM",
-                    "terminal": {
-                        "name": "1",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-25T15:55:00+05:30"
-                },
-                "stops": []
-            },
-            "6E-5245-HYD-BOM-1787700600": {
-                "id": "6E-5245-HYD-BOM-1787700600",
-                "fltNo": "5245",
-                "aircraftType": "",
-                "airlineCode": "6E",
-                "marketingAirlineCode": "6E",
-                "operatingAirlineCode": "6E",
-                "departureAirport": {
-                    "code": "HYD",
-                    "terminal": {
-                        "name": "",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-26T05:00:00+05:30"
-                },
-                "arrivalAirport": {
-                    "code": "BOM",
-                    "terminal": {
-                        "name": "1",
-                        "gate": ""
-                    },
-                    "zoneId": "Asia/Kolkata",
-                    "time": "2026-08-26T06:25:00+05:30"
-                },
-                "stops": []
-            }
-        },
-        "subTravelOptions": {
-            "6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700": {
-                "subTravelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700",
-                "type": "flight",
-                "subTravelOptionKey": "NAG_BOM",
-                "sequenceToFlightIdMap": {
-                    "1": "6E-7548-NAG-HYD-1787627100",
-                    "2": "6E-5384-HYD-BOM-1787642700"
-                },
-                "fareAssocId": "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700",
-                "metaData": {
-                    "layoverInformation": []
-                }
-            },
-            "6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800": {
-                "subTravelOptionId": "6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800",
-                "type": "flight",
-                "subTravelOptionKey": "NAG_BOM",
-                "sequenceToFlightIdMap": {
-                    "1": "6E-7695-NAG-HYD-1787669100",
-                    "2": "6E-6363-HYD-BOM-1787680800"
-                },
-                "fareAssocId": "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800",
-                "metaData": {
-                    "layoverInformation": []
-                }
-            },
-            "6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200": {
-                "subTravelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200",
-                "type": "flight",
-                "subTravelOptionKey": "NAG_BOM",
-                "sequenceToFlightIdMap": {
-                    "1": "6E-7548-NAG-HYD-1787627100",
-                    "2": "6E-5259-HYD-BOM-1787659200"
-                },
-                "fareAssocId": "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200",
-                "metaData": {
-                    "layoverInformation": []
-                }
-            },
-            "6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500": {
-                "subTravelOptionId": "6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500",
-                "type": "flight",
-                "subTravelOptionKey": "NAG_BOM",
-                "sequenceToFlightIdMap": {
-                    "1": "6E-7548-NAG-HYD-1787627100",
-                    "2": "6E-5099-HYD-BOM-1787647500"
-                },
-                "fareAssocId": "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500",
-                "metaData": {
-                    "layoverInformation": []
-                }
-            },
-            "6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400": {
-                "subTravelOptionId": "6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400",
-                "type": "flight",
-                "subTravelOptionKey": "NAG_BOM",
-                "sequenceToFlightIdMap": {
-                    "1": "6E-7695-NAG-HYD-1787669100",
-                    "2": "6E-5143-HYD-BOM-1787693400"
-                },
-                "fareAssocId": "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400",
-                "metaData": {
-                    "layoverInformation": []
-                }
-            },
-            "6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600": {
-                "subTravelOptionId": "6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600",
-                "type": "flight",
-                "subTravelOptionKey": "NAG_BOM",
-                "sequenceToFlightIdMap": {
-                    "1": "6E-7695-NAG-HYD-1787669100",
-                    "2": "6E-5245-HYD-BOM-1787700600"
-                },
-                "fareAssocId": "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600",
-                "metaData": {
-                    "layoverInformation": []
-                }
+            "ef1aca914ab769cf9a7b7bbdb9700227": {
+                "benefitType": "SEAT",
+                "value": "PAID",
+                "description": "Paid",
+                "shortDescription": "Paid Seat",
+                "amount": 0
             }
         },
         "fares": {
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z53cvyNXNaXjPT7X9IvNyHAUUFwwFl0KsTqONjBfjD29zGda3O0wyMJkkJSHWy02pVKvmC+gdvqZ+5xivzqeOxBMlrmYI/aFPSA4tzsxM5UrGf3Fl7f8UhquRUR35vZQYf4uxTSZNBdaaUFv1elu2359bFY5jxn+icZ8fHaXv/oXKPRqPgHnyVA9yDHkOA4O05cwtctKtp3IvZr6ApI+CIXYEQ3hqwHXb0h6zR0a4knwxr3IvgVFK+n5ezCsbW0ypRGAlqt60yZhy4/VtHE0bvgpc++DMhWHJWhZk8PyBbC0SJCnAE+SDRFgRZI=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z53cvyNXNaXjPT7X9IvNyHAUUFwwFl0KsTqONjBfjD29zGda3O0wyMJkkJSHWy02pVKvmC+gdvqZ+5xivzqeOxBMlrmYI/aFPSA4tzsxM5UrGf3Fl7f8UhquRUR35vZQYf4uxTSZNBdaaUFv1elu2359bFY5jxn+icZ8fHaXv/oXKPRqPgHnyVA9yDHkOA4O05cwtctKtp3IvZr6ApI+CIXYEQ3hqwHXb0h6zR0a4knwxr3IvgVFK+n5ezCsbW0ypRGAlqt60yZhy4/VtHE0bvgpc++DMhWHJWhZk8PyBbC0SJCnAE+SDRFgRZI=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
+            "FARE_FAMILY__25/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI__AVN+Z51V3N2DP6tK5Ly2gHJtfkD8FqOWRapONExGphTmVLB6sgWmpMNyYQ72JGJnkAwSet+mjNPzlboPxvqko0t3ixHoENxf4pfTE+gW481Wptl8fW6oql/G6s8awCC0He8rMmwkMi0XheJ3+PR1hGE7mkVv3hb3tC5hk33NJ3CSMgY4eq2/5w6X4Fod3PS2h9Tni4fc6Z6leqQpUu6qLIhnpZ0iFS5JrRynp5ZjaSVu1nQhNul+tG6HcvmLSG8vLctKg5V5ZDMHnPOPAiVlewTnqKGKBt0=~~V3": {
                 "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 20708,
-                    "totalTax": 5590,
-                    "totalBaseFare": 15118,
-                    "totalPricePerAdult": 20708,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 7559,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2795,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "LU3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 29,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5259-HYD-BOM-1787659200",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "QUIP",
-                                    "rbd": "Q",
-                                    "availableSeatCount": 29,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
+                "penaltyIds": [
+                    "5828e11d34c82085be5f2ee4551d95e6"
                 ],
-                "data": {
-                    "CTC": 20708,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52KOBprlpMNMMHbwz/jCrHx/TH9mOhKV4yYC+giI/Pxpnb/D7nyOtm9iGIFbFOdqEDTKz28Tz6Q7AjM3E7I6eOKSBLv5BXbZmU/HIVLCL1FfKhAM99+yc+B0tgeIv+fhTXVVQW1ZaTvtdA5aL/6bWT2EkC+dTIhXsi6qbVGicHt476rXi6G5PIJ9UKEPFGjXnDXdfMq5/hVfr0M7WJux0P+nheBvV/TERrySXoMeEsNHkPg6yB6Pju+J3RhZFc9C8FkL1kr9nrClxra6QkSAWWMeEzcv8FsfDavq9HzDRvvfIZwW1YCW/rwirE=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52KOBprlpMNMMHbwz/jCrHx/TH9mOhKV4yYC+giI/Pxpnb/D7nyOtm9iGIFbFOdqEDTKz28Tz6Q7AjM3E7I6eOKSBLv5BXbZmU/HIVLCL1FfKhAM99+yc+B0tgeIv+fhTXVVQW1ZaTvtdA5aL/6bWT2EkC+dTIhXsi6qbVGicHt476rXi6G5PIJ9UKEPFGjXnDXdfMq5/hVfr0M7WJux0P+nheBvV/TERrySXoMeEsNHkPg6yB6Pju+J3RhZFc9C8FkL1kr9nrClxra6QkSAWWMeEzcv8FsfDavq9HzDRvvfIZwW1YCW/rwirE=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 19296,
-                    "totalTax": 5476,
-                    "totalBaseFare": 13820,
-                    "totalPricePerAdult": 19296,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6910,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2738,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "LU3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5245-HYD-BOM-1787700600",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "RUIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
+                "subTravelOptionBenefits": {
+                    "BLR_NAG": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "0302f198123a1bca662c7e244ab14d32",
+                                "046568b346f8ae54e3bd1dedd3e0a3ef",
+                                "5828e11d34c82085be5f2ee4551d95e6"
+                            ],
+                            "benefitIds": [
+                                "0d02e47132a139c314fcd95280b6ec2e",
+                                "27b38941e0985d11b6eb05be8bd0afa3"
+                            ],
+                            "flightBenefits": {
+                                "BLR_NAG": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
+                                        }
+                                    ]
                                 }
                             }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 19296,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z53eglvZA/XZiLJZ9K21xH6+5isaiD3WEuo1e5NraVny6Y7tARHe9x+wYyCnMayZP1PuV3+3hRQWsXLRO8ggkAdRFsHLBRCmme5ZRBv4vFFoq5yJehEykIMGwJVIYbpArFiHLkWYBhat50ZYsD5Jx6IF8m1n/2yAwsXG9oL/CvrMxMsw64Fm4lR6+mCCh6fEfm3wkg4lESPXP28BdLke9zMiXk202MAF0uk0MpYUN3MkiyRCBD4wqVQccgCjGAsFjpSnNpYmBhTBPlebJlukXwj+Nb+wwVLemR3GcAV1iMrVvHtgAVs+LFRWuvM=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z53eglvZA/XZiLJZ9K21xH6+5isaiD3WEuo1e5NraVny6Y7tARHe9x+wYyCnMayZP1PuV3+3hRQWsXLRO8ggkAdRFsHLBRCmme5ZRBv4vFFoq5yJehEykIMGwJVIYbpArFiHLkWYBhat50ZYsD5Jx6IF8m1n/2yAwsXG9oL/CvrMxMsw64Fm4lR6+mCCh6fEfm3wkg4lESPXP28BdLke9zMiXk202MAF0uk0MpYUN3MkiyRCBD4wqVQccgCjGAsFjpSnNpYmBhTBPlebJlukXwj+Nb+wwVLemR3GcAV1iMrVvHtgAVs+LFRWuvM=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 35794,
-                    "totalTax": 6794,
-                    "totalBaseFare": 29000,
-                    "totalPricePerAdult": 35794,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 14500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 3397,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "LL3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5245-HYD-BOM-1787700600",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "RLIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 35794,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51vxFjHrVEVIv78W2SKOQ3u7U9ORQRdQLaFYUwph5ae/Q49BuM7XsjVOXmsrmGdnPQ4McCrfJeHM/HSmnx2DvZEGQKlK125qPp8zHVFWm9I81BHggT5Xrabp9Utef8YVFl8ZPyZtzhLPkH2K6wYQFtr5MT/F5IkKKN/OLoka70pOZmocdtUHCKrf8WF0aD6kKR23JEGGaLhey1mVhX2v3Kn5y7FUYvKGW5X3SGGxgo4qRrYAwNweLfwg4FGvowmw7f9q8JY1mofqD9tb09NVMrejswm9su6ewmY06P/ZhzQxK6IyCNBOB5Yj64=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51vxFjHrVEVIv78W2SKOQ3u7U9ORQRdQLaFYUwph5ae/Q49BuM7XsjVOXmsrmGdnPQ4McCrfJeHM/HSmnx2DvZEGQKlK125qPp8zHVFWm9I81BHggT5Xrabp9Utef8YVFl8ZPyZtzhLPkH2K6wYQFtr5MT/F5IkKKN/OLoka70pOZmocdtUHCKrf8WF0aD6kKR23JEGGaLhey1mVhX2v3Kn5y7FUYvKGW5X3SGGxgo4qRrYAwNweLfwg4FGvowmw7f9q8JY1mofqD9tb09NVMrejswm9su6ewmY06P/ZhzQxK6IyCNBOB5Yj64=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 35794,
-                    "totalTax": 6794,
-                    "totalBaseFare": 29000,
-                    "totalPricePerAdult": 35794,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 14500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 3397,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "LL3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5143-HYD-BOM-1787693400",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "RLIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 35794,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51H925kViLpMq3wFtQuJyxhjFH6hhJMuOVL+bylagzncWFvPvI1RBGYvtVZEhzivAiqZ069ofsVWETw0PbzSAKC+Nbicng5COIsd/N15iW5LvYI7A8OFCkIGDlGnW8u/R91TeFUf1tF4I35UOb1alhhH+uVluRaYFy5dltQBowmnQTFUDxVEvdxtGYJlgwUYQc53dtQqMAkK+U+9+XyhYY1im6tS/eXS7+Yuls4JYzTu2upKJ3//AwIzXKtTNEic+LjMiUmmeAUyvUyBR8iErN4yCTRA8ZQ1pG7dJsGKjLfNm+BEssamUBxi8E=~~V3": {
-                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51H925kViLpMq3wFtQuJyxhjFH6hhJMuOVL+bylagzncWFvPvI1RBGYvtVZEhzivAiqZ069ofsVWETw0PbzSAKC+Nbicng5COIsd/N15iW5LvYI7A8OFCkIGDlGnW8u/R91TeFUf1tF4I35UOb1alhhH+uVluRaYFy5dltQBowmnQTFUDxVEvdxtGYJlgwUYQc53dtQqMAkK+U+9+XyhYY1im6tS/eXS7+Yuls4JYzTu2upKJ3//AwIzXKtTNEic+LjMiUmmeAUyvUyBR8iErN4yCTRA8ZQ1pG7dJsGKjLfNm+BEssamUBxi8E=~~V3",
-                "fareGroup": "REGULAR_FARE",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 18406,
-                    "totalTax": 5406,
-                    "totalBaseFare": 13000,
-                    "totalPricePerAdult": 18406,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2703,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "L03AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5143-HYD-BOM-1787693400",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "R0IP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 18406,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51ucnPYe7eX3IC+q3o3M5p1qMU2wTfYh28eEqV2hVtc5SneTpjJeLWyCcqXN9t5uSE58znF0Oz1SY+ChLvWgqjlpjX0JemIS3efznrl74g8Tq5kilMwVNqeMx4YHyxKN/ykjlH7XavppGvJLO60+2ARypHKhsyt+1jqQf1/Vq+fMBO+Ep8n+pNj0DyrP8Wo4oJnyASYtuK3YKl62vXtXv7aSVF33ZNO6aw3VW4HLH1Kr1KIEFwrzWPADCdVI3rCkYsZjYE4ArrkQTXRUa6Za3t7OT2D7OHZIsgYpf6vBVPjX8RVbJNtV2gq+ZU=~~V3": {
-                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51ucnPYe7eX3IC+q3o3M5p1qMU2wTfYh28eEqV2hVtc5SneTpjJeLWyCcqXN9t5uSE58znF0Oz1SY+ChLvWgqjlpjX0JemIS3efznrl74g8Tq5kilMwVNqeMx4YHyxKN/ykjlH7XavppGvJLO60+2ARypHKhsyt+1jqQf1/Vq+fMBO+Ep8n+pNj0DyrP8Wo4oJnyASYtuK3YKl62vXtXv7aSVF33ZNO6aw3VW4HLH1Kr1KIEFwrzWPADCdVI3rCkYsZjYE4ArrkQTXRUa6Za3t7OT2D7OHZIsgYpf6vBVPjX8RVbJNtV2gq+ZU=~~V3",
-                "fareGroup": "REGULAR_FARE",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 18712,
-                    "totalTax": 5430,
-                    "totalBaseFare": 13282,
-                    "totalPricePerAdult": 18712,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6641,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2715,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "L03AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 29,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5259-HYD-BOM-1787659200",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "Q0IP",
-                                    "rbd": "Q",
-                                    "availableSeatCount": 29,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 18712,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51/Ln5STwWnApW2YR2mEXW08Kt54bguCrE/cozYfi2tC+9Urpc27oO0F5j/R+Hv9wmHLJpbMXr9KMy45MEG9xzGRvCjRAnw2AMpHcPrDzLC0NeM0mbxYVnfHvAVOc7qKEbDBKz8vaaw4N+/2yt3EoTgYW1KF2ZG7DFLAgff9ZK9BGooiePjV1yWv65JIkn1jc6tm9/SbJdh7X6XVUk7/PVW0ngBs8a/EkNOP6NmMmm2rasSKxmbOmyQ+VR+fVm7UfOcYx8dcSSh7Z7YctD0B6hNWz4TfVPoaP7lUZ4yPf5UOW2xEruUvBC+XYM=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51/Ln5STwWnApW2YR2mEXW08Kt54bguCrE/cozYfi2tC+9Urpc27oO0F5j/R+Hv9wmHLJpbMXr9KMy45MEG9xzGRvCjRAnw2AMpHcPrDzLC0NeM0mbxYVnfHvAVOc7qKEbDBKz8vaaw4N+/2yt3EoTgYW1KF2ZG7DFLAgff9ZK9BGooiePjV1yWv65JIkn1jc6tm9/SbJdh7X6XVUk7/PVW0ngBs8a/EkNOP6NmMmm2rasSKxmbOmyQ+VR+fVm7UfOcYx8dcSSh7Z7YctD0B6hNWz4TfVPoaP7lUZ4yPf5UOW2xEruUvBC+XYM=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 35794,
-                    "totalTax": 6794,
-                    "totalBaseFare": 29000,
-                    "totalPricePerAdult": 35794,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 14500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 3397,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "LL3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5384-HYD-BOM-1787642700",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "RLIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 35794,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51Hxip6ESfMfQfup2soo/2KaaHhH7pyJFMowSe5NM8TIn/GFQx+g4R9+uTXAtivEs5Jd04EwNEDmpqjp1p66j9q8Wy+O0wQIl3ungXLYIEMm7+UXJcdaJeyzN99ZJFtpsSWj0+BYPNjFURMFIYj+z5rhXgWP/f2cvwyIn4Vuz86VMG0Twrt37z1lWNnXxD+6j3LFPOrSszgmahLigXjSNShv8wdjwgEh7kKvTkTIeEZ9wr5WHWayJAqxpLnZtEu+XnJUDRt/tOpKRXF7g4mC80ndEqFf2PJSmJm797vAu7Wc6k44HOjKEeUiuw=~~V3": {
-                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51Hxip6ESfMfQfup2soo/2KaaHhH7pyJFMowSe5NM8TIn/GFQx+g4R9+uTXAtivEs5Jd04EwNEDmpqjp1p66j9q8Wy+O0wQIl3ungXLYIEMm7+UXJcdaJeyzN99ZJFtpsSWj0+BYPNjFURMFIYj+z5rhXgWP/f2cvwyIn4Vuz86VMG0Twrt37z1lWNnXxD+6j3LFPOrSszgmahLigXjSNShv8wdjwgEh7kKvTkTIeEZ9wr5WHWayJAqxpLnZtEu+XnJUDRt/tOpKRXF7g4mC80ndEqFf2PJSmJm797vAu7Wc6k44HOjKEeUiuw=~~V3",
-                "fareGroup": "REGULAR_FARE",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 18406,
-                    "totalTax": 5406,
-                    "totalBaseFare": 13000,
-                    "totalPricePerAdult": 18406,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2703,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "L03AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5245-HYD-BOM-1787700600",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "R0IP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 18406,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z53DE/EDkrf4EOcN/uuMj9W5Hmjk1WEFASrO76awQ29ojOGhJFUua7AUx/z43qIe3km2F01FQVTFV25LlM1molR9Mhp9Z6ow/pZKOqLFnGrPYh6Wk0zSqJRNs35UuVYRqHwqedpf9xD7LyDTijPZBjEX/r2LqkbZ9wdp+jLX1sxGM/1JCERcuVGLIAbvUcFqWp3xeBmDkCy1S6YfuwIpwmMA+xygu1ky7lHc+bnzHGsZUGzPx1UuAHpH6zEIQ22m9LqPntnYVvJ4I5MUyORhcwx51Pbi2ZXHuTsjo1/4g7RAV+6K1bdbPrsCCNE=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z53DE/EDkrf4EOcN/uuMj9W5Hmjk1WEFASrO76awQ29ojOGhJFUua7AUx/z43qIe3km2F01FQVTFV25LlM1molR9Mhp9Z6ow/pZKOqLFnGrPYh6Wk0zSqJRNs35UuVYRqHwqedpf9xD7LyDTijPZBjEX/r2LqkbZ9wdp+jLX1sxGM/1JCERcuVGLIAbvUcFqWp3xeBmDkCy1S6YfuwIpwmMA+xygu1ky7lHc+bnzHGsZUGzPx1UuAHpH6zEIQ22m9LqPntnYVvJ4I5MUyORhcwx51Pbi2ZXHuTsjo1/4g7RAV+6K1bdbPrsCCNE=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 19296,
-                    "totalTax": 5476,
-                    "totalBaseFare": 13820,
-                    "totalPricePerAdult": 19296,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6910,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2738,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "LU3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5384-HYD-BOM-1787642700",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "RUIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 19296,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z503TtKQy4fOCIDzALqD+H4QWuEtPTLVNrAoPGbRQaGjAazNsvfbiBYFE4+JT6wa35BmCiNsVeTjEQTzkQDhevHpuFcaTykUCx04LUGD5pw7M6Keap6E2TaB76aOfxt3BGGyNNKDt4W87O5i5Zx4h3QJvuaFhDImRAItm7r7Z2vdSV542Fn/AfBgiSP8nmfDzhRdyHNbVn+iEfpYQ5jd4trFIP8CwM//4sQ7w1Q+s0vou/s2B8KDPYzYdfXtS2RRbxAvrKlcBXNqFqyqXRiT6Q2g5Zpu5xfyzo3yEhm15idh4lRwoBlHWe7PKqE=~~V3": {
-                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z503TtKQy4fOCIDzALqD+H4QWuEtPTLVNrAoPGbRQaGjAazNsvfbiBYFE4+JT6wa35BmCiNsVeTjEQTzkQDhevHpuFcaTykUCx04LUGD5pw7M6Keap6E2TaB76aOfxt3BGGyNNKDt4W87O5i5Zx4h3QJvuaFhDImRAItm7r7Z2vdSV542Fn/AfBgiSP8nmfDzhRdyHNbVn+iEfpYQ5jd4trFIP8CwM//4sQ7w1Q+s0vou/s2B8KDPYzYdfXtS2RRbxAvrKlcBXNqFqyqXRiT6Q2g5Zpu5xfyzo3yEhm15idh4lRwoBlHWe7PKqE=~~V3",
-                "fareGroup": "REGULAR_FARE",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 18406,
-                    "totalTax": 5406,
-                    "totalBaseFare": 13000,
-                    "totalPricePerAdult": 18406,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2703,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "L03AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5099-HYD-BOM-1787647500",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "R0IP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 18406,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51qjnIxyUvFJ0DBauW74xp3nPuOpYeGpgK4E7pAB78fccNK2DUAuDCDsU6BK7OZlWu7k0tkbgE8sSXHQIGMDdFtGTngA3+MpC2pBIxOKnh3BT7AiQ4ytkXSNnCWH/JZSazqh9u84ADcC146Han6ykyuHpGx3TJVLhv2qVBHowSZeNW8f8NMtysNG4YkJ/C5h2tx67RJY5B35rDbglY+/aq6p2eCY59eY348IAEZfTqlEAaWy88SMLc0/BLEk17qiyxCiJCCW2YxHGujzcWQPvaz1JKKYmHNvD2wP/SvrCvwIj+A4o2NIc/P6Rs=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51qjnIxyUvFJ0DBauW74xp3nPuOpYeGpgK4E7pAB78fccNK2DUAuDCDsU6BK7OZlWu7k0tkbgE8sSXHQIGMDdFtGTngA3+MpC2pBIxOKnh3BT7AiQ4ytkXSNnCWH/JZSazqh9u84ADcC146Han6ykyuHpGx3TJVLhv2qVBHowSZeNW8f8NMtysNG4YkJ/C5h2tx67RJY5B35rDbglY+/aq6p2eCY59eY348IAEZfTqlEAaWy88SMLc0/BLEk17qiyxCiJCCW2YxHGujzcWQPvaz1JKKYmHNvD2wP/SvrCvwIj+A4o2NIc/P6Rs=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 36100,
-                    "totalTax": 6818,
-                    "totalBaseFare": 29282,
-                    "totalPricePerAdult": 36100,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 14641,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 3409,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "LL3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5259-HYD-BOM-1787659200",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "QLIP",
-                                    "rbd": "Q",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 36100,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z510UsM/doffLU48bV6r8AP/q6bCTTj3CJtJm2wDZf+5mp7e70BGsLj4TP/uC8HZ8CiJvw/+sLjt/iVrwRARYoMliI7qRUdByIGXXalyNWrrIn20F+TG8L4V4K26214lNHIS/IkGDXejGZCFSuyqtQucS4h+kx03tS3uOAaup9fxs0RDBqxFfViPBXjsx3snVjztcBXgDIfgqsVP9uQp+kbzrMJPkL74Z2K4u71hQZ81RWcHLMFOPPmPb3U1W+9lxs5j6+QJnRpc/QlaE7ZfaNcQMUOm4Op5Zk8N5GOcEfiiPiKl0ONoO1XFeb0=~~V3": {
-                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z510UsM/doffLU48bV6r8AP/q6bCTTj3CJtJm2wDZf+5mp7e70BGsLj4TP/uC8HZ8CiJvw/+sLjt/iVrwRARYoMliI7qRUdByIGXXalyNWrrIn20F+TG8L4V4K26214lNHIS/IkGDXejGZCFSuyqtQucS4h+kx03tS3uOAaup9fxs0RDBqxFfViPBXjsx3snVjztcBXgDIfgqsVP9uQp+kbzrMJPkL74Z2K4u71hQZ81RWcHLMFOPPmPb3U1W+9lxs5j6+QJnRpc/QlaE7ZfaNcQMUOm4Op5Zk8N5GOcEfiiPiKl0ONoO1XFeb0=~~V3",
-                "fareGroup": "REGULAR_FARE",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 18406,
-                    "totalTax": 5406,
-                    "totalBaseFare": 13000,
-                    "totalPricePerAdult": 18406,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2703,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "L03AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            },
-                            {
-                                "flightId": "6E-6363-HYD-BOM-1787680800",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "R0IP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 18406,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52no5ROM6BcFPl9z0FUYIaodM0i2GuZMIr3072QAWpi5w48sZXw2ygJI+ZLmObnlE9UkeV1bReRRfWMfqnPyTi5FRjkHytrLv2ZJ6NZzX2Kf3HyQwxnaBuxCcmnNboX6ooGKrP/sQHNymDTU4ZX63Kfy3ghLXU5Gp5DHB0yJBrFvAvLDgKSe7BRPzbe/0ziZlV43vZQbIeFmHqMwBrPXd8Fv6svD+37zjjPNd/vVyTm0kgQjU34M8j/5kHX+ndMkvZdxLxFLTXnJjaLc9NKHeJQ9IopHotDx2USgatRBCssL3kVK/mdQQZM7AI=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52no5ROM6BcFPl9z0FUYIaodM0i2GuZMIr3072QAWpi5w48sZXw2ygJI+ZLmObnlE9UkeV1bReRRfWMfqnPyTi5FRjkHytrLv2ZJ6NZzX2Kf3HyQwxnaBuxCcmnNboX6ooGKrP/sQHNymDTU4ZX63Kfy3ghLXU5Gp5DHB0yJBrFvAvLDgKSe7BRPzbe/0ziZlV43vZQbIeFmHqMwBrPXd8Fv6svD+37zjjPNd/vVyTm0kgQjU34M8j/5kHX+ndMkvZdxLxFLTXnJjaLc9NKHeJQ9IopHotDx2USgatRBCssL3kVK/mdQQZM7AI=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 19296,
-                    "totalTax": 5476,
-                    "totalBaseFare": 13820,
-                    "totalPricePerAdult": 19296,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6910,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2738,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "LU3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5099-HYD-BOM-1787647500",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "RUIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 19296,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52QSG4ODrG6EHFrE4vpw029cu2XPHMcU95XXMGjwDM5d6VcmWXss3scNmVqcGJ1NHRtiE/6GLa4bohh/ZVfiokdfWZp9tLKITZsALpUgSZbejn7hlxSwdYnldAY7go5O75ZDhOqR1VcPa+GlTkNy1Bi9a8wL4WCGdgleJnHWQnWAM2LSLTSn0m4pmaAPIvTfeQ5CzKrnJop7/NvUlAweWkXVSvjdcwX3YZgGIjU5dO5Jt8LuTfFZfx91DZDnX6BD7lhehKFLuyF9wo7URasEjKWq1sfxoGW8Y5dL5bfDsfnQ/24kvi+bEQ76QM=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52QSG4ODrG6EHFrE4vpw029cu2XPHMcU95XXMGjwDM5d6VcmWXss3scNmVqcGJ1NHRtiE/6GLa4bohh/ZVfiokdfWZp9tLKITZsALpUgSZbejn7hlxSwdYnldAY7go5O75ZDhOqR1VcPa+GlTkNy1Bi9a8wL4WCGdgleJnHWQnWAM2LSLTSn0m4pmaAPIvTfeQ5CzKrnJop7/NvUlAweWkXVSvjdcwX3YZgGIjU5dO5Jt8LuTfFZfx91DZDnX6BD7lhehKFLuyF9wo7URasEjKWq1sfxoGW8Y5dL5bfDsfnQ/24kvi+bEQ76QM=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 19296,
-                    "totalTax": 5476,
-                    "totalBaseFare": 13820,
-                    "totalPricePerAdult": 19296,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6910,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2738,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "LU3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5143-HYD-BOM-1787693400",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "RUIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 19296,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51DGqE9/zhZbJEfKn4bW2sl/aTDtqkFW83Z4vTo9C07DYttIAJO5BDEDrC9A6+LLngTgP0owawBEynHVzvEcJpFu4GOx0uia6lBMmu6EHBU16OFwvTkoiZeVPZRvwQGek8ZE69uC4U2uMX+jbwFEVzNUCMfhQFi4sAfzGmIYuwQjXd+TJHGa7vePBMDxrYCr89weyNxFU0KPwI0p11JDcYDZ27fuB0oAleoxB31RBqciEfMtPWXhoPmbx6ymZUga0feLxYQRvHrFkaUdIkFciYpKDzA8OxTCkztVxLa10dTHvFWj/zTSeQnPNs=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51DGqE9/zhZbJEfKn4bW2sl/aTDtqkFW83Z4vTo9C07DYttIAJO5BDEDrC9A6+LLngTgP0owawBEynHVzvEcJpFu4GOx0uia6lBMmu6EHBU16OFwvTkoiZeVPZRvwQGek8ZE69uC4U2uMX+jbwFEVzNUCMfhQFi4sAfzGmIYuwQjXd+TJHGa7vePBMDxrYCr89weyNxFU0KPwI0p11JDcYDZ27fuB0oAleoxB31RBqciEfMtPWXhoPmbx6ymZUga0feLxYQRvHrFkaUdIkFciYpKDzA8OxTCkztVxLa10dTHvFWj/zTSeQnPNs=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 35794,
-                    "totalTax": 6794,
-                    "totalBaseFare": 29000,
-                    "totalPricePerAdult": 35794,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 14500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 3397,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "LL3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5099-HYD-BOM-1787647500",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "RLIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 35794,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z50a4JUMz/ecRGTbjPrqh2yxSzZg0/g19GbZhQnwor8TVqE1LKjuhXPAeycBXZswfOqivdRhJ/ZevOApuFdKgPcEkBelQfjHoMpy+W/uxWYvjj6s0NBDvJdd6/hzWQSF6ToLIWmc1lTeC+rRoBApb3w5sr6wGBGTo4YkBIYTSslBz3U6IOSu8KB801ZClNKmm80mYRUIX6xCP82lN9N8ReHF8AAoBZ1u5U82ykwbgqLIufjtsFkLm4O7rLbIDggiTKDy5lIuZ0CnLd1R7afaJYrx5P8a3HWN1TQvN/xCEAObfVnjQHYWME0miB8=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z50a4JUMz/ecRGTbjPrqh2yxSzZg0/g19GbZhQnwor8TVqE1LKjuhXPAeycBXZswfOqivdRhJ/ZevOApuFdKgPcEkBelQfjHoMpy+W/uxWYvjj6s0NBDvJdd6/hzWQSF6ToLIWmc1lTeC+rRoBApb3w5sr6wGBGTo4YkBIYTSslBz3U6IOSu8KB801ZClNKmm80mYRUIX6xCP82lN9N8ReHF8AAoBZ1u5U82ykwbgqLIufjtsFkLm4O7rLbIDggiTKDy5lIuZ0CnLd1R7afaJYrx5P8a3HWN1TQvN/xCEAObfVnjQHYWME0miB8=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 35794,
-                    "totalTax": 6794,
-                    "totalBaseFare": 29000,
-                    "totalPricePerAdult": 35794,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 14500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 3397,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "LL3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            },
-                            {
-                                "flightId": "6E-6363-HYD-BOM-1787680800",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "O",
-                                    "fareBasisCode": "RLIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 0,
-                                    "brandName": "INDIGO UPFRONT",
-                                    "brand": "INDIGO UPFRONT"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 35794,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z50ePGp6ggq085X1dCrYr/JExrHm7+4NNabIXcsrG1Gtbt/DL8fmJAAxAd8OfSeU8uHROX4O6ATr6r63mRUclZXWC0nQ/4wtNDUCjZl15y0bzBpUHUJ6yz3kL7l3F7IrantG0VgLydFaTpjKDwGpQiM+/ic8W5UShDUR5fcrV8cusCj1dhpS7NNJgrgNNWIhG/CXg+9u1aQPLMDSaB235SbxgK7h4vU1lpqtgJfxYV6xaLEJJ7pLaQImaWObNW7r1sa3DK+yZUaB015lPIyTL375rAfAgOwogvaAD9LdQ/jHGsDS8BCwsY0DfmY=~~V3": {
-                "fareId": "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z50ePGp6ggq085X1dCrYr/JExrHm7+4NNabIXcsrG1Gtbt/DL8fmJAAxAd8OfSeU8uHROX4O6ATr6r63mRUclZXWC0nQ/4wtNDUCjZl15y0bzBpUHUJ6yz3kL7l3F7IrantG0VgLydFaTpjKDwGpQiM+/ic8W5UShDUR5fcrV8cusCj1dhpS7NNJgrgNNWIhG/CXg+9u1aQPLMDSaB235SbxgK7h4vU1lpqtgJfxYV6xaLEJJ7pLaQImaWObNW7r1sa3DK+yZUaB015lPIyTL375rAfAgOwogvaAD9LdQ/jHGsDS8BCwsY0DfmY=~~V3",
-                "fareGroup": "REGULAR_FARE",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 18406,
-                    "totalTax": 5406,
-                    "totalBaseFare": 13000,
-                    "totalPricePerAdult": 18406,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6500,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2703,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7548-NAG-HYD-1787627100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "L03AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            },
-                            {
-                                "flightId": "6E-5384-HYD-BOM-1787642700",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "R",
-                                    "fareBasisCode": "R0IP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "REGULAR",
-                                    "brand": "REGULAR"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 18406,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            },
-            "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52mjT+BMw0I87gEePSCwNRy7X4Cr/K07BzVeYBfhKv74lL71jch0Qy63GQkNEyUDpQ47sJWQfj+LvhFzrKDa58JAznQ6cLKQFbHgJwVY1qAnWfgrx2x5BIiL8NMpQir2HpeOvDx/DMo80MOnbHIM68CMM5KJBxtwEQ8BkGF0QRrPT8Mwun1ehEi/PpEs4MJcu/m0DoCdHvhCG1HGWAWHwvKRbHtzV39teMmxmG11S/fES6kypMW5k46hiQJYiA9+nFudnzoG0UA3U0KgptITefOXaxjB4GSmcSJna5DRc9ePmM5XowweMvb1Q0=~~V3": {
-                "fareId": "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52mjT+BMw0I87gEePSCwNRy7X4Cr/K07BzVeYBfhKv74lL71jch0Qy63GQkNEyUDpQ47sJWQfj+LvhFzrKDa58JAznQ6cLKQFbHgJwVY1qAnWfgrx2x5BIiL8NMpQir2HpeOvDx/DMo80MOnbHIM68CMM5KJBxtwEQ8BkGF0QRrPT8Mwun1ehEi/PpEs4MJcu/m0DoCdHvhCG1HGWAWHwvKRbHtzV39teMmxmG11S/fES6kypMW5k46hiQJYiA9+nFudnzoG0UA3U0KgptITefOXaxjB4GSmcSJna5DRc9ePmM5XowweMvb1Q0=~~V3",
-                "fareGroup": "FARE_FAMILY",
-                "fareCategory": "RETAIL",
-                "benefitIds": [],
-                "penaltyIds": [],
-                "pricing": {
-                    "totalPrice": 19296,
-                    "totalTax": 5476,
-                    "totalBaseFare": 13820,
-                    "totalPricePerAdult": 19296,
-                    "fee": 0,
-                    "discount": 0,
-                    "otherCharges": 0
-                },
-                "subTravelOptionFare": [
-                    {
-                        "subTravelOptionKey": "NAG_BOM",
-                        "paxFare": [
-                            {
-                                "paxType": "ADT",
-                                "paxCount": 2,
-                                "priceComponents": [
-                                    {
-                                        "category": "BF",
-                                        "code": "",
-                                        "amount": 6910,
-                                        "currency": "INR"
-                                    },
-                                    {
-                                        "category": "TAX",
-                                        "code": "AIRLINE-MSC",
-                                        "amount": 2738,
-                                        "currency": "INR"
-                                    }
-                                ],
-                                "otherCharges": 0
-                            }
-                        ],
-                        "flightFare": [
-                            {
-                                "flightId": "6E-7695-NAG-HYD-1787669100",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "LU3AP",
-                                    "rbd": "L",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            },
-                            {
-                                "flightId": "6E-6363-HYD-BOM-1787680800",
-                                "baggageAllowances": [],
-                                "paxFares": null,
-                                "identifiers": {
-                                    "cabinType": "ECONOMY",
-                                    "fareClass": "J",
-                                    "fareBasisCode": "RUIP",
-                                    "rbd": "R",
-                                    "availableSeatCount": 3,
-                                    "brandName": "FLEXI",
-                                    "brand": "FLEXI"
-                                }
-                            }
-                        ],
-                        "revenue": 0
-                    }
-                ],
-                "data": {
-                    "CTC": 19296,
-                    "SUPPLIER": "S050"
-                },
-                "transitVisaRequired": false,
-                "refundable": true,
-                "checkInBaggageAllowed": true,
-                "requested": false
-            }
-        },
-        "fareAssociations": {
-            "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600": {
-                "fareAssocId": "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-5245-HYD-BOM-1787700600",
-                "totalFareAvailable": 3,
-                "fareIds": [
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52KOBprlpMNMMHbwz/jCrHx/TH9mOhKV4yYC+giI/Pxpnb/D7nyOtm9iGIFbFOdqEDTKz28Tz6Q7AjM3E7I6eOKSBLv5BXbZmU/HIVLCL1FfKhAM99+yc+B0tgeIv+fhTXVVQW1ZaTvtdA5aL/6bWT2EkC+dTIhXsi6qbVGicHt476rXi6G5PIJ9UKEPFGjXnDXdfMq5/hVfr0M7WJux0P+nheBvV/TERrySXoMeEsNHkPg6yB6Pju+J3RhZFc9C8FkL1kr9nrClxra6QkSAWWMeEzcv8FsfDavq9HzDRvvfIZwW1YCW/rwirE=~~V3",
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z53eglvZA/XZiLJZ9K21xH6+5isaiD3WEuo1e5NraVny6Y7tARHe9x+wYyCnMayZP1PuV3+3hRQWsXLRO8ggkAdRFsHLBRCmme5ZRBv4vFFoq5yJehEykIMGwJVIYbpArFiHLkWYBhat50ZYsD5Jx6IF8m1n/2yAwsXG9oL/CvrMxMsw64Fm4lR6+mCCh6fEfm3wkg4lESPXP28BdLke9zMiXk202MAF0uk0MpYUN3MkiyRCBD4wqVQccgCjGAsFjpSnNpYmBhTBPlebJlukXwj+Nb+wwVLemR3GcAV1iMrVvHtgAVs+LFRWuvM=~~V3",
-                    "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51Hxip6ESfMfQfup2soo/2KaaHhH7pyJFMowSe5NM8TIn/GFQx+g4R9+uTXAtivEs5Jd04EwNEDmpqjp1p66j9q8Wy+O0wQIl3ungXLYIEMm7+UXJcdaJeyzN99ZJFtpsSWj0+BYPNjFURMFIYj+z5rhXgWP/f2cvwyIn4Vuz86VMG0Twrt37z1lWNnXxD+6j3LFPOrSszgmahLigXjSNShv8wdjwgEh7kKvTkTIeEZ9wr5WHWayJAqxpLnZtEu+XnJUDRt/tOpKRXF7g4mC80ndEqFf2PJSmJm797vAu7Wc6k44HOjKEeUiuw=~~V3"
-                ]
-            },
-            "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700": {
-                "fareAssocId": "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5384-HYD-BOM-1787642700",
-                "totalFareAvailable": 3,
-                "fareIds": [
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z53DE/EDkrf4EOcN/uuMj9W5Hmjk1WEFASrO76awQ29ojOGhJFUua7AUx/z43qIe3km2F01FQVTFV25LlM1molR9Mhp9Z6ow/pZKOqLFnGrPYh6Wk0zSqJRNs35UuVYRqHwqedpf9xD7LyDTijPZBjEX/r2LqkbZ9wdp+jLX1sxGM/1JCERcuVGLIAbvUcFqWp3xeBmDkCy1S6YfuwIpwmMA+xygu1ky7lHc+bnzHGsZUGzPx1UuAHpH6zEIQ22m9LqPntnYVvJ4I5MUyORhcwx51Pbi2ZXHuTsjo1/4g7RAV+6K1bdbPrsCCNE=~~V3",
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51/Ln5STwWnApW2YR2mEXW08Kt54bguCrE/cozYfi2tC+9Urpc27oO0F5j/R+Hv9wmHLJpbMXr9KMy45MEG9xzGRvCjRAnw2AMpHcPrDzLC0NeM0mbxYVnfHvAVOc7qKEbDBKz8vaaw4N+/2yt3EoTgYW1KF2ZG7DFLAgff9ZK9BGooiePjV1yWv65JIkn1jc6tm9/SbJdh7X6XVUk7/PVW0ngBs8a/EkNOP6NmMmm2rasSKxmbOmyQ+VR+fVm7UfOcYx8dcSSh7Z7YctD0B6hNWz4TfVPoaP7lUZ4yPf5UOW2xEruUvBC+XYM=~~V3",
-                    "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z50ePGp6ggq085X1dCrYr/JExrHm7+4NNabIXcsrG1Gtbt/DL8fmJAAxAd8OfSeU8uHROX4O6ATr6r63mRUclZXWC0nQ/4wtNDUCjZl15y0bzBpUHUJ6yz3kL7l3F7IrantG0VgLydFaTpjKDwGpQiM+/ic8W5UShDUR5fcrV8cusCj1dhpS7NNJgrgNNWIhG/CXg+9u1aQPLMDSaB235SbxgK7h4vU1lpqtgJfxYV6xaLEJJ7pLaQImaWObNW7r1sa3DK+yZUaB015lPIyTL375rAfAgOwogvaAD9LdQ/jHGsDS8BCwsY0DfmY=~~V3"
-                ]
-            },
-            "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800": {
-                "fareAssocId": "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-6363-HYD-BOM-1787680800",
-                "totalFareAvailable": 3,
-                "fareIds": [
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52mjT+BMw0I87gEePSCwNRy7X4Cr/K07BzVeYBfhKv74lL71jch0Qy63GQkNEyUDpQ47sJWQfj+LvhFzrKDa58JAznQ6cLKQFbHgJwVY1qAnWfgrx2x5BIiL8NMpQir2HpeOvDx/DMo80MOnbHIM68CMM5KJBxtwEQ8BkGF0QRrPT8Mwun1ehEi/PpEs4MJcu/m0DoCdHvhCG1HGWAWHwvKRbHtzV39teMmxmG11S/fES6kypMW5k46hiQJYiA9+nFudnzoG0UA3U0KgptITefOXaxjB4GSmcSJna5DRc9ePmM5XowweMvb1Q0=~~V3",
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z50a4JUMz/ecRGTbjPrqh2yxSzZg0/g19GbZhQnwor8TVqE1LKjuhXPAeycBXZswfOqivdRhJ/ZevOApuFdKgPcEkBelQfjHoMpy+W/uxWYvjj6s0NBDvJdd6/hzWQSF6ToLIWmc1lTeC+rRoBApb3w5sr6wGBGTo4YkBIYTSslBz3U6IOSu8KB801ZClNKmm80mYRUIX6xCP82lN9N8ReHF8AAoBZ1u5U82ykwbgqLIufjtsFkLm4O7rLbIDggiTKDy5lIuZ0CnLd1R7afaJYrx5P8a3HWN1TQvN/xCEAObfVnjQHYWME0miB8=~~V3",
-                    "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z510UsM/doffLU48bV6r8AP/q6bCTTj3CJtJm2wDZf+5mp7e70BGsLj4TP/uC8HZ8CiJvw/+sLjt/iVrwRARYoMliI7qRUdByIGXXalyNWrrIn20F+TG8L4V4K26214lNHIS/IkGDXejGZCFSuyqtQucS4h+kx03tS3uOAaup9fxs0RDBqxFfViPBXjsx3snVjztcBXgDIfgqsVP9uQp+kbzrMJPkL74Z2K4u71hQZ81RWcHLMFOPPmPb3U1W+9lxs5j6+QJnRpc/QlaE7ZfaNcQMUOm4Op5Zk8N5GOcEfiiPiKl0ONoO1XFeb0=~~V3"
-                ]
-            },
-            "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500": {
-                "fareAssocId": "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5099-HYD-BOM-1787647500",
-                "totalFareAvailable": 3,
-                "fareIds": [
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52no5ROM6BcFPl9z0FUYIaodM0i2GuZMIr3072QAWpi5w48sZXw2ygJI+ZLmObnlE9UkeV1bReRRfWMfqnPyTi5FRjkHytrLv2ZJ6NZzX2Kf3HyQwxnaBuxCcmnNboX6ooGKrP/sQHNymDTU4ZX63Kfy3ghLXU5Gp5DHB0yJBrFvAvLDgKSe7BRPzbe/0ziZlV43vZQbIeFmHqMwBrPXd8Fv6svD+37zjjPNd/vVyTm0kgQjU34M8j/5kHX+ndMkvZdxLxFLTXnJjaLc9NKHeJQ9IopHotDx2USgatRBCssL3kVK/mdQQZM7AI=~~V3",
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51DGqE9/zhZbJEfKn4bW2sl/aTDtqkFW83Z4vTo9C07DYttIAJO5BDEDrC9A6+LLngTgP0owawBEynHVzvEcJpFu4GOx0uia6lBMmu6EHBU16OFwvTkoiZeVPZRvwQGek8ZE69uC4U2uMX+jbwFEVzNUCMfhQFi4sAfzGmIYuwQjXd+TJHGa7vePBMDxrYCr89weyNxFU0KPwI0p11JDcYDZ27fuB0oAleoxB31RBqciEfMtPWXhoPmbx6ymZUga0feLxYQRvHrFkaUdIkFciYpKDzA8OxTCkztVxLa10dTHvFWj/zTSeQnPNs=~~V3",
-                    "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z503TtKQy4fOCIDzALqD+H4QWuEtPTLVNrAoPGbRQaGjAazNsvfbiBYFE4+JT6wa35BmCiNsVeTjEQTzkQDhevHpuFcaTykUCx04LUGD5pw7M6Keap6E2TaB76aOfxt3BGGyNNKDt4W87O5i5Zx4h3QJvuaFhDImRAItm7r7Z2vdSV542Fn/AfBgiSP8nmfDzhRdyHNbVn+iEfpYQ5jd4trFIP8CwM//4sQ7w1Q+s0vou/s2B8KDPYzYdfXtS2RRbxAvrKlcBXNqFqyqXRiT6Q2g5Zpu5xfyzo3yEhm15idh4lRwoBlHWe7PKqE=~~V3"
-                ]
-            },
-            "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200": {
-                "fareAssocId": "NAG_BOM-6E-7548-NAG-HYD-1787627100__6E-5259-HYD-BOM-1787659200",
-                "totalFareAvailable": 3,
-                "fareIds": [
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z53cvyNXNaXjPT7X9IvNyHAUUFwwFl0KsTqONjBfjD29zGda3O0wyMJkkJSHWy02pVKvmC+gdvqZ+5xivzqeOxBMlrmYI/aFPSA4tzsxM5UrGf3Fl7f8UhquRUR35vZQYf4uxTSZNBdaaUFv1elu2359bFY5jxn+icZ8fHaXv/oXKPRqPgHnyVA9yDHkOA4O05cwtctKtp3IvZr6ApI+CIXYEQ3hqwHXb0h6zR0a4knwxr3IvgVFK+n5ezCsbW0ypRGAlqt60yZhy4/VtHE0bvgpc++DMhWHJWhZk8PyBbC0SJCnAE+SDRFgRZI=~~V3",
-                    "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51ucnPYe7eX3IC+q3o3M5p1qMU2wTfYh28eEqV2hVtc5SneTpjJeLWyCcqXN9t5uSE58znF0Oz1SY+ChLvWgqjlpjX0JemIS3efznrl74g8Tq5kilMwVNqeMx4YHyxKN/ykjlH7XavppGvJLO60+2ARypHKhsyt+1jqQf1/Vq+fMBO+Ep8n+pNj0DyrP8Wo4oJnyASYtuK3YKl62vXtXv7aSVF33ZNO6aw3VW4HLH1Kr1KIEFwrzWPADCdVI3rCkYsZjYE4ArrkQTXRUa6Za3t7OT2D7OHZIsgYpf6vBVPjX8RVbJNtV2gq+ZU=~~V3",
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51qjnIxyUvFJ0DBauW74xp3nPuOpYeGpgK4E7pAB78fccNK2DUAuDCDsU6BK7OZlWu7k0tkbgE8sSXHQIGMDdFtGTngA3+MpC2pBIxOKnh3BT7AiQ4ytkXSNnCWH/JZSazqh9u84ADcC146Han6ykyuHpGx3TJVLhv2qVBHowSZeNW8f8NMtysNG4YkJ/C5h2tx67RJY5B35rDbglY+/aq6p2eCY59eY348IAEZfTqlEAaWy88SMLc0/BLEk17qiyxCiJCCW2YxHGujzcWQPvaz1JKKYmHNvD2wP/SvrCvwIj+A4o2NIc/P6Rs=~~V3"
-                ]
-            },
-            "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400": {
-                "fareAssocId": "NAG_BOM-6E-7695-NAG-HYD-1787669100__6E-5143-HYD-BOM-1787693400",
-                "totalFareAvailable": 3,
-                "fareIds": [
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__FLEXI,FLEXI__AVN+Z52QSG4ODrG6EHFrE4vpw029cu2XPHMcU95XXMGjwDM5d6VcmWXss3scNmVqcGJ1NHRtiE/6GLa4bohh/ZVfiokdfWZp9tLKITZsALpUgSZbejn7hlxSwdYnldAY7go5O75ZDhOqR1VcPa+GlTkNy1Bi9a8wL4WCGdgleJnHWQnWAM2LSLTSn0m4pmaAPIvTfeQ5CzKrnJop7/NvUlAweWkXVSvjdcwX3YZgGIjU5dO5Jt8LuTfFZfx91DZDnX6BD7lhehKFLuyF9wo7URasEjKWq1sfxoGW8Y5dL5bfDsfnQ/24kvi+bEQ76QM=~~V3",
-                    "FARE_FAMILY__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT,INDIGO UPFRONT__AVN+Z51vxFjHrVEVIv78W2SKOQ3u7U9ORQRdQLaFYUwph5ae/Q49BuM7XsjVOXmsrmGdnPQ4McCrfJeHM/HSmnx2DvZEGQKlK125qPp8zHVFWm9I81BHggT5Xrabp9Utef8YVFl8ZPyZtzhLPkH2K6wYQFtr5MT/F5IkKKN/OLoka70pOZmocdtUHCKrf8WF0aD6kKR23JEGGaLhey1mVhX2v3Kn5y7FUYvKGW5X3SGGxgo4qRrYAwNweLfwg4FGvowmw7f9q8JY1mofqD9tb09NVMrejswm9su6ewmY06P/ZhzQxK6IyCNBOB5Yj64=~~V3",
-                    "REGULAR__25/08/2026__6E^6E__6E^6E__NAG_BOM__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR,REGULAR__AVN+Z51H925kViLpMq3wFtQuJyxhjFH6hhJMuOVL+bylagzncWFvPvI1RBGYvtVZEhzivAiqZ069ofsVWETw0PbzSAKC+Nbicng5COIsd/N15iW5LvYI7A8OFCkIGDlGnW8u/R91TeFUf1tF4I35UOb1alhhH+uVluRaYFy5dltQBowmnQTFUDxVEvdxtGYJlgwUYQc53dtQqMAkK+U+9+XyhYY1im6tS/eXS7+Yuls4JYzTu2upKJ3//AwIzXKtTNEic+LjMiUmmeAUyvUyBR8iErN4yCTRA8ZQ1pG7dJsGKjLfNm+BEssamUBxi8E=~~V3"
-                ]
-            }
-        },
-        "travelOptionIdsToFareIdsMap": {},
-        "metaData": {
-            "airlineDetail": {
-                "airlines": {
-                    "6E": {
-                        "code": "6E",
-                        "name": "IndiGo"
+                        }
                     }
                 }
             },
-            "airportDetail": {
-                "airports": {
-                    "BOM": {
-                        "code": "BOM",
-                        "name": "Chatrapati Shivaji Airport",
-                        "city": "Mumbai",
-                        "country": "India",
-                        "countryCode": "IN"
-                    },
-                    "HYD": {
-                        "code": "HYD",
-                        "name": "Rajiv Gandhi International",
-                        "city": "Hyderabad",
-                        "country": "India",
-                        "countryCode": "IN"
-                    },
-                    "NAG": {
-                        "code": "NAG",
-                        "name": "Dr. Babasaheb Ambedkar",
-                        "city": "Nagpur",
-                        "country": "India",
-                        "countryCode": "IN"
+            "FARE_FAMILY__25/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__INDIGO UPFRONT__AVN+Z51As5rq1MlPW18GpDlyE+bMfYbThNKdV0hjuSgpXAIsRORfJ7Rw72o5BjHSmmqEMIjNUgZq97HWxl1Z2Yx5MU7kZkTgaI2soNh2C/bqbO5H0Wu+Y4rO8FZ3sjiEkkchn4CAYmiY32/ATwZep8IHBHpOLQ6iOfV1na61KFohg8wQ3zTIw725FJO/XiVtCBZKMgk8JRRQFBV7QHXyWfjZm9jmrAlDSnqWxTFdkun0e2pX4aX63/lYuizpUFDOjk4GwhoQLe5XwLY85l4D5JNzFQnqQYI=~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "f200f7fe11f44fb5a17aa14cd29a8b15"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_NAG": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "050d62543e8ed307037064e0db074803",
+                                "b8c469057956db891e1b54abdd9f226e",
+                                "f200f7fe11f44fb5a17aa14cd29a8b15"
+                            ],
+                            "benefitIds": [
+                                "0d02e47132a139c314fcd95280b6ec2e",
+                                "27b38941e0985d11b6eb05be8bd0afa3"
+                            ],
+                            "flightBenefits": {
+                                "BLR_NAG": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "c74bc80af43c5b6b951704e9ee64ec10"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "REGULAR__25/08/2026__6E__6E__BLR_NAG__true__RETAIL__E__DOM__OW__UNKNOWN__S050__REGULAR__AVN+Z504/7DZ3f1+X8SCW0rZVtmiQjgs3ATey8WHbbXXMllfI6mylnTbWfJ6JYP2Oq6qOS9D8ENLiAAyNfODH0cVXolZNu+nplXBvTapu34JcUUwmjxAwcQkL48U9Q67bDV6RgmJRv7HfPUm2LbkCMDENOXZjLTYklTZM2HV+McWwnFnc7+YnkgcHBR14QNRojdbsfTRHv2BX5nFFZHwEUWpGG++8xyAqA0neTJ2D/jPh5HTO38epZDxawUxreMWryz7uuu7Euvhmryrb+la3HD8Rd+25cE=~~V3": {
+                "benefitIds": [],
+                "penaltyIds": [
+                    "a5a593cf1b324579690d05c8e9a69943"
+                ],
+                "subTravelOptionBenefits": {
+                    "BLR_NAG": {
+                        "benefits": {
+                            "penaltyIds": [
+                                "9ac2a0264d313008882ad353409d580a",
+                                "ecdcef4b85d8c6d9bbe1821b5f6edb8e",
+                                "a5a593cf1b324579690d05c8e9a69943"
+                            ],
+                            "benefitIds": [
+                                "ef1aca914ab769cf9a7b7bbdb9700227",
+                                "c4dc95e02115dd97155a99031cb89b60"
+                            ],
+                            "flightBenefits": {
+                                "BLR_NAG": {
+                                    "benefitIds": [],
+                                    "baggageAllowances": [
+                                        {
+                                            "paxType": "ADT",
+                                            "baggageAllowanceId": "acd372200d87083dfd31172adfa65d95"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
+        },
+        "errors": []
     }
 }
