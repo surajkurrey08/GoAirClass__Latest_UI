@@ -23,6 +23,92 @@ function getPageNumbers(current, total) {
     return pages;
 }
 
+/* ── Timezone-safe time formatter (extracts exact local flight scheduled HH:mm) ── */
+export const formatFlightTime = (timeStr) => {
+    if (!timeStr) return '--:--';
+    if (typeof timeStr === 'string') {
+        const tMatch = timeStr.match(/T(\d{2}:\d{2})/i) || timeStr.match(/\s(\d{2}:\d{2})/) || timeStr.match(/^(\d{2}:\d{2})/);
+        if (tMatch) return tMatch[1];
+    }
+    try {
+        const d = new Date(timeStr);
+        if (!isNaN(d.getTime())) {
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+    } catch {}
+    return String(timeStr);
+};
+
+/* ── Timezone-safe date formatter ── */
+export const formatFlightDate = (timeStr, style = 'short') => {
+    if (!timeStr) return '';
+    if (typeof timeStr === 'string') {
+        const dMatch = timeStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (dMatch) {
+            const year = dMatch[1];
+            const monthNum = parseInt(dMatch[2], 10) - 1;
+            const day = parseInt(dMatch[3], 10);
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthsLong = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const month = style === 'long' || style === 'full' ? monthsLong[monthNum] : monthsShort[monthNum];
+            if (style === 'short') return `${day} ${month || ''}`;
+            if (style === 'long' || style === 'full') return `${day} ${month || ''}, ${year}`;
+            return `${day} ${month || ''}`;
+        }
+    }
+    try {
+        const d = new Date(timeStr);
+        if (!isNaN(d.getTime())) {
+            if (style === 'short') return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+    } catch {}
+    return '';
+};
+
+/* ── Terminal extractor helper ── */
+export const parseTerminalName = (termData) => {
+    if (!termData) return '';
+    if (typeof termData === 'string' || typeof termData === 'number') {
+        const val = String(termData).trim();
+        if (!val || val === 'null' || val === 'undefined') return '';
+        if (val.toLowerCase().startsWith('terminal')) return val;
+        if (/^t\d+/i.test(val)) return `Terminal ${val.substring(1)}`;
+        return `Terminal ${val}`;
+    }
+    if (typeof termData === 'object') {
+        const val = termData.name ?? termData.code ?? termData.number ?? termData.terminalName ?? termData.terminal ?? termData.id ?? '';
+        if (val === undefined || val === null) return '';
+        const clean = String(val).trim();
+        if (!clean || clean === 'null' || clean === 'undefined') return '';
+        if (clean.toLowerCase().startsWith('terminal')) return clean;
+        if (/^t\d+/i.test(clean)) return `Terminal ${clean.substring(1)}`;
+        return `Terminal ${clean}`;
+    }
+    return '';
+};
+
+/* ── Duration calculation and formatting helpers ── */
+export const getDurationMinutes = (departureStr, arrivalStr) => {
+    if (!departureStr || !arrivalStr) return 0;
+    try {
+        const start = new Date(departureStr);
+        const end = new Date(arrivalStr);
+        const diffMs = end - start;
+        if (!isNaN(diffMs) && diffMs > 0) {
+            return Math.floor(diffMs / (1000 * 60));
+        }
+    } catch {}
+    return 0;
+};
+
+export const formatDuration = (mins) => {
+    if (!mins || mins <= 0) return '2h 0m';
+    const hrs = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${hrs}h ${m}m`;
+};
+
 /* ── Inline top search bar — lets the user re-search a route/date right
    here, without navigating back to /flights. Updating searchParams
    re-triggers the existing fetchFlightsData() effect below, so the
@@ -631,8 +717,13 @@ export default function FlightListPage() {
 
                             const origAirportObj = airportsDict[origCode];
                             const destAirportObj = airportsDict[destCode];
+                            const originCity = origAirportObj?.city || origAirportObj?.cityName || origCode;
+                            const destinationCity = destAirportObj?.city || destAirportObj?.cityName || destCode;
                             const originAirportName = origAirportObj ? `${origAirportObj.name || origAirportObj.cityName || origCode}, ${origAirportObj.city || origAirportObj.cityName || ''}` : `${origCode} Airport`;
                             const destinationAirportName = destAirportObj ? `${destAirportObj.name || destAirportObj.cityName || destCode}, ${destAirportObj.city || destAirportObj.cityName || ''}` : `${destCode} Airport`;
+
+                            const depTerminal = parseTerminalName(flt.departureAirport?.terminal || flt.departureAirport?.terminalName || flt.departureTerminal || flt.terminal);
+                            const arrTerminal = parseTerminalName(flt.arrivalAirport?.terminal || flt.arrivalAirport?.terminalName || flt.arrivalTerminal);
 
                             return {
                                 id: fId,
@@ -641,8 +732,21 @@ export default function FlightListPage() {
                                 airlineName,
                                 origin: origCode,
                                 destination: destCode,
+                                originCity,
+                                destinationCity,
+                                origCity: originCity,
+                                destCity: destinationCity,
                                 departureDateTime: origTime,
                                 arrivalDateTime: destTime,
+                                departureTime: origTime,
+                                arrivalTime: destTime,
+                                departureTerminal: depTerminal,
+                                arrivalTerminal: arrTerminal,
+                                originTerminal: depTerminal,
+                                destinationTerminal: arrTerminal,
+                                terminal: depTerminal || arrTerminal || '',
+                                departureZoneId: flt.departureAirport?.zoneId || 'Asia/Kolkata',
+                                arrivalZoneId: flt.arrivalAirport?.zoneId || 'Asia/Kolkata',
                                 duration: durationStr || '2h 0m',
                                 originAirportName,
                                 destinationAirportName,
@@ -799,12 +903,19 @@ export default function FlightListPage() {
     // Unique airlines for filters
     const uniqueAirlines = [...new Set(flights.map(f => f.airlineName || 'Airline'))];
 
-    // Helper to extract hour from date string
+    // Helper to extract hour from date string safely
     const getHour = (dateTimeStr) => {
         if (!dateTimeStr) return 0;
+        if (typeof dateTimeStr === 'string') {
+            const match = dateTimeStr.match(/T(\d{2}):/i) || dateTimeStr.match(/\s(\d{2}):/) || dateTimeStr.match(/^(\d{2}):/);
+            if (match) {
+                return parseInt(match[1], 10);
+            }
+        }
         try {
-            return new Date(dateTimeStr).getHours();
-        } catch (e) {
+            const d = new Date(dateTimeStr);
+            return isNaN(d.getTime()) ? 0 : d.getHours();
+        } catch {
             return 0;
         }
     };
@@ -1104,9 +1215,14 @@ export default function FlightListPage() {
                 outboundSegmentsCount: selectedOutbound.segments.length
             };
 
+            if (createdLegSessionId) {
+                sessionStorage.setItem('flight_session_id', createdLegSessionId);
+            }
+
             navigate('/flight/booking-details', {
                 state: {
                     flight: combinedFlight,
+                    sessionId: createdLegSessionId,
                     searchId,
                     dataId,
                     adultsCount,
@@ -1119,9 +1235,14 @@ export default function FlightListPage() {
             const childrenCount = Number(searchParams.get('children')) || 0;
             const infantsCount = Number(searchParams.get('infants')) || 0;
 
+            if (createdLegSessionId) {
+                sessionStorage.setItem('flight_session_id', createdLegSessionId);
+            }
+
             navigate('/flight/booking-details', {
                 state: {
-                    flight,
+                    flight: flightWithSession,
+                    sessionId: createdLegSessionId,
                     searchId,
                     dataId,
                     adultsCount,
@@ -1161,7 +1282,8 @@ export default function FlightListPage() {
                     bDetails.forEach(b => {
                         const bagType = b.type === 'BAGGAGE_CABIN' || b.type === 'Cabin' ? 'Cabin' : 'Check-in';
                         const spec = b.allowedBaggages?.[0] || {};
-                        const weight = spec.quantity !== undefined ? `${spec.quantity} ${spec.unit || 'KG'}` : 'Policy Info';
+                        const pieceStr = spec.piece ? ` (${spec.piece} Piece${spec.piece > 1 ? 's' : ''})` : '';
+                        const weight = spec.quantity !== undefined ? `${spec.quantity} ${spec.unit || 'KG'}${pieceStr}` : 'Policy Info';
                         baggageList.push({ type: bagType, weight });
                     });
                 }
@@ -1281,10 +1403,10 @@ export default function FlightListPage() {
     };
 
     // Booking auth gate ------------------------------------------------------
-    // If your app stores the auth token under a different key, add it here.
     const isUserLoggedIn = () => {
-        const hasToken = !!localStorage.getItem('token') || !!sessionStorage.getItem('token');
-        const explicitLoginFlag = localStorage.getItem('isLoggedIn') === 'true';
+        const authKeys = ['token', 'accessToken', 'authToken', 'jwt', 'userToken', 'user'];
+        const hasToken = authKeys.some(key => !!localStorage.getItem(key) || !!sessionStorage.getItem(key));
+        const explicitLoginFlag = localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true';
         return hasToken || explicitLoginFlag;
     };
 
@@ -2198,19 +2320,26 @@ export default function FlightListPage() {
                         const airlineName = flight.airlineName || 'Airline';
 
                         const getFormattedTime = (dateStr) => {
-                            if (!dateStr) return '--:--';
-                            const date = new Date(dateStr);
-                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            return formatFlightTime(dateStr);
                         };
 
                         const getDurationMinutes = (departureStr, arrivalStr) => {
                             if (!departureStr || !arrivalStr) return 0;
-                            return Math.floor((new Date(arrivalStr) - new Date(departureStr)) / (1000 * 60));
+                            try {
+                                const start = new Date(departureStr);
+                                const end = new Date(arrivalStr);
+                                const diffMs = end - start;
+                                if (!isNaN(diffMs) && diffMs > 0) {
+                                    return Math.floor(diffMs / (1000 * 60));
+                                }
+                            } catch {}
+                            return 0;
                         };
 
                         const totalDurationMins = getDurationMinutes(primarySegment.departureDateTime, lastSegment.arrivalDateTime);
 
                         const formatDuration = (mins) => {
+                            if (!mins || mins <= 0) return primarySegment.duration || '2h 0m';
                             const hrs = Math.floor(mins / 60);
                             const m = mins % 60;
                             return `${hrs}h ${m}m`;
@@ -2224,7 +2353,7 @@ export default function FlightListPage() {
                                 className="bg-white rounded-lg border border-[#c9dcff] transition-all duration-200 overflow-hidden shadow-sm hover:shadow-md hover:border-[#8fb5ff] cursor-pointer"
                                 onClick={() => handleCardClick(flight)}
                             >
-                                <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.75fr_0.82fr] items-center px-5 py-3.5 gap-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.85fr_0.85fr] items-center px-5 py-3.5 gap-4">
                                     {/* Airline Info */}
                                     <div className="flex items-center gap-2.5">
                                         <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center border border-slate-200 overflow-hidden shrink-0 shadow-sm">
@@ -2243,15 +2372,22 @@ export default function FlightListPage() {
                                     </div>
 
                                     {/* Journey Timing */}
-                                    <div className="flex items-center justify-around px-1 gap-2">
-                                        <div className="text-left">
-                                            <h3 className="text-lg font-extrabold text-slate-950 leading-tight">{getFormattedTime(primarySegment.departureDateTime)}</h3>
-                                            <span className="text-xs text-slate-500 font-semibold uppercase">{primarySegment.origin}</span>
+                                    <div className="flex items-center justify-between px-2 gap-3 w-full">
+                                        <div className="text-left flex flex-col items-start min-w-[80px]">
+                                            <h3 className="text-xl font-black text-slate-950 leading-none">{getFormattedTime(primarySegment.departureDateTime)}</h3>
+                                            <div className="flex items-center gap-1.5 mt-1.5 flex-nowrap">
+                                                <span className="text-xs font-black text-slate-800 uppercase tracking-wide">{primarySegment.origin}</span>
+                                                {primarySegment.departureTerminal && (
+                                                    <span className="inline-flex items-center text-[10px] font-bold text-[#00206B] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded whitespace-nowrap shadow-2xs">
+                                                        {primarySegment.departureTerminal}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <div className="flex flex-col items-center w-28 md:w-36 shrink-0">
-                                            <span className="text-[11px] text-slate-500 mb-0.5">{formatDuration(totalDurationMins)}</span>
-                                            <div className="relative w-full h-[1px] bg-slate-300 my-0.5">
+                                        <div className="flex flex-col items-center flex-1 max-w-[140px] px-2 shrink-0">
+                                            <span className="text-[11px] font-medium text-slate-500 mb-0.5">{formatDuration(totalDurationMins)}</span>
+                                            <div className="relative w-full h-[1px] bg-slate-300 my-1">
                                                 <div className="absolute top-1/2 left-0 w-1.5 h-1.5 rounded-full bg-[#1d4fbd] -translate-y-1/2"></div>
                                                 {segments.length > 1 && (
                                                     <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full bg-[#1d4fbd] -translate-x-1/2 -translate-y-1/2"></div>
@@ -2263,9 +2399,16 @@ export default function FlightListPage() {
                                             </span>
                                         </div>
 
-                                        <div className="text-right">
-                                            <h3 className="text-lg font-extrabold text-slate-950 leading-tight">{getFormattedTime(lastSegment.arrivalDateTime)}</h3>
-                                            <span className="text-xs text-slate-500 font-semibold uppercase">{lastSegment.destination}</span>
+                                        <div className="text-right flex flex-col items-end min-w-[80px]">
+                                            <h3 className="text-xl font-black text-slate-950 leading-none">{getFormattedTime(lastSegment.arrivalDateTime)}</h3>
+                                            <div className="flex items-center justify-end gap-1.5 mt-1.5 flex-nowrap">
+                                                {lastSegment.arrivalTerminal && (
+                                                    <span className="inline-flex items-center text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded whitespace-nowrap shadow-2xs">
+                                                        {lastSegment.arrivalTerminal}
+                                                    </span>
+                                                )}
+                                                <span className="text-xs font-black text-slate-800 uppercase tracking-wide">{lastSegment.destination}</span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -2431,7 +2574,6 @@ export default function FlightListPage() {
                                         {[
                                             ['preview-overview', 'Overview'],
                                             ['preview-information', 'Info'],
-                                            ['preview-baggage', 'Baggage'],
                                             ['preview-route', 'Route'],
                                             ...(availableFares.length > 1 ? [['preview-fares', 'Fares']] : []),
                                             ['preview-summary', 'Summary'],
@@ -2477,18 +2619,27 @@ export default function FlightListPage() {
                                         <div hidden={activePreviewSection !== 'preview-overview'} className="bg-slate-50/60 p-5 border border-slate-100 rounded-none flex items-center justify-between shadow-2xs">
                                             <div className="text-left flex-1">
                                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                                    {new Date(previewFlight.segments?.[0]?.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {formatFlightTime(previewFlight.segments?.[0]?.departureDateTime)}
                                                     <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm">
-                                                        {new Date(previewFlight.segments?.[0]?.departureDateTime).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                                        {formatFlightDate(previewFlight.segments?.[0]?.departureDateTime, 'short')}
                                                     </span>
                                                 </h3>
-                                                <span className="text-sm font-black text-slate-900 uppercase block mt-0.5">{previewFlight.segments?.[0]?.origin}</span>
-                                                <span className="text-[11px] text-slate-500 font-medium block mt-0.5 line-clamp-1">{previewFlight.segments?.[0]?.originAirportName}</span>
+                                                <div className="flex items-center gap-1.5 mt-0.5">
+                                                    <span className="text-sm font-black text-slate-900 uppercase block">{previewFlight.segments?.[0]?.origin}</span>
+                                                    {previewFlight.segments?.[0]?.departureTerminal && (
+                                                        <span className="text-[10px] font-extrabold bg-blue-50 text-[#00206B] border border-blue-200 px-1.5 py-0.2 rounded">
+                                                            {previewFlight.segments[0].departureTerminal}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-[11px] text-slate-500 font-medium block mt-0.5 line-clamp-1">
+                                                    {previewFlight.segments?.[0]?.originAirportName}{previewFlight.segments?.[0]?.departureTerminal ? ` • ${previewFlight.segments[0].departureTerminal}` : ''}
+                                                </span>
                                             </div>
 
                                             <div className="flex flex-col items-center flex-1 max-w-[220px] px-4">
                                                 <span className="text-xs text-slate-500 font-medium mb-1">
-                                                    {Math.floor(Math.floor((new Date(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime) - new Date(previewFlight.segments?.[0]?.departureDateTime)) / (1000 * 60)) / 60)}h {Math.floor((new Date(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime) - new Date(previewFlight.segments?.[0]?.departureDateTime)) / (1000 * 60)) % 60}m
+                                                    {formatDuration(getDurationMinutes(previewFlight.segments?.[0]?.departureDateTime, previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime))}
                                                 </span>
                                                 <div className="relative w-full h-[2px] bg-slate-200 my-1">
                                                     <div className="absolute top-1/2 left-0 w-2 h-2 rounded-none bg-[#d8942f] -translate-y-1/2"></div>
@@ -2505,12 +2656,21 @@ export default function FlightListPage() {
                                             <div className="text-right flex-1">
                                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-end gap-2">
                                                     <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm">
-                                                        {new Date(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                                        {formatFlightDate(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime, 'short')}
                                                     </span>
-                                                    {new Date(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {formatFlightTime(previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalDateTime)}
                                                 </h3>
-                                                <span className="text-sm font-black text-slate-900 uppercase block mt-0.5">{previewFlight.segments?.[previewFlight.segments.length - 1]?.destination}</span>
-                                                <span className="text-[11px] text-slate-500 font-medium block mt-0.5 line-clamp-1">{previewFlight.segments?.[previewFlight.segments.length - 1]?.destinationAirportName}</span>
+                                                <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                                                    {previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalTerminal && (
+                                                        <span className="text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded">
+                                                            {previewFlight.segments[previewFlight.segments.length - 1].arrivalTerminal}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-sm font-black text-slate-900 uppercase block">{previewFlight.segments?.[previewFlight.segments.length - 1]?.destination}</span>
+                                                </div>
+                                                <span className="text-[11px] text-slate-500 font-medium block mt-0.5 line-clamp-1">
+                                                    {previewFlight.segments?.[previewFlight.segments.length - 1]?.destinationAirportName}{previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalTerminal ? ` • ${previewFlight.segments[previewFlight.segments.length - 1].arrivalTerminal}` : ''}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -2552,59 +2712,24 @@ export default function FlightListPage() {
                                                     <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">TRIP TYPE</span>
                                                     <strong className="text-sm text-slate-900 font-bold">{previewFlight.segments?.length > 1 ? 'Multi-City' : 'One Way'}</strong>
                                                 </div>
+                                                {previewFlight.segments?.[0]?.departureTerminal && (
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">DEPARTURE TERMINAL</span>
+                                                        <strong className="text-sm text-[#00206B] font-extrabold">{previewFlight.segments[0].departureTerminal}</strong>
+                                                    </div>
+                                                )}
+                                                {previewFlight.segments?.[previewFlight.segments.length - 1]?.arrivalTerminal && (
+                                                    <div>
+                                                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">ARRIVAL TERMINAL</span>
+                                                        <strong className="text-sm text-emerald-800 font-extrabold">{previewFlight.segments[previewFlight.segments.length - 1].arrivalTerminal}</strong>
+                                                    </div>
+                                                )}
                                                 {previewFlight.segments?.[0]?.availableSeats && (
                                                     <div>
                                                         <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">SEATS AVAILABLE</span>
                                                         <strong className="text-sm text-red-600 font-bold">⚠️ {previewFlight.segments[0].availableSeats} seat(s) left</strong>
                                                     </div>
                                                 )}
-                                            </div>
-                                        </div>
-
-                                        {/* 4. Baggage Allowance Section */}
-                                        <div id="preview-baggage" hidden={activePreviewSection !== 'preview-baggage'} className="scroll-mt-14">
-                                            <div className="flex items-center gap-2 text-[#00206B] font-bold text-xs uppercase tracking-wider mb-3">
-                                                <div className="w-5 h-5 rounded-none bg-blue-50 flex items-center justify-center">
-                                                    <Luggage className="w-3.5 h-3.5 text-[#00206B]" />
-                                                </div>
-                                                <span>BAGGAGE ALLOWANCE</span>
-                                            </div>
-                                            <div className="bg-slate-50/40 border border-slate-100 rounded-none p-4 flex flex-col gap-3">
-                                                {/* Cabin Baggage Row */}
-                                                <div className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-none shadow-2xs">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-none bg-amber-100/70 text-amber-600 flex items-center justify-center font-bold">
-                                                            <Luggage className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-bold text-xs text-slate-900">Cabin Baggage</div>
-                                                            <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                                                {previewFlight.segments?.[0]?.cabinBaggage ? `${previewFlight.segments[0].cabinBaggage} • 55cm x 35cm x 25cm` : 'As per Airline Policy'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="font-bold text-xs text-slate-900 bg-slate-50 px-3.5 py-1.5 rounded-none border border-slate-200">
-                                                        {previewFlight.segments?.[0]?.cabinBaggage || 'As per Airline Policy'}
-                                                    </div>
-                                                </div>
-
-                                                {/* Check-in Baggage Row */}
-                                                <div className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-none shadow-2xs">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-none bg-sky-100/70 text-sky-600 flex items-center justify-center font-bold">
-                                                            <Luggage className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-bold text-xs text-slate-900">Check-in Baggage</div>
-                                                            <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                                                {previewFlight.segments?.[0]?.checkInBaggage ? `${previewFlight.segments[0].checkInBaggage} • 158cm (L+W+H)` : 'As per Airline Policy'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="font-bold text-xs text-slate-900 bg-slate-50 px-3.5 py-1.5 rounded-none border border-slate-200">
-                                                        {previewFlight.segments?.[0]?.checkInBaggage || 'As per Airline Policy'}
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
 
@@ -2621,11 +2746,18 @@ export default function FlightListPage() {
                                                     <React.Fragment key={sIdx}>
                                                         <div className="flex justify-between items-start gap-4">
                                                             <div className="flex-1">
-                                                                <span className="text-base font-black text-slate-900">{seg.origin}</span>
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className="text-base font-black text-slate-900">{seg.origin}</span>
+                                                                    {seg.departureTerminal && (
+                                                                        <span className="text-[10px] font-extrabold bg-blue-50 text-[#00206B] border border-blue-200 px-1.5 py-0.2 rounded shadow-2xs">
+                                                                            {seg.departureTerminal}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 <span className="block text-xs font-medium text-slate-500 mt-0.5">{seg.originAirportName?.split(',')[0] || seg.origin}</span>
-                                                                <span className="block text-xs font-bold text-slate-900 mt-1">{new Date(seg.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                                <span className="block text-[11px] text-slate-500 mt-0.5">{new Date(seg.departureDateTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                                                <span className="block text-[10px] text-slate-400 mt-0.5">{seg.originAirportName || `${seg.origin} Airport`}</span>
+                                                                <span className="block text-xs font-bold text-slate-900 mt-1">{formatFlightTime(seg.departureDateTime)}</span>
+                                                                <span className="block text-[11px] text-slate-500 mt-0.5">{formatFlightDate(seg.departureDateTime, 'full')}</span>
+                                                                <span className="block text-[10px] text-slate-400 mt-0.5">{seg.originAirportName || `${seg.origin} Airport`}{seg.departureTerminal ? ` (${seg.departureTerminal})` : ''}</span>
                                                             </div>
 
                                                             <div className="flex flex-col items-center justify-center pt-2">
@@ -2644,11 +2776,18 @@ export default function FlightListPage() {
                                                             </div>
 
                                                             <div className="flex-1 text-right">
-                                                                <span className="text-base font-black text-slate-900">{seg.destination}</span>
+                                                                <div className="flex items-center justify-end gap-1.5">
+                                                                    {seg.arrivalTerminal && (
+                                                                        <span className="text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded shadow-2xs">
+                                                                            {seg.arrivalTerminal}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="text-base font-black text-slate-900">{seg.destination}</span>
+                                                                </div>
                                                                 <span className="block text-xs font-medium text-slate-500 mt-0.5">{seg.destinationAirportName?.split(',')[0] || seg.destination}</span>
-                                                                <span className="block text-xs font-bold text-slate-900 mt-1">{new Date(seg.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                                <span className="block text-[11px] text-slate-500 mt-0.5">{new Date(seg.arrivalDateTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                                                <span className="block text-[10px] text-slate-400 mt-0.5">{seg.destinationAirportName || `${seg.destination} Airport`}</span>
+                                                                <span className="block text-xs font-bold text-slate-900 mt-1">{formatFlightTime(seg.arrivalDateTime)}</span>
+                                                                <span className="block text-[11px] text-slate-500 mt-0.5">{formatFlightDate(seg.arrivalDateTime, 'full')}</span>
+                                                                <span className="block text-[10px] text-slate-400 mt-0.5">{seg.destinationAirportName || `${seg.destination} Airport`}{seg.arrivalTerminal ? ` (${seg.arrivalTerminal})` : ''}</span>
                                                             </div>
                                                         </div>
 

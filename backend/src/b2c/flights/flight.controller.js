@@ -196,8 +196,56 @@ exports.getFareCalendar = async (req, res) => {
             }
         }
 
+        // Normalize Cleartrip live response ({ result: [ { dt: "28-08-2026", pr: { "1": 2546 } } ] })
+        if (responseData && Array.isArray(responseData.result)) {
+            const normalizedFares = {};
+            responseData.result.forEach(item => {
+                if (!item || !item.dt) return;
+                let dateKey = item.dt;
+                if (dateKey.includes('-')) {
+                    const parts = dateKey.split('-');
+                    if (parts[0].length === 2 && parts[2].length === 4) {
+                        // "28-08-2026" (DD-MM-YYYY) -> "2026-08-28" (YYYY-MM-DD)
+                        dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                } else if (dateKey.includes('/')) {
+                    const parts = dateKey.split('/');
+                    if (parts[0].length === 2 && parts[2].length === 4) {
+                        dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                }
+
+                let minPrice = null;
+                if (typeof item.pr === 'number') {
+                    minPrice = item.pr;
+                } else if (item.pr && typeof item.pr === 'object') {
+                    const numericPrices = Object.values(item.pr).map(Number).filter(p => !isNaN(p) && p > 0);
+                    if (numericPrices.length > 0) {
+                        minPrice = Math.min(...numericPrices);
+                    }
+                }
+
+                if (minPrice !== null && minPrice > 0) {
+                    normalizedFares[dateKey] = {
+                        price: minPrice,
+                        currency: 'INR',
+                        available: true,
+                        rawPrices: item.pr
+                    };
+                }
+            });
+
+            responseData = {
+                success: true,
+                origin: origin || 'DEL',
+                destination: destination || 'BOM',
+                fares: normalizedFares,
+                result: responseData.result
+            };
+        }
+
         // Generate robust fallback fare calendar dataset if live QA partner environment is unavailable
-        if (!responseData) {
+        if (!responseData || !responseData.fares || Object.keys(responseData.fares).length === 0) {
             const fares = {};
             const today = new Date();
             for (let i = 0; i < 30; i++) {
@@ -1224,9 +1272,20 @@ exports.getBulkBenefits = async (req, res) => {
             }
         }
 
+        let responseData = response?.data || {};
+        let innerData = responseData.data?.data || responseData.data || responseData;
+        if (innerData) {
+            if (innerData.fares && !innerData.fareBenefits) {
+                innerData.fareBenefits = innerData.fares;
+            }
+            if (innerData.fareBenefits && !innerData.fares) {
+                innerData.fares = innerData.fareBenefits;
+            }
+        }
+
         res.status(200).json({
             success: true,
-            data: response?.data || {}
+            data: responseData
         });
 
     } catch (error) {
@@ -1342,9 +1401,20 @@ exports.getBenefits = async (req, res) => {
             }
         }
 
+        let responseData = response?.data || {};
+        let innerData = responseData.data?.data || responseData.data || responseData;
+        if (innerData) {
+            if (innerData.fares && !innerData.fareBenefits) {
+                innerData.fareBenefits = innerData.fares;
+            }
+            if (innerData.fareBenefits && !innerData.fares) {
+                innerData.fares = innerData.fareBenefits;
+            }
+        }
+
         res.status(200).json({
             success: true,
-            data: response?.data || {}
+            data: responseData
         });
 
     } catch (error) {

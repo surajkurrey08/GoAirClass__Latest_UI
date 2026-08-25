@@ -6,6 +6,10 @@ export default function FlightItineraryTimeline({ segments }) {
 
     const formatTime = (dtStr) => {
         if (!dtStr) return '--:--';
+        if (typeof dtStr === 'string') {
+            const tMatch = dtStr.match(/T(\d{2}:\d{2})/i) || dtStr.match(/\s(\d{2}:\d{2})/) || dtStr.match(/^(\d{2}:\d{2})/);
+            if (tMatch) return tMatch[1];
+        }
         try {
             const date = new Date(dtStr);
             if (isNaN(date.getTime())) return dtStr;
@@ -17,6 +21,15 @@ export default function FlightItineraryTimeline({ segments }) {
 
     const formatDate = (dtStr) => {
         if (!dtStr) return '';
+        if (typeof dtStr === 'string') {
+            const dMatch = dtStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (dMatch) {
+                const day = parseInt(dMatch[3], 10);
+                const monthNum = parseInt(dMatch[2], 10) - 1;
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${day} ${months[monthNum] || ''}`;
+            }
+        }
         try {
             const date = new Date(dtStr);
             if (isNaN(date.getTime())) return '';
@@ -52,6 +65,8 @@ export default function FlightItineraryTimeline({ segments }) {
                     const nextSeg = segments[idx + 1];
                     const layoverTime = nextSeg ? getLayoverDuration(seg.arrivalDateTime, nextSeg.departureDateTime) : null;
                     const isDifferentAirport = nextSeg && seg.destination !== nextSeg.origin;
+                    const depTerminal = seg.departureTerminal || seg.originTerminal || '';
+                    const arrTerminal = seg.arrivalTerminal || seg.destinationTerminal || '';
 
                     return (
                         <div key={idx} className="space-y-4">
@@ -65,16 +80,21 @@ export default function FlightItineraryTimeline({ segments }) {
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="text-xs font-bold text-slate-500" style={systemFont}>IST</span>
-                                            <span className="font-black text-base text-slate-950" style={systemFont}>{formatTime(seg.departureDateTime)}</span>
+                                            <span className="font-black text-base text-slate-950" style={systemFont}>{formatTime(seg.departureDateTime || seg.departureTime)}</span>
                                             <span className="font-bold text-sm text-slate-900" style={systemFont}>{seg.originCity || seg.originName || seg.origin} ({seg.origin})</span>
-                                            {formatDate(seg.departureDateTime) && (
+                                            {depTerminal && (
+                                                <span className="text-[10px] font-extrabold bg-blue-50 text-[#00206B] border border-blue-200 px-2 py-0.5 rounded shadow-2xs" style={systemFont}>
+                                                    {depTerminal}
+                                                </span>
+                                            )}
+                                            {formatDate(seg.departureDateTime || seg.departureTime) && (
                                                 <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-none ml-1" style={systemFont}>
-                                                    {formatDate(seg.departureDateTime)}
+                                                    {formatDate(seg.departureDateTime || seg.departureTime)}
                                                 </span>
                                             )}
                                         </div>
                                         <span className="block text-xs font-medium text-slate-500 mt-0.5" style={systemFont}>
-                                            {seg.originAirportName || 'Airport Terminal'}
+                                            {seg.originAirportName || `${seg.origin} Airport`}{depTerminal ? ` • ${depTerminal}` : ''}
                                         </span>
                                     </div>
                                 </div>
@@ -107,16 +127,21 @@ export default function FlightItineraryTimeline({ segments }) {
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="text-xs font-bold text-slate-500" style={systemFont}>IST</span>
-                                            <span className="font-black text-base text-slate-950" style={systemFont}>{formatTime(seg.arrivalDateTime)}</span>
+                                            <span className="font-black text-base text-slate-950" style={systemFont}>{formatTime(seg.arrivalDateTime || seg.arrivalTime)}</span>
                                             <span className="font-bold text-sm text-slate-900" style={systemFont}>{seg.destinationCity || seg.destinationName || seg.destination} ({seg.destination})</span>
-                                            {formatDate(seg.arrivalDateTime) && (
+                                            {arrTerminal && (
+                                                <span className="text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded shadow-2xs" style={systemFont}>
+                                                    {arrTerminal}
+                                                </span>
+                                            )}
+                                            {formatDate(seg.arrivalDateTime || seg.arrivalTime) && (
                                                 <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-none ml-1" style={systemFont}>
-                                                    {formatDate(seg.arrivalDateTime)}
+                                                    {formatDate(seg.arrivalDateTime || seg.arrivalTime)}
                                                 </span>
                                             )}
                                         </div>
                                         <span className="block text-xs font-medium text-slate-500 mt-0.5" style={systemFont}>
-                                            {seg.destinationAirportName || 'Airport Terminal'}
+                                            {seg.destinationAirportName || `${seg.destination} Airport`}{arrTerminal ? ` • ${arrTerminal}` : ''}
                                         </span>
                                     </div>
                                 </div>

@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import { createFlightSession, previewFlightApi, fetchAncillariesApi, fetchBenefitsApi } from '../services/flightApi';
 import { toast } from 'react-toastify';
 import FlightItineraryTimeline from './FlightItineraryTimeline';
+import { formatFlightTime, formatFlightDate } from './FlightListPage';
 
 // Cache to prevent duplicate preview API calls in React StrictMode
 const previewCache = new Map();
@@ -151,14 +152,18 @@ export default function FlightBookingDetailsPage() {
             try {
                 if (isMounted) setIsVerifying(true);
                 // 1. Session API - Reuse session created during ticket selection, or create fresh if missing
-                let activeSId = liveSessionId || sessionStorage.getItem('flight_session_id') || sessionStorage.getItem('flight_session_id_0');
+                let activeSId = initialSessionId || liveSessionId || flight?.sessionId || sessionStorage.getItem('flight_session_id');
                 if (!activeSId) {
+                    console.log(`[Booking Details] No active sessionId found, creating fresh session for searchId: ${searchId}`);
                     const sessionRes = await createFlightSession(searchId);
                     if (sessionRes.success && sessionRes.data?.sessionId) {
                         activeSId = sessionRes.data.sessionId;
                         sessionStorage.setItem('flight_session_id', activeSId);
                         if (isMounted) setLiveSessionId(activeSId);
                     }
+                } else {
+                    if (isMounted && !liveSessionId) setLiveSessionId(activeSId);
+                    sessionStorage.setItem('flight_session_id', activeSId);
                 }
 
                 // 2. Flight Preview API
@@ -472,7 +477,41 @@ export default function FlightBookingDetailsPage() {
 
                         const benResponse = await fetchBenefitsApi(benefitsPayload);
                         if (benResponse.success && benResponse.data && isMounted) {
-                            setBenefitsData(benResponse.data);
+                            const benData = benResponse.data;
+                            setBenefitsData(benData);
+
+                            // Merge fareBenefits with livePreview fares
+                            const benRoot = benData.data?.data || benData.data || benData;
+                            const fareBenefitsMap = benRoot.fareBenefits || benRoot.fares || {};
+
+                            setLivePreview(prevPreview => {
+                                if (!prevPreview) return prevPreview;
+                                const prevFares = prevPreview.fares || prevPreview.data?.fares || {};
+                                const mergedFares = { ...prevFares };
+
+                                Object.entries(fareBenefitsMap).forEach(([fareId, benObj]) => {
+                                    if (mergedFares[fareId]) {
+                                        mergedFares[fareId] = {
+                                            ...mergedFares[fareId],
+                                            ...benObj,
+                                            fareBenefits: benObj,
+                                            subTravelOptionBenefits: benObj.subTravelOptionBenefits || mergedFares[fareId].subTravelOptionBenefits,
+                                            benefitIds: benObj.benefitIds || benObj.benefits?.benefitIds || mergedFares[fareId].benefitIds || []
+                                        };
+                                    } else {
+                                        mergedFares[fareId] = benObj;
+                                    }
+                                });
+
+                                return {
+                                    ...prevPreview,
+                                    fares: mergedFares,
+                                    fareBenefits: fareBenefitsMap,
+                                    baggageAllowances: { ...(prevPreview.baggageAllowances || {}), ...(benRoot.baggageAllowances || {}) },
+                                    penalties: { ...(prevPreview.penalties || {}), ...(benRoot.penalties || {}) },
+                                    benefits: { ...(prevPreview.benefits || {}), ...(benRoot.benefits || {}) }
+                                };
+                            });
                         }
                     } catch (benErr) {
                         console.warn('[Booking Details] Failed to fetch benefits:', benErr.message);
@@ -496,14 +535,22 @@ export default function FlightBookingDetailsPage() {
 
     // Helper function to resolve Cleartrip B2B Standard Benefits mappings on Booking Details Page
     const getResolvedBookingBenefits = () => {
-        if (!benefitsData || !flight) return null;
+        const sourceData = benefitsData || livePreview;
+        if (!sourceData || !flight) return null;
 
-        const rootData = benefitsData.data?.data || benefitsData.data || benefitsData;
+        const rootData = sourceData.data?.data || sourceData.data || sourceData;
         const fareBenefitsMap = rootData.fareBenefits || rootData.fares || {};
-        const selectedFareId = flight.rawOption?.fareId;
+        const selectedFareId = flight.rawOption?.fareId || flight.fareId;
 
-        // Find the fare details in fareBenefits map
-        const fareInfo = fareBenefitsMap[selectedFareId] || Object.values(fareBenefitsMap)[0];
+        // Find the fare details in fareBenefits map (direct match, substring match, or first available)
+        let fareInfo = fareBenefitsMap[selectedFareId];
+        if (!fareInfo && selectedFareId) {
+            const matchedKey = Object.keys(fareBenefitsMap).find(k => k.includes(selectedFareId) || selectedFareId.includes(k));
+            if (matchedKey) fareInfo = fareBenefitsMap[matchedKey];
+        }
+        if (!fareInfo) {
+            fareInfo = Object.values(fareBenefitsMap)[0];
+        }
         if (!fareInfo) return null;
 
         const sectorKey = `${primarySegment.origin}_${lastSegment.destination}`;
@@ -518,13 +565,15 @@ export default function FlightBookingDetailsPage() {
         Object.values(flightBenefits).forEach(segBenefit => {
             const allowances = segBenefit.baggageAllowances || [];
             allowances.forEach(allowance => {
-                const bId = allowance.baggageAllowanceId;
+                const bId = allowance.baggageAllowanceId || allowance.id;
                 const bDetails = baggageAllowancesMap[bId];
                 if (bDetails) {
-                    bDetails.forEach(b => {
+                    const list = Array.isArray(bDetails) ? bDetails : [bDetails];
+                    list.forEach(b => {
                         const bagType = b.type === 'BAGGAGE_CABIN' || b.type === 'Cabin' ? 'Cabin' : 'Check-in';
                         const spec = b.allowedBaggages?.[0] || {};
-                        const weight = spec.quantity !== undefined ? `${spec.quantity} ${spec.unit || 'KG'}` : 'Policy Info';
+                        const pieceStr = spec.piece ? ` (${spec.piece} Piece${spec.piece > 1 ? 's' : ''})` : '';
+                        const weight = spec.quantity !== undefined ? `${spec.quantity} ${spec.unit || 'KG'}${pieceStr}` : 'Policy Info';
                         baggageList.push({ type: bagType, weight });
                     });
                 }
@@ -533,17 +582,27 @@ export default function FlightBookingDetailsPage() {
 
         // 2. Resolve cancellation and rescheduling penalties
         const penaltiesList = [];
+        const seenPenaltyTypes = new Set();
         const penaltiesMap = rootData.penalties || {};
         const penaltyIds = benefitsInfo.penaltyIds || [];
         penaltyIds.forEach(id => {
             const penalty = penaltiesMap[id];
             if (penalty) {
                 const typeLabel = penalty.penaltyType === 'CANCEL' ? 'Cancellation' : 'Amend/Reschedule';
+                if (seenPenaltyTypes.has(typeLabel)) return;
+                seenPenaltyTypes.add(typeLabel);
+
                 const timelines = penalty.timeLines || [];
                 const timelineDetails = timelines.map(t => {
-                    const permittedLabel = t.permitted ? 'Allowed' : 'Not Allowed';
+                    const permitted = t.permitted === true;
+                    const permittedLabel = permitted ? 'Allowed' : 'Not Allowed';
                     const chargeInfo = t.passengerFareRuleCharges?.ADT?.charges?.[0] || {};
-                    const amountStr = chargeInfo.amount !== undefined ? `₹${chargeInfo.amount.toLocaleString()} ${chargeInfo.currency || 'INR'}` : '';
+                    let amountStr = chargeInfo.amount !== undefined ? `₹${chargeInfo.amount.toLocaleString()} ${chargeInfo.currency || 'INR'}` : '';
+                    if (!permitted) {
+                        amountStr = 'Not Allowed';
+                    } else if (!amountStr) {
+                        amountStr = permittedLabel;
+                    }
                     const timeLabel = t.endTime ? `${t.endTime.replace('PT', '').replace('H', ' hours')}` : 'departure';
                     return { permittedLabel, amountStr, timeLabel };
                 });
@@ -837,13 +896,22 @@ export default function FlightBookingDetailsPage() {
                                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                                         {/* Departure */}
                                         <div className="flex-1">
-                                            <span className="text-2xl font-black text-slate-950">{pSeg.origin}</span>
-                                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">{pSeg.originAirportName}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl font-black text-slate-950">{pSeg.origin}</span>
+                                                {pSeg.departureTerminal && (
+                                                    <span className="text-[10px] font-extrabold text-[#00206B] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded shadow-2xs">
+                                                        {pSeg.departureTerminal}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">
+                                                {pSeg.originAirportName}{pSeg.departureTerminal ? ` • ${pSeg.departureTerminal}` : ''}
+                                            </span>
                                             <span className="block text-sm font-bold text-slate-900 mt-1">
-                                                {new Date(pSeg.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {formatFlightTime(pSeg.departureDateTime)}
                                             </span>
                                             <span className="block text-xs text-slate-500">
-                                                {new Date(pSeg.departureDateTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                {formatFlightDate(pSeg.departureDateTime, 'full')}
                                             </span>
                                         </div>
 
@@ -863,13 +931,22 @@ export default function FlightBookingDetailsPage() {
 
                                         {/* Arrival */}
                                         <div className="flex-1 text-left sm:text-right">
-                                            <span className="text-2xl font-black text-slate-950">{lSeg.destination}</span>
-                                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">{lSeg.destinationAirportName}</span>
+                                            <div className="flex items-center sm:justify-end gap-2">
+                                                {lSeg.arrivalTerminal && (
+                                                    <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded shadow-2xs">
+                                                        {lSeg.arrivalTerminal}
+                                                    </span>
+                                                )}
+                                                <span className="text-2xl font-black text-slate-950">{lSeg.destination}</span>
+                                            </div>
+                                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">
+                                                {lSeg.destinationAirportName}{lSeg.arrivalTerminal ? ` • ${lSeg.arrivalTerminal}` : ''}
+                                            </span>
                                             <span className="block text-sm font-bold text-slate-900 mt-1">
-                                                {new Date(lSeg.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {formatFlightTime(lSeg.arrivalDateTime)}
                                             </span>
                                             <span className="block text-xs text-slate-500">
-                                                {new Date(lSeg.arrivalDateTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                {formatFlightDate(lSeg.arrivalDateTime, 'full')}
                                             </span>
                                         </div>
                                     </div>
@@ -934,13 +1011,22 @@ export default function FlightBookingDetailsPage() {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                         {/* Departure */}
                         <div className="flex-1">
-                            <span className="text-2xl font-black text-slate-950">{primarySegment.origin}</span>
-                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">{primarySegment.originAirportName}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-black text-slate-950">{primarySegment.origin}</span>
+                                {primarySegment.departureTerminal && (
+                                    <span className="text-[10px] font-extrabold text-[#00206B] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded shadow-2xs">
+                                        {primarySegment.departureTerminal}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">
+                                {primarySegment.originAirportName}{primarySegment.departureTerminal ? ` • ${primarySegment.departureTerminal}` : ''}
+                            </span>
                             <span className="block text-sm font-bold text-slate-900 mt-1">
-                                {new Date(primarySegment.departureDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatFlightTime(primarySegment.departureDateTime)}
                             </span>
                             <span className="block text-xs text-slate-500">
-                                {new Date(primarySegment.departureDateTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                {formatFlightDate(primarySegment.departureDateTime, 'full')}
                             </span>
                         </div>
 
@@ -960,13 +1046,22 @@ export default function FlightBookingDetailsPage() {
 
                         {/* Arrival */}
                         <div className="flex-1 text-left sm:text-right">
-                            <span className="text-2xl font-black text-slate-950">{lastSegment.destination}</span>
-                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">{lastSegment.destinationAirportName}</span>
+                            <div className="flex items-center sm:justify-end gap-2">
+                                {lastSegment.arrivalTerminal && (
+                                    <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded shadow-2xs">
+                                        {lastSegment.arrivalTerminal}
+                                    </span>
+                                )}
+                                <span className="text-2xl font-black text-slate-950">{lastSegment.destination}</span>
+                            </div>
+                            <span className="block text-xs font-semibold text-slate-600 mt-0.5">
+                                {lastSegment.destinationAirportName}{lastSegment.arrivalTerminal ? ` • ${lastSegment.arrivalTerminal}` : ''}
+                            </span>
                             <span className="block text-sm font-bold text-slate-900 mt-1">
-                                {new Date(lastSegment.arrivalDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {formatFlightTime(lastSegment.arrivalDateTime)}
                             </span>
                             <span className="block text-xs text-slate-500">
-                                {new Date(lastSegment.arrivalDateTime).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                                {formatFlightDate(lastSegment.arrivalDateTime, 'full')}
                             </span>
                         </div>
                     </div>

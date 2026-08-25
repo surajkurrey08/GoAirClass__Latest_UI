@@ -137,6 +137,34 @@ const formatNormalTime = (value, fallback = "") => {
   }
 };
 
+const parseTerminalName = (termData) => {
+  if (!termData) return "";
+  if (typeof termData === "string" || typeof termData === "number") {
+    const val = String(termData).trim();
+    if (!val || val === "null" || val === "undefined") return "";
+    if (val.toLowerCase().startsWith("terminal")) return val;
+    if (/^t\d+/i.test(val)) return `Terminal ${val.substring(1)}`;
+    return `Terminal ${val}`;
+  }
+  if (typeof termData === "object") {
+    const val =
+      termData.name ??
+      termData.code ??
+      termData.number ??
+      termData.terminalName ??
+      termData.terminal ??
+      termData.id ??
+      "";
+    if (val === undefined || val === null) return "";
+    const clean = String(val).trim();
+    if (!clean || clean === "null" || clean === "undefined") return "";
+    if (clean.toLowerCase().startsWith("terminal")) return clean;
+    if (/^t\d+/i.test(clean)) return `Terminal ${clean.substring(1)}`;
+    return `Terminal ${clean}`;
+  }
+  return "";
+};
+
 const calculateDuration = (departure, arrival) => {
   if (!departure || !arrival) return "";
 
@@ -804,9 +832,16 @@ function PremiumFlightTicket({
                         From
                       </span>
 
-                      <h3 className="mt-1 font-serif text-[25px] font-black leading-none">
-                        {firstFlight.origin || "BLR"}
-                      </h3>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <h3 className="font-serif text-[25px] font-black leading-none">
+                          {firstFlight.origin || "BLR"}
+                        </h3>
+                        {firstFlight.departureTerminal && (
+                          <span className="text-[9px] font-extrabold text-[#152e68] bg-[#eef3fc] border border-[#bcd0f7] px-1.5 py-0.5 rounded shadow-2xs">
+                            {firstFlight.departureTerminal}
+                          </span>
+                        )}
+                      </div>
 
                       <p className="mt-1 text-[11px] font-medium">
                         {firstFlight.originCity || "Departure"}
@@ -816,6 +851,7 @@ function PremiumFlightTicket({
                         {firstFlight.originAirportName ||
                           firstFlight.originAirport ||
                           ""}
+                        {firstFlight.departureTerminal ? ` • ${firstFlight.departureTerminal}` : ""}
                       </p>
 
                       <strong className="mt-2 block text-[13px]">
@@ -847,9 +883,16 @@ function PremiumFlightTicket({
                         To
                       </span>
 
-                      <h3 className="mt-1 font-serif text-[25px] font-black leading-none">
-                        {lastFlight.destination || "DEL"}
-                      </h3>
+                      <div className="flex items-center md:justify-end gap-1.5 mt-1">
+                        {lastFlight.arrivalTerminal && (
+                          <span className="text-[9px] font-extrabold text-emerald-900 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded shadow-2xs">
+                            {lastFlight.arrivalTerminal}
+                          </span>
+                        )}
+                        <h3 className="font-serif text-[25px] font-black leading-none">
+                          {lastFlight.destination || "DEL"}
+                        </h3>
+                      </div>
 
                       <p className="mt-1 text-[11px] font-medium">
                         {lastFlight.destinationCity || "Arrival"}
@@ -859,6 +902,7 @@ function PremiumFlightTicket({
                         {lastFlight.destinationAirportName ||
                           lastFlight.destinationAirport ||
                           ""}
+                        {lastFlight.arrivalTerminal ? ` • ${lastFlight.arrivalTerminal}` : ""}
                       </p>
 
                       <strong className="mt-2 block text-[13px]">
@@ -1709,6 +1753,22 @@ export default function FlightBookingSuccessPage() {
           arrivalDateTime:
             arrEpoch,
 
+          departureTerminal:
+            parseTerminalName(
+              segment.dep_terminal ||
+              segment.departureTerminal ||
+              segment.depTerminal ||
+              depAirport.terminal
+            ),
+
+          arrivalTerminal:
+            parseTerminalName(
+              segment.arr_terminal ||
+              segment.arrivalTerminal ||
+              segment.arrTerminal ||
+              arrAirport.terminal
+            ),
+
           duration:
             calculateDuration(
               depEpoch,
@@ -1822,6 +1882,19 @@ export default function FlightBookingSuccessPage() {
 
         arrivalDateTime:
           segment.arrivalDateTime,
+
+        departureTerminal:
+          parseTerminalName(
+            segment.departureTerminal ||
+            segment.originTerminal ||
+            segment.terminal
+          ),
+
+        arrivalTerminal:
+          parseTerminalName(
+            segment.arrivalTerminal ||
+            segment.destinationTerminal
+          ),
 
         duration:
           segment.duration ||
