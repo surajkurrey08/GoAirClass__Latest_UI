@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@lottiefiles/dotlottie-react": "^0.19.0",
+    "@lottiefiles/dotlottie-react": "^0.19.15",
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.15.0",
