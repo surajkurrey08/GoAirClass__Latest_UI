@@ -368,6 +368,7 @@ export default function FlightListPage() {
     const [flights, setFlights] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchNotice, setSearchNotice] = useState(null);
 
     const [allOutboundFlights, setAllOutboundFlights] = useState([]);
     const [allReturnFlights, setAllReturnFlights] = useState([]);
@@ -745,8 +746,28 @@ export default function FlightListPage() {
                                 originTerminal: depTerminal,
                                 destinationTerminal: arrTerminal,
                                 terminal: depTerminal || arrTerminal || '',
-                                departureZoneId: flt.departureAirport?.zoneId || 'Asia/Kolkata',
-                                arrivalZoneId: flt.arrivalAirport?.zoneId || 'Asia/Kolkata',
+                                departureZoneId: flt.departureAirport?.zoneId || origAirportObj?.zoneId || 'Asia/Kolkata',
+                                arrivalZoneId: flt.arrivalAirport?.zoneId || destAirportObj?.zoneId || 'Asia/Kolkata',
+                                originCountryCode: origAirportObj?.countryCode || flt.departureAirport?.countryCode || '',
+                                destinationCountryCode: destAirportObj?.countryCode || flt.arrivalAirport?.countryCode || '',
+                                departureAirport: {
+                                    ...flt.departureAirport,
+                                    ...origAirportObj,
+                                    code: origCode,
+                                    city: originCity,
+                                    terminal: depTerminal,
+                                    zoneId: flt.departureAirport?.zoneId || origAirportObj?.zoneId || 'Asia/Kolkata',
+                                    countryCode: origAirportObj?.countryCode || flt.departureAirport?.countryCode || ''
+                                },
+                                arrivalAirport: {
+                                    ...flt.arrivalAirport,
+                                    ...destAirportObj,
+                                    code: destCode,
+                                    city: destinationCity,
+                                    terminal: arrTerminal,
+                                    zoneId: flt.arrivalAirport?.zoneId || destAirportObj?.zoneId || 'Asia/Kolkata',
+                                    countryCode: destAirportObj?.countryCode || flt.arrivalAirport?.countryCode || ''
+                                },
                                 duration: durationStr || '2h 0m',
                                 originAirportName,
                                 destinationAirportName,
@@ -765,6 +786,10 @@ export default function FlightListPage() {
                         const baseFareVal = pricing.basePrice || pricing.baseFare || pricing.basicFare || Math.round(price * 0.82);
                         const taxVal = pricing.taxPrice || pricing.tax || pricing.taxes || Math.round(price * 0.18);
 
+                        const fareIdParts = typeof fareId === 'string' ? fareId.split('__') : [];
+                        const isInternationalFare = fareIdParts.some(part => /^(INT|INTL|INTERNATIONAL)$/i.test(part)) ||
+                            segments.some(s => s.departureZoneId !== 'Asia/Kolkata' || s.arrivalZoneId !== 'Asia/Kolkata' || (s.originCountryCode && s.originCountryCode !== 'IN') || (s.destinationCountryCode && s.destinationCountryCode !== 'IN'));
+
                         processed.push({
                             id: option.travelOptionId || option.id || Math.random().toString(),
                             segments,
@@ -772,6 +797,8 @@ export default function FlightListPage() {
                             baseFare: baseFareVal,
                             taxes: taxVal,
                             isRefundable,
+                            isInternational: isInternationalFare,
+                            brandName,
                             airlineName: segments[0].airlineName,
                             airlineCode: segments[0].airlineCode,
                             stopsCount: segments.length - 1,
@@ -779,7 +806,8 @@ export default function FlightListPage() {
                             rawOption: {
                                 travelOptionId: option.travelOptionId || subTravelOptionId,
                                 subTravelOptionId,
-                                fareId
+                                fareId,
+                                brandName
                             }
                         });
                     }
@@ -857,6 +885,12 @@ export default function FlightListPage() {
                     setMaxPrice(maxP);
                     setMaxPriceLimit(maxP);
                 }
+
+                if (response.notice || response.isDateAdjusted) {
+                    setSearchNotice(response.notice || 'International flights require at least 1 day advance booking. Showing flights for tomorrow.');
+                } else {
+                    setSearchNotice(null);
+                }
             } else {
                 setFlights([]);
                 setError('No flights found for this route and date.');
@@ -872,6 +906,11 @@ export default function FlightListPage() {
             } else if (err.message) {
                 displayMsg = `Data processing error: ${err.message}`;
             }
+
+            if (displayMsg.toLowerCase().includes('international search cannot happen for the same day')) {
+                displayMsg = 'Cleartrip Rule: International flights cannot be booked for the same day. Please select tomorrow or a future departure date.';
+            }
+
             setError(displayMsg);
         } finally {
             setLoading(false);
@@ -1298,9 +1337,19 @@ export default function FlightListPage() {
         penaltyIds.forEach(id => {
             const penalty = penaltiesMap[id];
             if (penalty) {
-                const typeLabel = penalty.penaltyType === 'CANCEL' ? 'Cancellation' : 'Amend/Reschedule';
+                let typeLabel = 'Amend / Reschedule';
+                const pType = String(penalty.penaltyType || '').toUpperCase();
+                if (pType.includes('CANCEL')) {
+                    typeLabel = 'Cancellation';
+                } else if (pType === 'AMEND_SAME_FARE' || pType.includes('SAME_FARE')) {
+                    typeLabel = 'Reschedule (Same Fare)';
+                } else if (pType === 'AMEND_HIGHER_FARE' || pType.includes('HIGHER_FARE')) {
+                    typeLabel = 'Reschedule (Higher Fare)';
+                } else if (pType) {
+                    typeLabel = pType.replace(/_/g, ' ');
+                }
                 
-                // Deduplicate: Don't add if we already have this type of penalty
+                // Deduplicate: Don't add if we already have this exact type of penalty
                 if (seenPenaltyTypes.has(typeLabel)) return;
                 seenPenaltyTypes.add(typeLabel);
 
@@ -1337,7 +1386,7 @@ export default function FlightListPage() {
 
                     return { permittedLabel, amountStr, timeLabel, permitted };
                 });
-                penaltiesList.push({ type: typeLabel, timelines: timelineDetails, raw: penalty });
+                penaltiesList.push({ type: typeLabel, penaltyType: penalty.penaltyType, timelines: timelineDetails, raw: penalty });
             }
         });
 
@@ -2272,6 +2321,23 @@ export default function FlightListPage() {
                         </div>
                     </div>
 
+                    {/* Search Notice Banner (e.g. For auto-adjusted international dates) */}
+                    {searchNotice && (
+                        <div className="bg-amber-50/90 border border-amber-200 text-amber-900 px-4 py-3 rounded-lg text-xs font-semibold flex items-center justify-between gap-3 shadow-2xs">
+                            <div className="flex items-center gap-2">
+                                <span className="text-base">✈️</span>
+                                <span>{searchNotice}</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSearchNotice(null)}
+                                className="text-amber-700 hover:text-amber-950 text-xs font-bold px-2 py-0.5"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    )}
+
                     {/* Loader Skeleton */}
                     {loading && (
                         <div className="flex flex-col gap-4">
@@ -2904,22 +2970,26 @@ export default function FlightListPage() {
                                                         return (
                                                             <div className="mt-4 p-4 bg-slate-50 border border-slate-200 text-xs rounded-none text-slate-700">
                                                                 <strong className="text-slate-800 font-bold block text-[10px] uppercase tracking-wider mb-2">Detailed Rules for Selected Fare:</strong>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                                    {resolved.penaltiesList.map((pen, pIdx) => (
-                                                                        <div key={pIdx} className="bg-white p-2 border border-slate-100 rounded-none shadow-3xs">
-                                                                            <div className="font-bold text-[11px] text-slate-900 mb-1 flex items-center gap-1 border-b border-slate-100 pb-1">
-                                                                                <span>{pen.type === 'Cancellation' ? '❌' : '🔄'} {pen.type} Rules</span>
+                                                                <div className={`grid grid-cols-1 ${resolved.penaltiesList.length >= 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
+                                                                    {resolved.penaltiesList.map((pen, pIdx) => {
+                                                                        const isCancel = pen.type.toLowerCase().includes('cancel');
+                                                                        const icon = isCancel ? '❌' : '🔄';
+                                                                        return (
+                                                                            <div key={pIdx} className="bg-white p-2.5 border border-slate-200/80 rounded-none shadow-3xs flex flex-col justify-between">
+                                                                                <div className="font-bold text-[11px] text-slate-900 mb-1.5 flex items-center gap-1 border-b border-slate-100 pb-1.5">
+                                                                                    <span>{icon} {pen.type}</span>
+                                                                                </div>
+                                                                                <div className="flex flex-col gap-1 text-[10px] pt-1">
+                                                                                    {pen.timelines.map((time, tIdx) => (
+                                                                                        <div key={tIdx} className="flex justify-between text-slate-650">
+                                                                                            <span>{time.timeLabel}:</span>
+                                                                                            <span className={`font-bold ${time.permitted ? 'text-emerald-700' : 'text-red-600'}`}>{time.amountStr}</span>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
                                                                             </div>
-                                                                            <div className="flex flex-col gap-1 text-[10px] pt-1">
-                                                                                {pen.timelines.map((time, tIdx) => (
-                                                                                    <div key={tIdx} className="flex justify-between text-slate-650">
-                                                                                        <span>{time.timeLabel}:</span>
-                                                                                        <span className={`font-bold ${time.permitted ? 'text-emerald-700' : 'text-red-600'}`}>{time.amountStr}</span>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             </div>
                                                         );

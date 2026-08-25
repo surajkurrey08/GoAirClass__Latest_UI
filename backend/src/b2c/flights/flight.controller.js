@@ -71,18 +71,64 @@ exports.searchFlights = async (req, res) => {
         const searchPayload = req.body;
         console.log(`[Flight Search] Originating Cleartrip request to ${baseUrl}/search`);
 
-        const searchResponse = await axios.post(`${baseUrl}/search`, searchPayload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CT-API-KEY': apiKey,
-                'Authorization': `Bearer ${token}`
+        let searchResponse;
+        let isDateAdjusted = false;
+        let adjustedDateStr = null;
+
+        try {
+            searchResponse = await axios.post(`${baseUrl}/search`, searchPayload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CT-API-KEY': apiKey,
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        } catch (apiErr) {
+            const errData = apiErr.response ? apiErr.response.data : null;
+            const errMsg = String(errData?.message || errData?.errorMessage || apiErr.message || '');
+
+            // Auto-heal same-day international departure restriction from Cleartrip API
+            if (errMsg.toLowerCase().includes('international search cannot happen for the same day')) {
+                console.log('[Flight Search] Cleartrip same-day international restriction detected. Auto-adjusting date to tomorrow (+1 day)...');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const day = String(tomorrow.getDate()).padStart(2, '0');
+                const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+                const year = tomorrow.getFullYear();
+                const tomorrowDDMMYYYY = `${day}/${month}/${year}`;
+                adjustedDateStr = `${year}-${month}-${day}`;
+                isDateAdjusted = true;
+
+                if (searchPayload?.searchIntents?.sectors && Array.isArray(searchPayload.searchIntents.sectors)) {
+                    searchPayload.searchIntents.sectors = searchPayload.searchIntents.sectors.map((sec, sIdx) => {
+                        if (sIdx === 0) {
+                            return { ...sec, departDate: tomorrowDDMMYYYY };
+                        }
+                        return sec;
+                    });
+                }
+
+                // Re-try search with tomorrow's date
+                searchResponse = await axios.post(`${baseUrl}/search`, searchPayload, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CT-API-KEY': apiKey,
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } else {
+                throw apiErr;
             }
-        });
+        }
 
         res.status(200).json({
             success: true,
-            data: searchResponse.data
+            data: searchResponse.data,
+            isDateAdjusted,
+            adjustedDate: adjustedDateStr,
+            notice: isDateAdjusted ? `International flights require at least 1 day advance booking. Showing flights for tomorrow (${adjustedDateStr}).` : null
         });
 
     } catch (error) {
@@ -383,9 +429,63 @@ exports.flightPreview = async (req, res) => {
             }
         });
 
+        const responseData = previewResponse.data;
+        const rootData = responseData?.data || responseData;
+
+        // Collect all requested fareIds from previewPayload
+        const requestedFareIds = [];
+        if (previewPayload.travelOptions && typeof previewPayload.travelOptions === 'object') {
+            Object.values(previewPayload.travelOptions).forEach(tOpt => {
+                if (tOpt && Array.isArray(tOpt.subTravelOptions)) {
+                    tOpt.subTravelOptions.forEach(sub => {
+                        if (sub?.fareId) requestedFareIds.push(sub.fareId);
+                    });
+                }
+            });
+        }
+        if (previewPayload.fareId) requestedFareIds.push(previewPayload.fareId);
+        if (previewPayload.selectedFareId) requestedFareIds.push(previewPayload.selectedFareId);
+
+        // If specific fareId(s) were requested, filter rootData.fares and fareAssociations to only include the matched selected fares
+        if (requestedFareIds.length > 0 && rootData?.fares && typeof rootData.fares === 'object') {
+            const rawFares = rootData.fares;
+            const filteredFares = {};
+
+            requestedFareIds.forEach(reqFareId => {
+                if (rawFares[reqFareId]) {
+                    filteredFares[reqFareId] = rawFares[reqFareId];
+                } else {
+                    const matchedKey = Object.keys(rawFares).find(k => k === reqFareId || k.includes(reqFareId) || reqFareId.includes(k));
+                    if (matchedKey && rawFares[matchedKey]) {
+                        filteredFares[matchedKey] = rawFares[matchedKey];
+                    }
+                }
+            });
+
+            // If at least one requested fare was matched, update rootData.fares
+            if (Object.keys(filteredFares).length > 0) {
+                rootData.fares = filteredFares;
+            }
+
+            // Also filter fareAssociations to only keep the selected fareId(s)
+            if (rootData.fareAssociations && typeof rootData.fareAssociations === 'object') {
+                Object.keys(rootData.fareAssociations).forEach(assocKey => {
+                    const assoc = rootData.fareAssociations[assocKey];
+                    if (assoc && Array.isArray(assoc.fareIds)) {
+                        const matchedIds = assoc.fareIds.filter(fId =>
+                            requestedFareIds.some(reqId => fId === reqId || fId.includes(reqId) || reqId.includes(fId))
+                        );
+                        if (matchedIds.length > 0) {
+                            assoc.fareIds = matchedIds;
+                        }
+                    }
+                });
+            }
+        }
+
         res.status(200).json({
             success: true,
-            data: previewResponse.data
+            data: responseData
         });
 
     } catch (error) {

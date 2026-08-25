@@ -78,13 +78,55 @@ export default function FlightBookingDetailsPage() {
 
         const list = [];
         for (let i = 0; i < adultsCount; i++) {
-            list.push({ title: 'Mr', firstName: '', lastName: '', gender: 'MALE', type: 'ADT', dob: getDobDefault('ADT'), label: `Adult ${i + 1}`, id: `adult-${i}` });
+            list.push({
+                title: 'Mr',
+                firstName: '',
+                lastName: '',
+                gender: 'MALE',
+                type: 'ADT',
+                dob: getDobDefault('ADT'),
+                studentId: '',
+                armedForcesId: '',
+                passportNumber: '',
+                nationality: 'IN',
+                passportExpiry: '',
+                label: `Adult ${i + 1}`,
+                id: `adult-${i}`
+            });
         }
         for (let i = 0; i < childrenCount; i++) {
-            list.push({ title: 'Mstr', firstName: '', lastName: '', gender: 'MALE', type: 'CHD', dob: getDobDefault('CHD'), label: `Child ${i + 1}`, id: `child-${i}` });
+            list.push({
+                title: 'Mstr',
+                firstName: '',
+                lastName: '',
+                gender: 'MALE',
+                type: 'CHD',
+                dob: getDobDefault('CHD'),
+                studentId: '',
+                armedForcesId: '',
+                passportNumber: '',
+                nationality: 'IN',
+                passportExpiry: '',
+                label: `Child ${i + 1}`,
+                id: `child-${i}`
+            });
         }
         for (let i = 0; i < infantsCount; i++) {
-            list.push({ title: 'Mstr', firstName: '', lastName: '', gender: 'MALE', type: 'INF', dob: getDobDefault('INF'), label: `Infant ${i + 1}`, id: `infant-${i}` });
+            list.push({
+                title: 'Mstr',
+                firstName: '',
+                lastName: '',
+                gender: 'MALE',
+                type: 'INF',
+                dob: getDobDefault('INF'),
+                studentId: '',
+                armedForcesId: '',
+                passportNumber: '',
+                nationality: 'IN',
+                passportExpiry: '',
+                label: `Infant ${i + 1}`,
+                id: `infant-${i}`
+            });
         }
         return list;
     });
@@ -393,7 +435,7 @@ export default function FlightBookingDetailsPage() {
                                         price: flight.price,
                                         subTravelOptions: [{
                                             subTravelOptionId: flight.rawOption?.subTravelOptionId || flight.rawOption?.travelOptionId || flight.id,
-                                            fareId: flight.rawOption?.fareId || ""
+                                            fareId: flight.rawOption?.fareId || flight.fareId || flight.selectedFareId || ""
                                         }]
                                     }
                                 }
@@ -533,6 +575,98 @@ export default function FlightBookingDetailsPage() {
     // Validation rules from flightPreview API
     const validations = livePreview?.fieldValidations || {};
 
+    const NATIONALITY_OPTIONS = [
+        { code: 'IN', label: 'India (IN)' },
+        { code: 'US', label: 'United States (US)' },
+        { code: 'GB', label: 'United Kingdom (GB)' },
+        { code: 'AE', label: 'United Arab Emirates (AE)' },
+        { code: 'SG', label: 'Singapore (SG)' },
+        { code: 'AU', label: 'Australia (AU)' },
+        { code: 'CA', label: 'Canada (CA)' },
+        { code: 'SA', label: 'Saudi Arabia (SA)' },
+        { code: 'QA', label: 'Qatar (QA)' },
+        { code: 'OM', label: 'Oman (OM)' },
+        { code: 'KW', label: 'Kuwait (KW)' },
+        { code: 'BH', label: 'Bahrain (BH)' },
+        { code: 'TH', label: 'Thailand (TH)' },
+        { code: 'MY', label: 'Malaysia (MY)' },
+        { code: 'NP', label: 'Nepal (NP)' },
+        { code: 'BD', label: 'Bangladesh (BD)' },
+        { code: 'LK', label: 'Sri Lanka (LK)' },
+        { code: 'DE', label: 'Germany (DE)' },
+        { code: 'FR', label: 'France (FR)' },
+    ];
+
+    // Extract dynamic Cleartrip fieldValidations, fieldAssociations, and preview data directly from live API
+    const previewDataRoot = livePreview?.data?.data || livePreview?.data || livePreview || {};
+    const dynamicFieldValidations = previewDataRoot.fieldValidations || flight?.fieldValidations || {};
+    const dynamicFieldAssociations = previewDataRoot.fieldAssociations || flight?.fieldAssociations || {};
+
+    // Dynamic checks from Cleartrip API fareId
+    const fareIdString = flight?.rawOption?.fareId || flight?.fareId || '';
+    const fareIdParts = typeof fareIdString === 'string' ? fareIdString.split('__') : [];
+    const isInternationalFromFareId = fareIdParts.some(part => /^(INT|INTL|INTERNATIONAL)$/i.test(part));
+    const isStudentFromFareId = fareIdParts.some(part => /STUDENT/i.test(part));
+    const isArmedForcesFromFareId = fareIdParts.some(part => /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(part));
+
+    // Dynamic check from airport zoneIds and countryCodes in live API response
+    const isNonIndianZone = (zoneId) => zoneId && typeof zoneId === 'string' && !zoneId.includes('Kolkata') && !zoneId.includes('Calcutta');
+    const isNonIndianCountry = (countryCode) => countryCode && typeof countryCode === 'string' && countryCode.trim().toUpperCase() !== 'IN';
+
+    const isInternationalFromAirports = Boolean(
+        isNonIndianCountry(primarySegment?.departureAirport?.countryCode) ||
+        isNonIndianCountry(lastSegment?.arrivalAirport?.countryCode) ||
+        isNonIndianCountry(primarySegment?.originCountryCode) ||
+        isNonIndianCountry(lastSegment?.destinationCountryCode) ||
+        isNonIndianZone(primarySegment?.departureZoneId || primarySegment?.departureAirport?.zoneId) ||
+        isNonIndianZone(lastSegment?.arrivalZoneId || lastSegment?.arrivalAirport?.zoneId) ||
+        (flight?.segments && flight.segments.some(s =>
+            isNonIndianCountry(s.departureAirport?.countryCode) ||
+            isNonIndianCountry(s.arrivalAirport?.countryCode) ||
+            isNonIndianCountry(s.originCountryCode) ||
+            isNonIndianCountry(s.destinationCountryCode) ||
+            isNonIndianZone(s.departureZoneId || s.departureAirport?.zoneId) ||
+            isNonIndianZone(s.arrivalZoneId || s.arrivalAirport?.zoneId)
+        ))
+    );
+
+    const isStudentFare = Boolean(
+        dynamicFieldValidations?.STUDENT_ID ||
+        dynamicFieldAssociations?.STUDENT_ID ||
+        isStudentFromFareId ||
+        /STUDENT/i.test(flight?.brandName || '') ||
+        /STUDENT/i.test(primarySegment?.brandName || '') ||
+        /STUDENT/i.test(flight?.cabinType || '') ||
+        /STUDENT/i.test(flight?.fareType || '') ||
+        /STUDENT/i.test(flight?.rawOption?.brandName || '') ||
+        /STUDENT/i.test(sessionStorage.getItem('flight_special_fare') || '') ||
+        (flight?.specialFare && /STUDENT/i.test(flight.specialFare))
+    );
+
+    const isArmedForcesFare = Boolean(
+        dynamicFieldValidations?.ARMED_FORCES_ID ||
+        dynamicFieldAssociations?.ARMED_FORCES_ID ||
+        isArmedForcesFromFareId ||
+        /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(flight?.brandName || '') ||
+        /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(primarySegment?.brandName || '') ||
+        /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(flight?.cabinType || '') ||
+        /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(flight?.fareType || '') ||
+        /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(flight?.rawOption?.brandName || '') ||
+        /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(sessionStorage.getItem('flight_special_fare') || '') ||
+        (flight?.specialFare && /ARMED|DEFENCE|DEFENSE|MILITARY/i.test(flight.specialFare))
+    );
+
+    const isInternationalJourney = Boolean(
+        dynamicFieldValidations?.PASSPORT_NUMBER ||
+        dynamicFieldValidations?.NATIONALITY ||
+        dynamicFieldAssociations?.PASSPORT_NUMBER ||
+        previewDataRoot.journeyType === 'INTERNATIONAL' ||
+        previewDataRoot.isInternational ||
+        flight?.isInternational ||
+        isInternationalFromFareId ||
+        isInternationalFromAirports
+    );
+
     // Helper function to resolve Cleartrip B2B Standard Benefits mappings on Booking Details Page
     const getResolvedBookingBenefits = () => {
         const sourceData = benefitsData || livePreview;
@@ -588,7 +722,18 @@ export default function FlightBookingDetailsPage() {
         penaltyIds.forEach(id => {
             const penalty = penaltiesMap[id];
             if (penalty) {
-                const typeLabel = penalty.penaltyType === 'CANCEL' ? 'Cancellation' : 'Amend/Reschedule';
+                let typeLabel = 'Amend / Reschedule';
+                const pType = String(penalty.penaltyType || '').toUpperCase();
+                if (pType.includes('CANCEL')) {
+                    typeLabel = 'Cancellation';
+                } else if (pType === 'AMEND_SAME_FARE' || pType.includes('SAME_FARE')) {
+                    typeLabel = 'Reschedule (Same Fare)';
+                } else if (pType === 'AMEND_HIGHER_FARE' || pType.includes('HIGHER_FARE')) {
+                    typeLabel = 'Reschedule (Higher Fare)';
+                } else if (pType) {
+                    typeLabel = pType.replace(/_/g, ' ');
+                }
+
                 if (seenPenaltyTypes.has(typeLabel)) return;
                 seenPenaltyTypes.add(typeLabel);
 
@@ -606,7 +751,7 @@ export default function FlightBookingDetailsPage() {
                     const timeLabel = t.endTime ? `${t.endTime.replace('PT', '').replace('H', ' hours')}` : 'departure';
                     return { permittedLabel, amountStr, timeLabel };
                 });
-                penaltiesList.push({ type: typeLabel, timelines: timelineDetails, raw: penalty });
+                penaltiesList.push({ type: typeLabel, penaltyType: penalty.penaltyType, timelines: timelineDetails, raw: penalty });
             }
         });
 
@@ -639,6 +784,47 @@ export default function FlightBookingDetailsPage() {
             if (!p.firstName || !p.firstName.trim() || !p.lastName || !p.lastName.trim()) {
                 toast.error(`Please enter First and Last Name for ${p.label}`);
                 return;
+            }
+
+            if (isStudentFare && p.type === 'ADT') {
+                if (!p.studentId || !p.studentId.trim()) {
+                    toast.error(`Please enter valid Student ID for ${p.label}`);
+                    return;
+                }
+                if (!/^[A-Za-z0-9]+$/.test(p.studentId.trim())) {
+                    toast.error(`Student ID for ${p.label} must be alphanumeric (letters and numbers only)`);
+                    return;
+                }
+            }
+
+            if (isArmedForcesFare && p.type === 'ADT') {
+                if (!p.armedForcesId || !p.armedForcesId.trim()) {
+                    toast.error(`Please enter Armed Forces ID for ${p.label}`);
+                    return;
+                }
+                if (!/^[A-Za-z0-9]+$/.test(p.armedForcesId.trim())) {
+                    toast.error(`Armed Forces ID for ${p.label} must be alphanumeric (letters and numbers only)`);
+                    return;
+                }
+            }
+
+            if (isInternationalJourney) {
+                if (!p.passportNumber || !p.passportNumber.trim()) {
+                    toast.error(`Please enter Passport Number for ${p.label}`);
+                    return;
+                }
+                if (!/^[A-Za-z0-9]+$/.test(p.passportNumber.trim())) {
+                    toast.error(`Passport Number for ${p.label} must be alphanumeric`);
+                    return;
+                }
+                if (!p.nationality || !/^[A-Za-z]{2}$/.test(p.nationality.trim())) {
+                    toast.error(`Please select 2-letter ISO Nationality for ${p.label}`);
+                    return;
+                }
+                if (!p.passportExpiry) {
+                    toast.error(`Please enter Passport Expiry Date for ${p.label}`);
+                    return;
+                }
             }
         }
 
@@ -1102,6 +1288,184 @@ export default function FlightBookingDetailsPage() {
         );
     };
 
+    {/* 1.5 Important Information (Always visible with dynamic API constraints and essential airline guidelines) */}
+    const renderImportantInformation = () => {
+        const previewDataRoot = livePreview?.data?.data || livePreview?.data || livePreview || initialPreview?.data || initialPreview || {};
+        const constraintAssociations = previewDataRoot.constraintAssociations || previewDataRoot.constraints || flight?.constraintAssociations || null;
+        const fieldValidations = previewDataRoot.fieldValidations || flight?.fieldValidations || null;
+        const fieldAssociations = previewDataRoot.fieldAssociations || flight?.fieldAssociations || null;
+
+        const rawList = [];
+        if (constraintAssociations) {
+            if (Array.isArray(constraintAssociations)) {
+                rawList.push(...constraintAssociations);
+            } else if (typeof constraintAssociations === 'object') {
+                Object.entries(constraintAssociations).forEach(([catKey, val]) => {
+                    if (Array.isArray(val)) {
+                        val.forEach(item => {
+                            if (typeof item === 'object' && item !== null) {
+                                rawList.push({ ...item, categoryKey: catKey });
+                            } else if (typeof item === 'string' && item.trim()) {
+                                rawList.push({ description: item, categoryKey: catKey });
+                            }
+                        });
+                    } else if (typeof val === 'object' && val !== null) {
+                        rawList.push({ ...val, categoryKey: catKey });
+                    } else if (typeof val === 'string' && val.trim()) {
+                        rawList.push({ description: val, categoryKey: catKey });
+                    }
+                });
+            }
+        }
+
+        const infoMessages = [];
+        const seen = new Set();
+
+        const addMessage = (msg, icon = 'ℹ️') => {
+            if (!msg || typeof msg !== 'string') return;
+            const trimmed = msg.trim();
+            if (trimmed && !seen.has(trimmed.toLowerCase())) {
+                seen.add(trimmed.toLowerCase());
+                infoMessages.push({ text: trimmed, icon });
+            }
+        };
+
+        // 1. Process dynamic constraintAssociations rules from Cleartrip API
+        rawList.forEach((c) => {
+            if (!c) return;
+
+            // Age constraints
+            const minAge = c.includeMinAge ?? c.minAge;
+            const maxAge = c.includeMaxAge ?? c.maxAge;
+            const paxType = c.paxType || c.categoryKey;
+            const paxName = paxType === 'ADT' ? 'Adult traveller' : paxType === 'CHD' ? 'Child traveller' : paxType === 'INF' ? 'Infant' : 'Passenger';
+
+            if (minAge !== undefined && maxAge !== undefined) {
+                addMessage(`${paxName} must be between ${minAge} and ${maxAge} years old.`, '🎂');
+            } else if (minAge !== undefined) {
+                addMessage(`${paxName} must be at least ${minAge} years old.`, '🎂');
+            } else if (maxAge !== undefined) {
+                addMessage(`${paxName} must be under ${maxAge} years old.`, '🎂');
+            }
+
+            // Name & Regex constraints
+            const fRegex = c.firstNameRegex || c.nameRegex;
+            const lRegex = c.lastNameRegex;
+            const minLen = c.minCharLength || c.minLength;
+            const maxLen = c.maxCharLength || c.maxLength;
+
+            if (fRegex || lRegex) {
+                let msg = 'Passenger first and last name must contain only English alphabets (no special characters or numbers).';
+                if (minLen && maxLen) {
+                    msg += ` Name length must be between ${minLen} and ${maxLen} characters.`;
+                }
+                addMessage(msg, '🔤');
+            } else if (minLen && maxLen) {
+                addMessage(`Passenger name length must be between ${minLen} and ${maxLen} characters.`, '🔤');
+            }
+
+            if (c.allowSingleName === false || c.singleNameAllowed === false) {
+                addMessage('Both First Name and Last Name are required. Single names or initials only are not allowed.', '👤');
+            }
+
+            if (c.allowSpecialCharacters === false || c.specialCharactersAllowed === false) {
+                addMessage('Special characters (e.g., @, #, $, -, _) and numeric digits are not permitted in passenger names.', '🚫');
+            }
+
+            // Document / ID Verification constraints
+            const docType = (c.documentType || c.mandatoryDocument || c.type || '').toUpperCase();
+            if (docType.includes('STUDENT') || c.categoryKey === 'STUDENT') {
+                addMessage('A valid Student ID card issued by a recognized educational institution is mandatory and must be presented at the airport counter.', '🎓');
+            } else if (docType.includes('ARMED') || docType.includes('DEFENCE') || docType.includes('MILITARY')) {
+                addMessage('Valid Military / Armed Forces official service ID is mandatory and must be presented at airline check-in.', '🎖️');
+            } else if (docType.includes('PASSPORT') || c.categoryKey === 'PASSPORT' || c.isPassportRequired) {
+                addMessage('A valid Passport is mandatory for all passengers traveling on international flights.', '🌍');
+            }
+
+            if (c.passportValidityMonths || c.minPassportValidityMonths) {
+                const months = c.passportValidityMonths || c.minPassportValidityMonths;
+                addMessage(`Passport must have a minimum remaining validity of at least ${months} months from the travel date.`, '📅');
+            }
+
+            // Passenger Ratio & Requirements
+            if (c.maxInfantPerAdult || c.infantsPerAdult) {
+                addMessage(`Maximum ${c.maxInfantPerAdult || c.infantsPerAdult} infant allowed per accompanying adult traveller.`, '👶');
+            }
+            if (c.leadPaxMinAge || c.primaryPaxMinAge) {
+                addMessage(`The primary / lead booking passenger must be at least ${c.leadPaxMinAge || c.primaryPaxMinAge} years old.`, '🧑');
+            }
+            if (c.unaccompaniedMinorAllowed === false) {
+                addMessage('Unaccompanied minors are not permitted to travel under this fare class.', '⚠️');
+            }
+            if (c.dobRequired || c.isDobMandatory) {
+                addMessage('Date of birth is mandatory for all travellers as per airline ticketing regulations.', '🗓️');
+            }
+
+            // Clean custom API descriptions / rules (stripping COPY, IDs, regex syntax)
+            const rawDescription = c.description || c.message || c.rule || c.condition || c.ruleText;
+            if (typeof rawDescription === 'string' && rawDescription.trim()) {
+                let cleaned = rawDescription
+                    .replace(/\bCOPY\b/gi, '')
+                    .replace(/\bID:[a-zA-Z0-9_-]+\b/gi, '')
+                    .replace(/\^[A-Za-z0-9\\^$.*+?()[\]{}|]+\$/g, 'valid format')
+                    .replace(/[_]/g, ' ')
+                    .trim();
+
+                if (cleaned.length > 5 && !cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+                    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+                    if (!cleaned.endsWith('.')) cleaned += '.';
+                    addMessage(cleaned, '📌');
+                }
+            }
+        });
+
+        // 2. Process fieldValidations from live API
+        if (fieldValidations || fieldAssociations) {
+            if (fieldValidations?.STUDENT_ID || fieldAssociations?.STUDENT_ID) {
+                addMessage('A valid Student ID card is mandatory for student fare verification at airline check-in.', '🎓');
+            }
+            if (fieldValidations?.ARMED_FORCES_ID || fieldAssociations?.ARMED_FORCES_ID) {
+                addMessage('Valid Military / Armed Forces official service ID is mandatory for defence personnel verification.', '🎖️');
+            }
+            if (fieldValidations?.PASSPORT_NUMBER || fieldAssociations?.PASSPORT_NUMBER) {
+                addMessage('A valid Passport is mandatory for all passengers traveling on international flights.', '🌍');
+            }
+            if (fieldValidations?.NATIONALITY || fieldAssociations?.NATIONALITY) {
+                addMessage('Nationality as per valid passport is mandatory for international booking.', '🌐');
+            }
+        }
+
+        // 100% Pure Dynamic: If no API constraints exist, hide section completely
+        if (infoMessages.length === 0) return null;
+
+        return (
+            <div className="bg-amber-50/80 border border-amber-200/90 rounded-lg p-5 shadow-xs">
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-amber-200/60">
+                    <div className="w-6 h-6 rounded bg-[#d8942f] text-white flex items-center justify-center text-xs font-bold shadow-2xs">
+                        <Info className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                        <h4 className="text-xs font-extrabold text-amber-950 uppercase tracking-wider">
+                            Important Information
+                        </h4>
+                        <p className="text-[11px] text-amber-800/80 font-medium">
+                            Mandatory airline &amp; fare requirements for this booking
+                        </p>
+                    </div>
+                </div>
+
+                <ul className="space-y-2">
+                    {infoMessages.map((item, mIdx) => (
+                        <li key={mIdx} className="flex items-start gap-2.5 text-xs text-amber-950 font-medium leading-relaxed">
+                            <span className="shrink-0 text-sm mt-0.5">{item.icon}</span>
+                            <span>{item.text}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between font-body pt-[75px]">
             <style>{`
@@ -1176,6 +1540,9 @@ export default function FlightBookingDetailsPage() {
                     <div className="lg:col-span-8 space-y-6">
                         {/* 1. Confirmed Flight Banner */}
                         {renderFlightCards()}
+
+                        {/* 1.5 Important Information (Dynamic from constraintAssociations) */}
+                        {renderImportantInformation()}
 
                         {/* 2. Passenger Details Form (Driven by flightPreview Validations) */}
                         <form onSubmit={handleFormSubmit} className="bg-white border border-[#c9dcff] rounded-lg shadow-sm p-6 space-y-6">
@@ -1276,6 +1643,107 @@ export default function FlightBookingDetailsPage() {
                                             />
                                         </div>
                                     </div>
+
+                                    {/* Student Fare ID Field */}
+                                    {isStudentFare && p.type === 'ADT' && (
+                                        <div className="bg-amber-50/70 border border-amber-200/90 rounded-md p-3.5 mt-2 shadow-2xs">
+                                            <div className="flex items-center gap-1.5 mb-2">
+                                                <span className="text-sm">🎓</span>
+                                                <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">Student Fare Verification</span>
+                                                <span className="text-[10px] text-amber-700 font-semibold">(Student ID Required)</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Student ID Card Number *</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. STU123456"
+                                                        value={p.studentId || ''}
+                                                        onChange={(e) => handlePassengerChange(idx, 'studentId', e.target.value.toUpperCase())}
+                                                        required
+                                                        className="w-full bg-white border border-amber-300 rounded-md p-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#d8942f]"
+                                                    />
+                                                </div>
+                                                <div className="text-[11px] text-amber-800 font-medium leading-tight">
+                                                    ℹ️ Valid student ID card must be presented at airline check-in counter.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Armed Forces / Defence Fare ID Field */}
+                                    {isArmedForcesFare && p.type === 'ADT' && (
+                                        <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-md p-3.5 mt-2 shadow-2xs">
+                                            <div className="flex items-center gap-1.5 mb-2">
+                                                <span className="text-sm">🎖️</span>
+                                                <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Armed Forces Verification</span>
+                                                <span className="text-[10px] text-emerald-700 font-semibold">(Service ID Required)</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Armed Forces Service ID *</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. AF987654"
+                                                        value={p.armedForcesId || ''}
+                                                        onChange={(e) => handlePassengerChange(idx, 'armedForcesId', e.target.value.toUpperCase())}
+                                                        required
+                                                        className="w-full bg-white border border-emerald-300 rounded-md p-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#d8942f]"
+                                                    />
+                                                </div>
+                                                <div className="text-[11px] text-emerald-800 font-medium leading-tight">
+                                                    ℹ️ Valid military/armed forces official service ID required at airport check-in.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* International Journey: Passport & Nationality Details */}
+                                    {isInternationalJourney && (
+                                        <div className="bg-blue-50/70 border border-blue-200/90 rounded-md p-3.5 mt-2 shadow-2xs">
+                                            <div className="flex items-center gap-1.5 mb-2">
+                                                <span className="text-sm">🌍</span>
+                                                <span className="text-xs font-bold text-[#00206B] uppercase tracking-wider">International Travel Documentation</span>
+                                                <span className="text-[10px] text-blue-700 font-semibold">(Mandatory for International Flights)</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Passport Number *</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="e.g. Z1234567"
+                                                        value={p.passportNumber || ''}
+                                                        onChange={(e) => handlePassengerChange(idx, 'passportNumber', e.target.value.toUpperCase())}
+                                                        required
+                                                        className="w-full bg-white border border-blue-300 rounded-md p-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#00206B]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Nationality *</label>
+                                                    <select
+                                                        value={p.nationality || 'IN'}
+                                                        onChange={(e) => handlePassengerChange(idx, 'nationality', e.target.value)}
+                                                        required
+                                                        className="w-full bg-white border border-blue-300 rounded-md p-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#00206B]"
+                                                    >
+                                                        {NATIONALITY_OPTIONS.map(nat => (
+                                                            <option key={nat.code} value={nat.code}>{nat.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Passport Expiry Date *</label>
+                                                    <input
+                                                        type="date"
+                                                        value={p.passportExpiry || ''}
+                                                        onChange={(e) => handlePassengerChange(idx, 'passportExpiry', e.target.value)}
+                                                        required
+                                                        className="w-full bg-white border border-blue-300 rounded-md p-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#00206B]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
 
@@ -1427,10 +1895,22 @@ export default function FlightBookingDetailsPage() {
                                 baseFare = flight?.baseFare || Math.round(price * 0.82);
                                 taxes = flight?.taxes || (price - baseFare);
                             } else {
-                                const previewData = livePreview?.data || livePreview;
+                                const previewData = livePreview?.data?.data || livePreview?.data || livePreview;
                                 const faresMap = previewData?.fares || {};
-                                const activeFareId = flight.rawOption?.fareId;
-                                const resolvedFare = faresMap[activeFareId] || Object.values(faresMap)[0];
+                                const activeFareId = flight.rawOption?.fareId || flight.fareId || flight.selectedFareId;
+                                
+                                let resolvedFare = null;
+                                if (activeFareId && faresMap) {
+                                    if (faresMap[activeFareId]) {
+                                        resolvedFare = faresMap[activeFareId];
+                                    } else {
+                                        const matchedKey = Object.keys(faresMap).find(k => k === activeFareId || k.includes(activeFareId) || (activeFareId && activeFareId.includes(k)));
+                                        if (matchedKey) resolvedFare = faresMap[matchedKey];
+                                    }
+                                }
+                                if (!resolvedFare && faresMap && Object.keys(faresMap).length > 0) {
+                                    resolvedFare = Object.values(faresMap)[0];
+                                }
 
                                 price = resolvedFare?.pricing?.totalPrice || resolvedFare?.pricing?.totalFare || flight.price;
                                 baseFare = resolvedFare?.pricing?.totalBaseFare || resolvedFare?.pricing?.baseFare || flight.baseFare || Math.round(price * 0.82);

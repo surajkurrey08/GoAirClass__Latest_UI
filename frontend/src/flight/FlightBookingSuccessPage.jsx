@@ -1049,11 +1049,17 @@ function PremiumFlightTicket({
 
                       <div>
                         <span className="block text-[7px] uppercase">
-                          Frequent Flyer
+                          Document / ID
                         </span>
 
-                        <strong className="mt-1 block text-[9px]">
-                          —
+                        <strong className="mt-1 block text-[9px] text-[#16275b]">
+                          {p.studentId
+                            ? `Student ID: ${p.studentId}`
+                            : p.armedForcesId
+                            ? `Armed Forces: ${p.armedForcesId}`
+                            : p.passportNumber
+                            ? `Passport: ${p.passportNumber} (${p.nationality || "IN"})`
+                            : "Govt ID Verified"}
                         </strong>
                       </div>
                     </div>
