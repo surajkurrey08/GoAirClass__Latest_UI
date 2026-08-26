@@ -14,7 +14,10 @@ export default function Navbar() {
 
   const location = useLocation()
   const navigate = useNavigate()
-  const isHome = location.pathname === '/'
+  const isTransparentRoute =
+    location.pathname === '/' ||
+    location.pathname === '/flights' ||
+    location.pathname === '/hotels'
 
   // Pages that use their own standalone layout.
   // Even if Navbar is mounted globally from App/Layout, it will not render here.
@@ -82,7 +85,7 @@ export default function Navbar() {
         className={`gac-navbar ${
           scrolled ? 'gac-navbar--scrolled' : ''
         } ${
-          isHome && !scrolled ? 'gac-navbar--transparent' : ''
+          isTransparentRoute && !scrolled ? 'gac-navbar--transparent' : ''
         }`}
       >
         <div className="gac-navbar__inner">
@@ -123,7 +126,9 @@ export default function Navbar() {
 
             <Link
               to="/flights"
-              className="gac-navbar__link"
+              className={`gac-navbar__link ${
+                location.pathname === '/flights' ? 'active' : ''
+              }`}
               onClick={closeMobileMenu}
             >
               Flights
@@ -131,7 +136,9 @@ export default function Navbar() {
 
             <Link
               to="/hotels"
-              className="gac-navbar__link"
+              className={`gac-navbar__link ${
+                location.pathname === '/hotels' ? 'active' : ''
+              }`}
               onClick={closeMobileMenu}
             >
               Hotels
@@ -189,7 +196,9 @@ export default function Navbar() {
 
             <Link
               to="/inquiry"
-              className="gac-navbar__link"
+              className={`gac-navbar__link ${
+                location.pathname === '/inquiry' ? 'active' : ''
+              }`}
               onClick={closeMobileMenu}
             >
               Travel Info
@@ -197,7 +206,9 @@ export default function Navbar() {
 
             <Link
               to="/inquiry"
-              className="gac-navbar__link"
+              className={`gac-navbar__link ${
+                location.pathname === '/inquiry' ? 'active' : ''
+              }`}
               onClick={closeMobileMenu}
             >
               About Us

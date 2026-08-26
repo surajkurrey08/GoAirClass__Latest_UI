@@ -150,7 +150,8 @@ function TopSearchBar({ fromVal, toVal, dateVal, returnDateVal, tripTypeVal, sea
         const t = setTimeout(async () => {
             try {
                 const res = await searchAirports(from.trim());
-                if (res?.success && res.data) setFromSuggestions(res.data);
+                const arr = res?.data?.airportData || res?.data || [];
+                setFromSuggestions(Array.isArray(arr) ? arr : []);
             } catch { setFromSuggestions([]); }
         }, 350);
         return () => clearTimeout(t);
@@ -161,7 +162,8 @@ function TopSearchBar({ fromVal, toVal, dateVal, returnDateVal, tripTypeVal, sea
         const t = setTimeout(async () => {
             try {
                 const res = await searchAirports(to.trim());
-                if (res?.success && res.data) setToSuggestions(res.data);
+                const arr = res?.data?.airportData || res?.data || [];
+                setToSuggestions(Array.isArray(arr) ? arr : []);
             } catch { setToSuggestions([]); }
         }, 350);
         return () => clearTimeout(t);

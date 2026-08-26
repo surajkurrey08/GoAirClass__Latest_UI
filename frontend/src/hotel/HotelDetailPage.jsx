@@ -40,6 +40,8 @@ export default function HotelDetailPage() {
     const checkOut = queryParams.get('checkOut') || getFutureDateString(1);
     const rooms = parseInt(queryParams.get('rooms')) || 1;
     const guests = parseInt(queryParams.get('guests')) || 2;
+    const adults = parseInt(queryParams.get('adults')) || guests || 1;
+    const children = parseInt(queryParams.get('children')) || 0;
     const cityName = queryParams.get('city') || '';
 
     // Calculate nights count
@@ -225,9 +227,21 @@ export default function HotelDetailPage() {
                                 <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                             ))}
                             <span className="text-slate-500 text-xs font-semibold ml-1">
-                                ({hotel.ratings?.starRating || hotel.stars || 5} Star Rating)
+                                ({hotel.ratings?.starRating || hotel.stars || 5} Star Hotel)
                             </span>
                         </div>
+                        {hotel.rating && (
+                            <div className="flex items-center gap-1.5 ml-1">
+                                <span className="bg-[#1d4f91] text-white text-[11px] font-black px-2 py-0.5 rounded-sm">
+                                    {Number(hotel.rating).toFixed(1)} / 5
+                                </span>
+                                {hotel.reviewsCount && (
+                                    <span className="text-slate-500 text-xs font-semibold">
+                                        ({hotel.reviewsCount} Guest Reviews)
+                                    </span>
+                                )}
+                            </div>
+                        )}
                         {hotel.property && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-none text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                 {typeof hotel.property === 'object' ? (hotel.property.type || hotel.property.name || JSON.stringify(hotel.property)) : String(hotel.property)}
@@ -319,9 +333,19 @@ export default function HotelDetailPage() {
                                 className="text-xs text-slate-600 leading-relaxed font-medium space-y-3 whitespace-pre-line"
                                 style={{ fontFamily: 'InterMedium, Inter, sans-serif', fontWeight: 500 }}
                             >
-                                <p>
-                                    {hotel.description || `Hotel Europe Plaza is situated in the City of Nawabs, Lucknow. It is located at a distance of 12 km from Chaudhary Charan Singh International Airport, 800 m from Lucknow Charbagh Railway Station and 350 m from Charbagh Bus Stand making it convenient for the guest to commute.\n\nThe property has well equipped and maintained rooms with all the required amenities and services to avoid any kind of discomfort to the guest. Each room has attached bathroom with regular supply of hot and cold water.\n\nPopular places to visit in Lucknow are Dilkusha Kothi (4 km), Ambedkar Memorial (7 km), Chota Imambara (7 km), Dr. Ram Manohar Lohia Park (8 km), Lucknow Zoological Garden (8 km), Janeshwar Mishra Park (9 km) and many more which the guest can explore.\n\nHave a nice stay at Hotel Europe Plaza!`}
-                                </p>
+                                {hotel.description ? (
+                                    <div dangerouslySetInnerHTML={{ __html: hotel.description }} />
+                                ) : (
+                                    <p>
+                                        Hotel Europe Plaza is situated in the City of Nawabs, Lucknow. It is located at a distance of 12 km from Chaudhary Charan Singh International Airport, 800 m from Lucknow Charbagh Railway Station and 350 m from Charbagh Bus Stand making it convenient for the guest to commute.
+
+The property has well equipped and maintained rooms with all the required amenities and services to avoid any kind of discomfort to the guest. Each room has attached bathroom with regular supply of hot and cold water.
+
+Popular places to visit in Lucknow are Dilkusha Kothi (4 km), Ambedkar Memorial (7 km), Chota Imambara (7 km), Dr. Ram Manohar Lohia Park (8 km), Lucknow Zoological Garden (8 km), Janeshwar Mishra Park (9 km) and many more which the guest can explore.
+
+Have a nice stay at Hotel Europe Plaza!
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -406,7 +430,7 @@ export default function HotelDetailPage() {
                                     Select Room & Plan
                                 </h2>
                                 <span className="text-[10px] text-slate-400 font-bold tracking-wider">
-                                    {rooms} Room, {guests} Adults | {formatDate(checkIn)}
+                                    {rooms} {rooms > 1 ? 'Rooms' : 'Room'}, {adults} {adults > 1 ? 'Adults' : 'Adult'}{children > 0 ? `, ${children} ${children > 1 ? 'Children' : 'Child'}` : ''} | {formatDate(checkIn)}
                                 </span>
                             </div>
 

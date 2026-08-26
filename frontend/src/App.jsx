@@ -24,12 +24,10 @@ import 'react-toastify/dist/ReactToastify.css'
 // Service Pages
 // ─────────────────────────────────────────────
 
-import HotelsPage from './pages/services/HotelsPage'
 import HotelListPage from './hotel/HotelListPage'
 import HotelDetailPage from './hotel/HotelDetailPage'
 import HotelCheckoutPage from './hotel/HotelCheckoutPage'
 
-import FlightsPage from './pages/services/FlightsPage'
 import FlightListPage from './flight/FlightListPage'
 import FlightBookingDetailsPage from './flight/FlightBookingDetailsPage'
 import SeatAndAncillarySelectionPage from './flight/SeatAndAncillarySelectionPage'
@@ -130,7 +128,7 @@ export default function App() {
 
         <Route
           path="/hotels"
-          element={<HotelsPage />}
+          element={<Home defaultTab="hotels" />}
         />
 
         <Route
@@ -154,7 +152,7 @@ export default function App() {
 
         <Route
           path="/flights"
-          element={<FlightsPage />}
+          element={<Home defaultTab="flights" />}
         />
 
         <Route

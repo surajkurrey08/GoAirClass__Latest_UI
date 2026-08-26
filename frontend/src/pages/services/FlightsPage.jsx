@@ -192,8 +192,9 @@ export default function FlightsPage() {
             setLoadingSectorSuggest(true);
             try {
                 const res = await searchAirports(query);
-                if (res.success && res.data) {
-                    setSectorSuggestions(res.data);
+                const arr = res?.data?.airportData || res?.data || [];
+                if (res.success) {
+                    setSectorSuggestions(Array.isArray(arr) ? arr : []);
                 }
             } catch (e) {
                 console.error("Error fetching sector suggestions:", e);
@@ -232,8 +233,9 @@ export default function FlightsPage() {
             setLoadingFrom(true)
             try {
                 const res = await searchAirports(fromCity)
-                if (res.success && res.data) {
-                    setFromSuggestions(res.data)
+                const arr = res?.data?.airportData || res?.data || [];
+                if (res.success) {
+                    setFromSuggestions(Array.isArray(arr) ? arr : [])
                 }
             } catch (e) {
                 console.error("Error fetching from suggestions:", e)
@@ -256,8 +258,9 @@ export default function FlightsPage() {
             setLoadingTo(true)
             try {
                 const res = await searchAirports(toCity)
-                if (res.success && res.data) {
-                    setToSuggestions(res.data)
+                const arr = res?.data?.airportData || res?.data || [];
+                if (res.success) {
+                    setToSuggestions(Array.isArray(arr) ? arr : [])
                 }
             } catch (e) {
                 console.error("Error fetching to suggestions:", e)
