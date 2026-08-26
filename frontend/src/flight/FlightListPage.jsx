@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { searchFlights, createFlightSession, previewFlightApi, fetchAncillariesApi, fetchBulkBenefitsApi, searchAirports } from '../services/flightApi';
 import { toast } from 'react-toastify';
 import FlightItineraryTimeline from './FlightItineraryTimeline';
+import FlightSearchLoader from './components/FlightSearchLoader';
 
 /* ── Builds a windowed page-number list with ellipses, e.g.
    [1, '...', 4, 5, 6, '...', 11] ── */
@@ -792,6 +793,18 @@ export default function FlightListPage() {
                         const isInternationalFare = fareIdParts.some(part => /^(INT|INTL|INTERNATIONAL)$/i.test(part)) ||
                             segments.some(s => s.departureZoneId !== 'Asia/Kolkata' || s.arrivalZoneId !== 'Asia/Kolkata' || (s.originCountryCode && s.originCountryCode !== 'IN') || (s.destinationCountryCode && s.destinationCountryCode !== 'IN'));
 
+                        // Match all genuine fares in faresDict for this exact flight sequence
+                        let associatedFareIds = Object.entries(faresDict).filter(([fId, fData]) => {
+                            const stoFare = fData?.subTravelOptionFare?.[0];
+                            if (!stoFare || !stoFare.flightFare) return false;
+                            const fareFlightIds = stoFare.flightFare.map(ff => ff?.flightId);
+                            return fareFlightIds.length === flightIdsList.length && fareFlightIds.every((id, i) => id === flightIdsList[i]);
+                        }).map(([fId]) => fId);
+
+                        if (fareId && !associatedFareIds.includes(fareId)) {
+                            associatedFareIds.unshift(fareId);
+                        }
+
                         processed.push({
                             id: option.travelOptionId || option.id || Math.random().toString(),
                             segments,
@@ -805,10 +818,14 @@ export default function FlightListPage() {
                             airlineCode: segments[0].airlineCode,
                             stopsCount: segments.length - 1,
                             benefits: resolvedBenefits,
+                            subTravelOptionId,
+                            flightIds: flightIdsList,
+                            fareIds: associatedFareIds,
                             rawOption: {
                                 travelOptionId: option.travelOptionId || subTravelOptionId,
                                 subTravelOptionId,
                                 fareId,
+                                fareIds: associatedFareIds,
                                 brandName
                             }
                         });
@@ -1416,29 +1433,52 @@ export default function FlightListPage() {
 
     const handleCardClick = (flight) => {
         setPreviewFlight(flight);
-        setSelectedFareId(flight.rawOption?.fareId || null);
+        setSelectedFareId(flight.rawOption?.fareId || flight.fareId || null);
         setBookingTermsAccepted(false);
         setActivePreviewSection('preview-overview');
         setIsDrawerOpen(true);
 
-        const flightIds = flight.segments.map(s => s.id);
-        const fareIdsToFetch = Object.entries(allFares).filter(([fareId, fareData]) => {
-            if (!fareData.subTravelOptionFare) return false;
-            return fareData.subTravelOptionFare.some(sto => {
-                if (!sto.flightFare) return false;
-                const stoFlightIds = sto.flightFare.map(ff => ff.flightId);
-                return stoFlightIds.length === flightIds.length && stoFlightIds.every(id => flightIds.includes(id));
-            });
-        }).map(([fareId]) => fareId);
+        const flightIds = flight?.segments?.map(s => s.id || s.flightId) || [];
+        const flightAirlineCode = flight?.airlineCode || flight?.segments?.[0]?.airlineCode;
+        const targetSubTravelOptionId = flight?.subTravelOptionId || flight?.rawOption?.subTravelOptionId;
+        const directFareIds = (flight?.fareIds || flight?.rawOption?.fareIds || []).filter(Boolean);
 
-        // Fetch Bulk Benefits dynamically for this flight inside the drawer
-        if (dataId && fareIdsToFetch.length > 0) {
+        let matchedFareIds = [];
+        if (allFares && typeof allFares === 'object') {
+            matchedFareIds = Object.entries(allFares).filter(([fareId, fareData]) => {
+                if (!fareData?.subTravelOptionFare) return false;
+                if (targetSubTravelOptionId) {
+                    return fareData.subTravelOptionFare.some(sto => sto.subTravelOptionId === targetSubTravelOptionId);
+                }
+                if (directFareIds.includes(fareId)) {
+                    return true;
+                }
+                return fareData.subTravelOptionFare.some(sto => {
+                    if (!sto?.flightFare) return false;
+                    const stoAirline = sto.flightFare[0]?.identifiers?.airlineCode || sto.flightFare[0]?.airlineCode;
+                    const airlineMatches = !stoAirline || !flightAirlineCode || stoAirline === flightAirlineCode;
+                    const stoFlightIds = sto.flightFare.map(ff => ff?.flightId);
+                    return airlineMatches && stoFlightIds.length === flightIds.length && stoFlightIds.every(id => flightIds.includes(id));
+                });
+            }).map(([fareId]) => fareId);
+        }
+
+        // Combine all direct and matched fares for this flight
+        const allTargetFareIds = Array.from(new Set([...directFareIds, ...matchedFareIds]));
+
+        if (allTargetFareIds.length === 0) {
+            const fallbackFare = flight?.rawOption?.fareId || flight?.fareId || flight?.selectedFareId;
+            if (fallbackFare) allTargetFareIds.push(fallbackFare);
+        }
+
+        // Fetch Bulk Benefits dynamically for ALL fare options of this specific flight
+        if (dataId && allTargetFareIds.length > 0) {
             setLoadingBenefits(true);
             setBulkBenefits(null);
             fetchBulkBenefitsApi({
                 dataId,
                 searchId,
-                fareIds: fareIdsToFetch,
+                fareIds: allTargetFareIds,
                 requiredBenefitTypes: ["BAGGAGE", "PENALTIES", "FARE_BENEFITS"]
             }).then(res => {
                 if (res.success && res.data) {
@@ -1559,18 +1599,20 @@ export default function FlightListPage() {
         fareUpgradeDragRef.current.dragging = false;
     };
 
-    useEffect(() => {
-        if (!previewFlight) return undefined;
-
+    // Prevent body scroll when drawer is open and fix background shift
+    React.useEffect(() => {
+        if (!previewFlight) return;
         const scrollY = window.scrollY;
+        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
         const previousOverflow = document.body.style.overflow;
         const previousPosition = document.body.style.position;
         const previousTop = document.body.style.top;
         const previousWidth = document.body.style.width;
+
         document.body.style.overflow = 'hidden';
         document.body.style.position = 'fixed';
         document.body.style.top = `-${scrollY}px`;
-        document.body.style.width = '100%';
+        document.body.style.width = scrollBarWidth > 0 ? `calc(100% - ${scrollBarWidth}px)` : '100%';
 
         return () => {
             document.body.style.overflow = previousOverflow;
@@ -1581,24 +1623,45 @@ export default function FlightListPage() {
         };
     }, [previewFlight]);
 
-    // Calculate available fares for previewFlight
+    // Calculate available fares strictly for previewFlight
     const availableFares = React.useMemo(() => {
         if (!previewFlight || !allFares) return [];
-        const flightIds = previewFlight.segments.map(s => s.id);
-        const matchedFares = Object.entries(allFares).filter(([fareId, fareData]) => {
-            if (!fareData.subTravelOptionFare) return false;
-            return fareData.subTravelOptionFare.some(sto => {
-                if (!sto.flightFare) return false;
-                const stoFlightIds = sto.flightFare.map(ff => ff.flightId);
-                return stoFlightIds.length === flightIds.length && stoFlightIds.every(id => flightIds.includes(id));
-            });
-        }).map(([fareId, fareData]) => {
+        const flightIds = previewFlight.segments?.map(s => s.id || s.flightId) || [];
+        const targetSubTravelOptionId = previewFlight.subTravelOptionId || previewFlight.rawOption?.subTravelOptionId;
+        const flightAirlineCode = previewFlight.airlineCode || previewFlight.segments?.[0]?.airlineCode;
+        const directFareIds = (previewFlight.fareIds || previewFlight.rawOption?.fareIds || []).filter(Boolean);
+
+        let matchedFares = Object.entries(allFares).filter(([fareId, fareData]) => {
+            if (!fareData) return false;
+            if (directFareIds.length > 0) {
+                return directFareIds.includes(fareId);
+            }
+            if (targetSubTravelOptionId && fareData.subTravelOptionFare) {
+                return fareData.subTravelOptionFare.some(sto => sto.subTravelOptionId === targetSubTravelOptionId);
+            }
+            if (fareData.subTravelOptionFare && flightIds.length > 0) {
+                return fareData.subTravelOptionFare.some(sto => {
+                    if (!sto?.flightFare) return false;
+                    const stoAirline = sto.flightFare[0]?.identifiers?.airlineCode || sto.flightFare[0]?.airlineCode;
+                    const airlineMatches = !stoAirline || !flightAirlineCode || stoAirline === flightAirlineCode;
+                    const stoFlightIds = sto.flightFare.map(ff => ff?.flightId);
+                    return airlineMatches && stoFlightIds.length === flightIds.length && stoFlightIds.every(id => flightIds.includes(id));
+                });
+            }
+            return false;
+        });
+
+        if (matchedFares.length === 0 && previewFlight.rawOption?.fareId && allFares[previewFlight.rawOption.fareId]) {
+            matchedFares = [[previewFlight.rawOption.fareId, allFares[previewFlight.rawOption.fareId]]];
+        }
+
+        return matchedFares.map(([fareId, fareData]) => {
             const price = fareData.pricing?.totalPrice || 0;
             const isRefundable = fareData.refundable !== undefined ? fareData.refundable : (fareData.subTravelOptionFare?.[0]?.refundable !== undefined ? fareData.subTravelOptionFare[0].refundable : true);
             const rawFlightFares = fareData.subTravelOptionFare?.[0]?.flightFare || [];
             const flightFares = Array.isArray(rawFlightFares) ? rawFlightFares : [rawFlightFares];
             const parsedBrandFromFareId = typeof fareId === 'string' ? fareId.split('__')[11] : null;
-            const brandName = flightFares[0]?.identifiers?.brandName || fareData.fareName || (parsedBrandFromFareId && !parsedBrandFromFareId.startsWith('AVN') ? parsedBrandFromFareId.replace(',', ' / ') : '');
+            const brandName = flightFares[0]?.identifiers?.brandName || fareData.fareName || (parsedBrandFromFareId && !parsedBrandFromFareId.startsWith('AVN') ? parsedBrandFromFareId.replace(',', ' / ') : '') || 'STANDARD';
 
             // Extract Benefits from allBenefits
             let parsedBenefits = [];
@@ -1613,18 +1676,9 @@ export default function FlightListPage() {
                     }));
             }
 
-            // Add fallbacks if empty so the UI shows something
+            // Add clean default baggage if empty
             if (parsedBenefits.length === 0) {
                 parsedBenefits.push({ type: 'BAGGAGE', description: 'Standard Cabin & Check-in Baggage' });
-
-                const lowerBrand = (brandName || '').toLowerCase();
-                if (lowerBrand.includes('flex') || lowerBrand.includes('comfort') || lowerBrand.includes('premium')) {
-                    parsedBenefits.push({ type: 'SEAT', description: 'Free Seat Selection' });
-                    parsedBenefits.push({ type: 'MEAL', description: 'Complimentary Meal' });
-                    parsedBenefits.push({ type: 'BENEFIT', description: 'Zero Cancellation Fee' });
-                } else if (lowerBrand.includes('student')) {
-                    parsedBenefits.push({ type: 'BAGGAGE', description: 'Extra Baggage Allowance' });
-                }
             }
 
             return {
@@ -1636,8 +1690,6 @@ export default function FlightListPage() {
                 rawFare: fareData
             };
         }).sort((a, b) => a.price - b.price);
-
-        return matchedFares;
     }, [previewFlight, allFares, allBenefits]);
 
     // Derived selected fare details
@@ -1700,6 +1752,7 @@ export default function FlightListPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-800 font-body">
+            {loading && <FlightSearchLoader />}
             <style>{`
                 @keyframes slideInRight {
                     from { transform: translateX(100%); }

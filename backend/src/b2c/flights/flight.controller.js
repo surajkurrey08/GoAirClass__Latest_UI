@@ -3,26 +3,6 @@ const FlightBooking = require('../../legacy/models/flight/flightBooking.model');
 const User = require('../../legacy/models/User');
 const mongoose = require('mongoose');
 
-// Helper to generate authentic Cleartrip Trip ID format: e.g. Q260817970722
-const generateCleartripTripId = () => {
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const rand = Math.floor(100000 + Math.random() * 900000);
-    return `Q${yy}${mm}${dd}${rand}`;
-};
-
-// Helper to generate 6-character airline PNR format
-const generateCleartripPnr = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let pnr = '';
-    for (let i = 0; i < 6; i++) {
-        pnr += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return pnr;
-};
-
 /**
  * Login to Cleartrip B2B API
  * POST /api/flights/login
@@ -202,47 +182,71 @@ exports.searchAirports = async (req, res) => {
             error: error.message
         });
     }
+    
 };
 
 /**
- * Get Fare Calendar Info from Cleartrip B2B API
+ * Get Fare Calendar Info from Cleartrip B2B API (100% Direct, No Mock/Calculation Fallback)
  * POST /api/flights/fare-calendar
  */
 exports.getFareCalendar = async (req, res) => {
     try {
-        const { origin, destination } = req.body;
-
         const baseUrl = process.env.CLEARTRIP_FLIGHT_BASE_URL;
         const apiKey = process.env.CLEARTRIP_FLIGHT_API_KEY;
-
-        let token = null;
-        try {
-            token = await getCleartripToken();
-        } catch (loginErr) {
-            console.warn('[Fare Calendar] Partner login note:', loginErr.message);
-        }
+        const token = await getCleartripToken();
 
         const domain = baseUrl ? baseUrl.replace('/air/api/v4', '').replace('/air/api/v5', '').replace('/air/api/v6', '') : 'https://qa-air-b2b.cleartrip.com';
         const url = `${domain}/air/api/v1/fare-calendar/info`;
 
-        console.log(`[Fare Calendar] Requesting Cleartrip: ${url} for ${origin || 'ALL'} -> ${destination || 'ALL'}`);
+        let cleartripPayload = req.body;
 
-        let responseData = null;
-        if (token) {
-            try {
-                const response = await axios.post(url, req.body, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CT-API-KEY': apiKey,
-                        'Authorization': `Bearer ${token}`
+        // Auto-format Cleartrip payload if frontend passes simple parameters (e.g. { origin, destination })
+        if (!cleartripPayload.flights || !cleartripPayload.dr || !cleartripPayload.adt) {
+            const fromCode = (req.body.origin || req.body.from || 'DEL').match(/\(([^)]+)\)/)?.[1] || (req.body.origin || req.body.from || 'DEL');
+            const toCode = (req.body.destination || req.body.to || 'BLR').match(/\(([^)]+)\)/)?.[1] || (req.body.destination || req.body.to || 'BLR');
+
+            const today = new Date();
+            const futureDate = new Date();
+            futureDate.setDate(today.getDate() + 30);
+
+            const formatDDMMYYYY = (d) => {
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yyyy = d.getFullYear();
+                return `${dd}/${mm}/${yyyy}`;
+            };
+
+            cleartripPayload = {
+                adt: Number(req.body.adt || req.body.adults) || 1,
+                chd: Number(req.body.chd || req.body.children) || 0,
+                inf: Number(req.body.inf || req.body.infants) || 0,
+                flights: {
+                    "1": {
+                        from: fromCode.toUpperCase().trim(),
+                        to: toCode.toUpperCase().trim()
                     }
-                });
-                responseData = response.data;
-            } catch (err) {
-                console.warn('[Fare Calendar] Live Cleartrip API call fallback:', err.message);
-            }
+                },
+                dr: {
+                    begin: req.body.beginDate || req.body.departDate ? formatDDMMYYYY(new Date(req.body.beginDate || req.body.departDate)) : formatDDMMYYYY(today),
+                    end: req.body.endDate ? formatDDMMYYYY(new Date(req.body.endDate)) : formatDDMMYYYY(futureDate)
+                }
+            };
         }
+
+        console.log(`[Fare Calendar] Direct Cleartrip API request: ${url}`);
+        console.log(`[Fare Calendar Payload]:`, JSON.stringify(cleartripPayload));
+
+        const response = await axios.post(url, cleartripPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CT-API-KEY': apiKey,
+                'Authorization': `Bearer ${token}`
+            },
+            timeout: 25000
+        });
+
+        const responseData = response.data;
 
         // Normalize Cleartrip live response ({ result: [ { dt: "28-08-2026", pr: { "1": 2546 } } ] })
         if (responseData && Array.isArray(responseData.result)) {
@@ -283,47 +287,37 @@ exports.getFareCalendar = async (req, res) => {
                 }
             });
 
-            responseData = {
+            const resOrigin = req.body.origin || cleartripPayload.flights?.['1']?.from || 'DEL';
+            const resDest = req.body.destination || cleartripPayload.flights?.['1']?.to || 'BLR';
+
+            return res.status(200).json({
                 success: true,
-                origin: origin || 'DEL',
-                destination: destination || 'BOM',
+                origin: resOrigin,
+                destination: resDest,
                 fares: normalizedFares,
                 result: responseData.result
-            };
+            });
         }
 
-        // Generate robust fallback fare calendar dataset if live QA partner environment is unavailable
-        if (!responseData || !responseData.fares || Object.keys(responseData.fares).length === 0) {
-            const fares = {};
-            const today = new Date();
-            for (let i = 0; i < 30; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const dateStr = d.toISOString().split('T')[0];
-                const baseFare = 3200 + ((i * 180) % 2400);
-                fares[dateStr] = {
-                    price: baseFare,
-                    currency: 'INR',
-                    available: true
-                };
-            }
-            responseData = {
-                success: true,
-                origin: origin || 'DEL',
-                destination: destination || 'BOM',
-                fares
-            };
-        }
-
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             data: responseData
         });
+
     } catch (error) {
-        console.error('Cleartrip Fare Calendar Error:', error.message);
-        res.status(500).json({
+        
+        console.error('Cleartrip Fare Calendar Error:', error.response?.data || error.message);
+        const status = error.response?.status || 500;
+        const errorData = error.response?.data || null;
+        let errorMsg = 'Failed to fetch fare calendar information from Cleartrip API';
+        if (errorData) {
+            errorMsg = typeof errorData === 'object'
+                ? (errorData.errorMessage || errorData.message || JSON.stringify(errorData))
+                : errorData;
+        }
+        return res.status(status).json({
             success: false,
-            message: 'Failed to fetch fare calendar information',
+            message: errorMsg,
             error: error.message
         });
     }
@@ -835,7 +829,7 @@ exports.holdFlight = async (req, res) => {
 };
 
 /**
- * Commit Flight Booking on Cleartrip B2B API
+ * Commit Flight Booking on Cleartrip B2B API (100% Direct Live Booking)
  * POST /api/flights/book
  */
 exports.bookFlight = async (req, res) => {
@@ -883,7 +877,7 @@ exports.bookFlight = async (req, res) => {
                 dob: p.dob || '1990-01-01',
                 nationalityCode: 'IN',
                 address: {
-                    mobileNumber: String(contact?.phone || p.phone || '9876543210').replace(/\D/g, ''),
+                    mobileNumber: String(contact?.phone || p.phone || '').replace(/\D/g, ''),
                     countryCode: String(contact?.countryCode || '91').replace('+', '')
                 },
                 title: titleUpper === 'MRS' ? 'MRS' : (titleUpper === 'MS' ? 'MS' : 'MR'),
@@ -909,7 +903,7 @@ exports.bookFlight = async (req, res) => {
                 countryCode: String(contact?.countryCode || '91').replace('+', '')
             },
             phoneNumberDetails: {
-                phoneNumber: String(contact?.phone || primaryPax.phone || '9876543210').replace(/\D/g, ''),
+                phoneNumber: String(contact?.phone || primaryPax.phone || '').replace(/\D/g, ''),
                 countryCode: String(contact?.countryCode || '91').replace('+', '')
             }
         };
@@ -931,92 +925,48 @@ exports.bookFlight = async (req, res) => {
             ...bookPayload
         };
 
-        const validTripId = (holdData?.tripId && !holdData?.tripId.startsWith('CT_HOLD_')) ? holdData.tripId : generateCleartripTripId();
-        const validPnr = generateCleartripPnr();
-        const validBookingId = 'BK-GAC-' + Date.now();
-        let responseData = null;
+        console.log('[Flight Book] Step 2: Sending payload directly to Cleartrip B2B API...');
+        console.log('[Flight Book] Payload:', JSON.stringify(payloadToSend, null, 2));
 
-        // If hold was in fallback mode or has fallback tripId, skip live call and issue booking directly
-        if (holdData?.isFallback || String(holdData?.tripId || '').startsWith('CT_HOLD_') || idsArray.length === 0) {
-            console.log('[Flight Book] Using fallback booking issuance with authentic trip ID:', validTripId);
-            responseData = {
-                status: 'CONFIRMED',
-                bookingId: validBookingId,
-                tripId: validTripId,
-                pnr: validPnr,
-                travelIds: idsArray,
-                message: 'Booking confirmed successfully (Sandbox Mode)'
-            };
-        } else {
-            // Call Cleartrip live /book API
-            try {
-                console.log('[Flight Book] Step 2: Sending payload to Cleartrip B2B API...');
-                console.log('[Flight Book] Payload:', JSON.stringify(payloadToSend, null, 2));
+        const response = await axios.post(url, payloadToSend, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'x-ct-session-id': sessionId,
+                'X-CT-API-KEY': apiKey,
+                'Authorization': `Bearer ${token}`
+            },
+            timeout: 60000
+        });
 
-                const response = await axios.post(url, payloadToSend, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'x-ct-session-id': sessionId,
-                        'X-CT-API-KEY': apiKey,
-                        'Authorization': `Bearer ${token}`
-                    },
-                    timeout: 60000
-                });
+        console.log('[Flight Book] Cleartrip Live API SUCCESS Response:', JSON.stringify(response.data).substring(0, 500));
+        const responseData = response.data;
 
-                console.log('[Flight Book] SUCCESS Response:', JSON.stringify(response.data).substring(0, 500));
-                responseData = response.data;
-            } catch (bookErr) {
-                console.warn('[Flight Book] Cleartrip live book API notice in sandbox. Issuing confirmed booking:', bookErr.response?.data || bookErr.message);
-                responseData = {
-                    status: 'CONFIRMED',
-                    bookingId: validBookingId,
-                    tripId: validTripId,
-                    pnr: validPnr,
-                    travelIds: idsArray,
-                    message: 'Booking confirmed successfully'
-                };
-            }
-        }
-
-        // Save booking to local MongoDB database
+        // Save authentic booking to local MongoDB database
         try {
-            const departureSeg = flight?.segments?.[0] || {};
             const arrivalSeg = flight?.segments?.[flight?.segments?.length - 1] || departureSeg;
 
-            const dbPassengers = [];
-            if (Array.isArray(passengers) && passengers.length > 0) {
-                passengers.forEach(p => {
-                    dbPassengers.push({
-                        firstName: p.firstName || 'Traveller',
-                        lastName: p.lastName || 'Passenger',
-                        gender: p.gender || 'MALE',
-                        dateOfBirth: p.dob ? new Date(p.dob) : new Date('1990-01-01'),
-                        seatNumber: p.selectedSeat || 'None',
-                        seatType: 'Economy',
-                        seatPrice: 0,
-                        baggage: p.selectedBaggage || 'None',
-                        meal: p.selectedMeal || 'None'
-                    });
-                });
-            } else {
-                dbPassengers.push({
-                    firstName: passenger?.firstName || 'Traveller',
-                    lastName: passenger?.lastName || 'Passenger',
-                    gender: passenger?.gender || 'MALE',
-                    dateOfBirth: passenger?.dob ? new Date(passenger.dob) : new Date('1990-01-01'),
-                    seatNumber: passenger?.selectedSeat || 'None',
-                    seatType: 'Economy',
-                    seatPrice: 0,
-                    baggage: passenger?.selectedBaggage || 'None',
-                    meal: passenger?.selectedMeal || 'None'
-                });
-            }
+            const dbPassengers = paxList.map(p => ({
+                firstName: p.firstName || 'Traveller',
+                lastName: p.lastName || 'Passenger',
+                gender: p.gender || 'MALE',
+                dateOfBirth: p.dob ? new Date(p.dob) : new Date('1990-01-01'),
+                seatNumber: p.selectedSeat || 'None',
+                seatType: 'Economy',
+                seatPrice: 0,
+                baggage: p.selectedBaggage || 'None',
+                meal: p.selectedMeal || 'None'
+            }));
+
+            const realTripId = responseData?.tripId || holdData?.tripId;
+            const realPnr = responseData?.pnr || responseData?.booking_details?.pnr || realTripId;
+            const realBookingId = responseData?.bookingId || `BK-GAC-${Date.now()}`;
+            const realAmount = Number(total || responseData?.totalAmount || responseData?.amount || 0);
 
             const newBooking = new FlightBooking({
                 userId: req.user?.id || req.user?._id || null,
-                tripId: responseData?.tripId || validTripId,
-                pnr: responseData?.pnr || validPnr,
+                tripId: realTripId,
+                pnr: realPnr,
                 flightDetails: {
                     airline: departureSeg.airlineName || flight?.airlineName || 'Airline',
                     flightNumber: departureSeg.flightNumber || flight?.flightNumber || 'N/A',
@@ -1029,101 +979,58 @@ exports.bookFlight = async (req, res) => {
                 },
                 passengers: dbPassengers,
                 contactDetails: {
-                    email: contact?.email || passenger?.email || 'customer@goairclass.com',
-                    phone: contact?.phone || passenger?.phone || '9876543210'
+                    email: contact?.email || primaryPax.email || '',
+                    phone: contact?.phone || primaryPax.phone || ''
                 },
                 fareDetails: {
-                    baseFare: total || 4928,
+                    baseFare: realAmount,
                     taxes: 0,
                     seatFee: 0,
                     addons: 0,
                     discount: 0,
-                    totalAmount: total || 4928
+                    totalAmount: realAmount
                 },
-                bookingId: responseData?.bookingId || validBookingId,
-                bookingStatus: 'CONFIRMED',
+                bookingId: realBookingId,
+                bookingStatus: responseData?.status || 'CONFIRMED',
                 paymentStatus: 'PAID',
-                ticketStatus: 'CONFIRMED',
+                ticketStatus: responseData?.status || 'CONFIRMED',
                 bookingSource: 'WEB'
             });
 
             await newBooking.save();
-            console.log('[Flight Book] Saved booking to local MongoDB successfully with tripId:', newBooking.tripId);
+            console.log('[Flight Book] Saved real booking to MongoDB successfully with tripId:', newBooking.tripId);
         } catch (dbErr) {
-            console.error('[Flight Book] Failed to save booking to local MongoDB:', dbErr.message);
+            console.warn('[Flight Book] DB record save note:', dbErr.message);
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             data: responseData
         });
 
     } catch (error) {
         const statusCode = error.response?.status || 500;
-        console.error(`[Flight Book] FAILED with status ${statusCode}`);
+        const rawErrorData = error.response?.data || null;
+        console.error(`[Flight Book] Cleartrip Live API FAILED with status ${statusCode}:`, rawErrorData || error.message);
 
-        const fallbackTripId = req.body.holdData?.tripId || generateCleartripTripId();
-        const fallbackPnr = generateCleartripPnr();
-        const fallbackBookingId = 'BK-GAC-' + Date.now();
-
-        try {
-            const departureSeg = req.body.flight?.segments?.[0] || {};
-            const arrivalSeg = req.body.flight?.segments?.[req.body.flight?.segments?.length - 1] || departureSeg;
-            const newBooking = new FlightBooking({
-                userId: req.user?.id || req.user?._id || null,
-                tripId: fallbackTripId,
-                pnr: fallbackPnr,
-                flightDetails: {
-                    airline: departureSeg.airlineName || req.body.flight?.airlineName || 'Airline',
-                    flightNumber: departureSeg.flightNumber || req.body.flight?.flightNumber || 'N/A',
-                    departureAirport: departureSeg.origin || 'BLR',
-                    arrivalAirport: arrivalSeg.destination || 'BOM',
-                    departureCity: departureSeg.departureCity || departureSeg.origin || 'BLR',
-                    arrivalCity: arrivalSeg.arrivalCity || arrivalSeg.destination || 'BOM',
-                    departureTime: departureSeg.departureDateTime ? new Date(departureSeg.departureDateTime) : new Date(),
-                    durationMinutes: req.body.flight?.segments?.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) || 120
-                },
-                passengers: req.body.passengers || (req.body.passenger ? [req.body.passenger] : []),
-                contactDetails: {
-                    email: req.body.contact?.email || req.body.passenger?.email || 'customer@goairclass.com',
-                    phone: req.body.contact?.phone || req.body.passenger?.phone || '9876543210'
-                },
-                fareDetails: {
-                    baseFare: req.body.total || 4928,
-                    taxes: 0,
-                    seatFee: 0,
-                    addons: 0,
-                    discount: 0,
-                    totalAmount: req.body.total || 4928
-                },
-                bookingId: fallbackBookingId,
-                bookingStatus: 'CONFIRMED',
-                paymentStatus: 'PAID',
-                ticketStatus: 'CONFIRMED',
-                bookingSource: 'WEB'
-            });
-            await newBooking.save();
-            console.log('[Flight Book] Saved fallback booking to local MongoDB with tripId:', fallbackTripId);
-        } catch (dbErr) {
-            console.error('[Flight Book] Failed to save fallback booking to DB:', dbErr.message);
+        let errorMsg = 'Failed to book flight on Cleartrip API';
+        if (rawErrorData) {
+            errorMsg = typeof rawErrorData === 'object'
+                ? (rawErrorData.errorMessage || rawErrorData.message || JSON.stringify(rawErrorData))
+                : rawErrorData;
         }
 
-        res.status(200).json({
-            success: true,
-            data: {
-                status: 'CONFIRMED',
-                bookingId: fallbackBookingId,
-                tripId: fallbackTripId,
-                pnr: fallbackPnr,
-                travelIds: req.body.travelIds || [],
-                message: 'Booking confirmed successfully'
-            }
+        return res.status(statusCode).json({
+            success: false,
+            message: errorMsg,
+            error: error.message,
+            details: rawErrorData
         });
     }
 };
 
 /**
- * Fetch complete trip details by trip ID from Database or Cleartrip B2B API
+ * Fetch complete trip details directly from Cleartrip B2B API (100% Direct, No Database check)
  * GET /api/flights/trip/:tripId
  */
 exports.getTripDetails = async (req, res) => {
@@ -1136,63 +1043,6 @@ exports.getTripDetails = async (req, res) => {
             });
         }
 
-        // 1. Search local MongoDB FlightBooking collection first
-        try {
-            const localBooking = await FlightBooking.findOne({
-                $or: [
-                    { tripId: tripId },
-                    { pnr: tripId },
-                    { bookingId: tripId }
-                ]
-            });
-
-            if (localBooking) {
-                // Security check & auto-link: If booking matches user, admin, or contact details, authorize and link
-                const requestingUserId = req.user?.id || req.user?._id;
-                if (requestingUserId && localBooking) {
-                    try {
-                        const user = await User.findById(requestingUserId);
-                        if (user) {
-                            const cleanPhone = user.mobileNumber ? String(user.mobileNumber).replace(/\D/g, '').slice(-7) : null;
-                            const bookingPhone = localBooking.contactDetails?.phone ? String(localBooking.contactDetails.phone).replace(/\D/g, '') : '';
-                            const userEmail = user.email ? user.email.toLowerCase().trim() : null;
-                            const bookingEmail = localBooking.contactDetails?.email ? localBooking.contactDetails.email.toLowerCase().trim() : '';
-
-                            if ((cleanPhone && bookingPhone.includes(cleanPhone)) || (userEmail && bookingEmail === userEmail) || !localBooking.userId) {
-                                await FlightBooking.updateOne({ _id: localBooking._id }, { $set: { userId: requestingUserId } });
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('[Flight Trip View] Authorization link note:', e.message);
-                    }
-                }
-
-                console.log(`[Flight Trip View] Found booking in local DB for tripId: ${tripId}`);
-                return res.status(200).json({
-                    success: true,
-                    data: {
-                        booking_details: {
-                            trip_id: localBooking.tripId || tripId,
-                            booking_id: localBooking.bookingId,
-                            pnr: localBooking.pnr,
-                            booking_status: localBooking.bookingStatus || 'CONFIRMED',
-                            ticket_status: localBooking.ticketStatus || 'CONFIRMED',
-                            payment_status: localBooking.paymentStatus || 'PAID',
-                            flight_details: localBooking.flightDetails,
-                            passengers: localBooking.passengers,
-                            contact_details: localBooking.contactDetails,
-                            fare_details: localBooking.fareDetails,
-                            created_at: localBooking.createdAt
-                        },
-                        source: 'DATABASE'
-                    }
-                });
-            }
-        } catch (dbErr) {
-            console.warn('[Flight Trip View] Local DB query note:', dbErr.message);
-        }
-
-        // 2. If not found in DB, try Cleartrip Live API
         const baseUrl = process.env.CLEARTRIP_FLIGHT_BASE_URL;
         const apiKey = process.env.CLEARTRIP_FLIGHT_API_KEY;
         const token = await getCleartripToken();
@@ -1200,129 +1050,25 @@ exports.getTripDetails = async (req, res) => {
         const domain = baseUrl ? baseUrl.replace('/air/api/v4', '').replace('/air/api/v5', '').replace('/air/api/v6', '') : 'https://qa-air-b2b.cleartrip.com';
         const url = `${domain}/air/api/v3/trips/json/view/${tripId}`;
 
-        console.log(`[Flight Trip View] Fetching trip details for tripId: ${tripId}`);
+        console.log(`[Flight Trip View] Direct Cleartrip Live API Call for: ${tripId}`);
 
-        try {
-            const response = await axios.get(url, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CT-API-KEY': apiKey,
-                    'Authorization': `Bearer ${token}`
-                },
-                timeout: 25000
-            });
+        const response = await axios.get(url, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CT-API-KEY': apiKey,
+                'Authorization': `Bearer ${token}`
+            },
+            timeout: 25000
+        });
 
-            console.log(`[Flight Trip View] SUCCESS from Cleartrip API`);
-            return res.status(200).json({
-                success: true,
-                data: response.data
-            });
-        } catch (ctErr) {
-            const ctErrData = ctErr.response?.data || {};
-            console.warn(`[Flight Trip View] Cleartrip API trip notice (${tripId}):`, ctErrData?.errorMessage || ctErr.message);
-
-            // If Cleartrip QA returns 404 or behaves badly, provide confirmed ticket from local DB or create fallback
-            const fallbackPnr = tripId.startsWith('Q') ? tripId : `PNR-${Date.now().toString().slice(-6)}`;
-            
-            try {
-                let existingBooking = await FlightBooking.findOne({
-                    $or: [{ tripId: tripId }, { pnr: tripId }, { bookingId: tripId }]
-                });
-
-                if (!existingBooking) {
-                    const requestingUserId = req.user?.id || req.user?._id;
-                    existingBooking = new FlightBooking({
-                        userId: requestingUserId || null,
-                        bookingId: `BK-GAC-${Date.now()}`,
-                        tripId: tripId,
-                        pnr: fallbackPnr,
-                        flightDetails: {
-                            airline: 'Air India / Partner Airline',
-                            flightNumber: 'AI-502',
-                            departureAirport: 'DEL',
-                            arrivalAirport: 'BOM',
-                            departureCity: 'Delhi',
-                            arrivalCity: 'Mumbai',
-                            departureTime: new Date(Date.now() + 86400000).toISOString(),
-                            durationMinutes: 130,
-                            arrivalTime: new Date(Date.now() + 86400000 + 7800000).toISOString(),
-                            boardingTime: new Date(Date.now() + 86400000 - 2700000).toISOString()
-                        },
-                        passengers: [{
-                            firstName: 'Primary',
-                            lastName: 'Traveller',
-                            gender: 'MALE',
-                            seatNumber: '12B',
-                            seatType: 'Economy'
-                        }],
-                        contactDetails: {
-                            email: 'support@goairclass.com',
-                            phone: '9876543210'
-                        },
-                        fareDetails: {
-                            baseFare: 4928,
-                            taxes: 0,
-                            seatFee: 0,
-                            addons: 0,
-                            discount: 0,
-                            totalAmount: 4928
-                        },
-                        bookingStatus: 'CONFIRMED',
-                        paymentStatus: 'PAID',
-                        ticketStatus: 'CONFIRMED',
-                        bookingSource: 'WEB'
-                    });
-                    await existingBooking.save();
-                }
-
-                return res.status(200).json({
-                    success: true,
-                    data: {
-                        booking_details: {
-                            trip_id: existingBooking.tripId || tripId,
-                            booking_id: existingBooking.bookingId,
-                            pnr: existingBooking.pnr || fallbackPnr,
-                            booking_status: existingBooking.bookingStatus || 'CONFIRMED',
-                            ticket_status: existingBooking.ticketStatus || 'CONFIRMED',
-                            payment_status: existingBooking.paymentStatus || 'PAID',
-                            flight_details: existingBooking.flightDetails,
-                            passengers: existingBooking.passengers,
-                            contact_details: existingBooking.contactDetails,
-                            fare_details: existingBooking.fareDetails,
-                            created_at: existingBooking.createdAt
-                        },
-                        source: 'DATABASE_CONFIRMED'
-                    }
-                });
-            } catch (fallbackDbErr) {
-                console.error('[Flight Trip View] Fallback DB error:', fallbackDbErr.message);
-                return res.status(200).json({
-                    success: true,
-                    data: {
-                        booking_details: {
-                            trip_id: tripId,
-                            pnr: fallbackPnr,
-                            booking_status: 'CONFIRMED',
-                            ticket_status: 'CONFIRMED',
-                            payment_status: 'PAID'
-                        }
-                    }
-                });
-            }
-        }
+        // Directly return Cleartrip's raw response without any DB check or modification
+        return res.status(response.status || 200).json(response.data);
 
     } catch (error) {
-        console.error(`[Flight Trip View] Error:`, error.message);
-        res.status(200).json({
-            success: true,
-            data: {
-                booking_details: {
-                    trip_id: req.params.tripId,
-                    booking_status: 'CONFIRMED',
-                    ticket_status: 'CONFIRMED'
-                }
-            }
-        });
+        console.error(`[Flight Trip View] Cleartrip Direct API Error (${req.params.tripId}):`, error.response?.data || error.message);
+        const status = error.response?.status || 500;
+        const errorData = error.response?.data || { success: false, message: error.message };
+        return res.status(status).json(errorData);
     }
 };
 
@@ -1333,6 +1079,13 @@ exports.getTripDetails = async (req, res) => {
 exports.getBulkBenefits = async (req, res) => {
     try {
         let { dataId, fareIds, requiredBenefitTypes, sessionId, searchId } = req.body;
+
+        if (!fareIds || !Array.isArray(fareIds) || fareIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'fareIds array is required for bulk benefits'
+            });
+        }
 
         const baseUrl = process.env.CLEARTRIP_FLIGHT_BASE_URL;
         const apiKey = process.env.CLEARTRIP_FLIGHT_API_KEY;
@@ -1357,7 +1110,7 @@ exports.getBulkBenefits = async (req, res) => {
                         'X-CT-API-KEY': apiKey,
                         'Authorization': `Bearer ${token}`
                     },
-                    timeout: 20000
+                    timeout: 25000
                 });
                 sessionId = sessionResponse.data.sessionId || sessionResponse.data.data?.sessionId;
                 console.log(`[Flight Bulk Benefits] Internally generated sessionId: ${sessionId}`);
@@ -1381,10 +1134,10 @@ exports.getBulkBenefits = async (req, res) => {
                     'X-CT-API-KEY': apiKey,
                     'Authorization': `Bearer ${token}`
                 },
-                timeout: 30000
+                timeout: 60000
             });
         } catch (apiErr) {
-            // Auto retry with fresh session if session expired
+            // Auto retry with fresh session if session expired (status 400 or errorCode 406)
             if (searchId && (apiErr.response?.status === 400 || apiErr.response?.data?.errorCode === 406)) {
                 try {
                     const freshSessRes = await axios.post(`${domain}/air/api/v4/session`, { searchId }, {
@@ -1393,7 +1146,8 @@ exports.getBulkBenefits = async (req, res) => {
                             'Accept': 'application/json',
                             'X-CT-API-KEY': apiKey,
                             'Authorization': `Bearer ${token}`
-                        }
+                        },
+                        timeout: 25000
                     });
                     const freshSessId = freshSessRes.data?.sessionId;
                     if (freshSessId) {
@@ -1409,7 +1163,7 @@ exports.getBulkBenefits = async (req, res) => {
                                 'X-CT-API-KEY': apiKey,
                                 'Authorization': `Bearer ${token}`
                             },
-                            timeout: 30000
+                            timeout: 60000
                         });
                     }
                 } catch (retryErr) {
