@@ -417,12 +417,14 @@ export default function ProfilePage() {
     const type = normalizeType(booking);
     if (type === 'flight') {
       const tripRef = booking.tripId || booking.bookingId || booking.id;
-      navigate('/flight/booking-success', {
+      navigate(`/flight/booking-success?tripId=${encodeURIComponent(tripRef)}`, {
         state: {
+          isFromHistory: true,
           bookingId: tripRef,
           tripId: booking.tripId || tripRef,
           pnr: booking.pnr || '',
-          bookingData: booking.raw || booking
+          bookingData: booking.raw || booking,
+          total: booking.totalAmount || booking.amount || booking.price || 0
         }
       });
     } else {

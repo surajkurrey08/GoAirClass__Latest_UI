@@ -24,6 +24,32 @@ import { fetchTripDetailsApi } from "../services/flightApi";
 import { saveBookingToHistory } from "../utils/BookingHistory";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
+const AIRPORT_CITIES = {
+  DEL: "Delhi",
+  BOM: "Mumbai",
+  BLR: "Bengaluru",
+  MAA: "Chennai",
+  CCU: "Kolkata",
+  HYD: "Hyderabad",
+  GOI: "Goa",
+  GOX: "Goa (Mopa)",
+  PNQ: "Pune",
+  AMD: "Ahmedabad",
+  JAI: "Jaipur",
+  COK: "Kochi",
+  LKO: "Lucknow",
+  PAT: "Patna",
+  GAU: "Guwahati",
+  BBI: "Bhubaneswar",
+  IXC: "Chandigarh",
+  SXR: "Srinagar",
+  ATQ: "Amritsar",
+  IXB: "Bagdogra",
+  TRV: "Thiruvananthapuram",
+  VNS: "Varanasi",
+  IDR: "Indore"
+};
+
 /* =========================================================
    HELPERS
    ========================================================= */
@@ -1517,25 +1543,33 @@ export default function FlightBookingSuccessPage() {
     holdData?.pnr ||
     "";
 
-  /* =========================================================
-     LIVE CLEARTRIP DATA & 6-SECOND LOTTIE ANIMATION
-     ========================================================= */
+  const isViewOnly = Boolean(
+    stateToUse.isFromHistory ||
+    location.search.includes('tripId') ||
+    location.search.includes('trip_id') ||
+    location.search.includes('view') ||
+    (!stateToUse.flight && (queryTripId || stateToUse.tripId || stateToUse.bookingId))
+  );
 
   const [liveDetails, setLiveDetails] = useState(null);
-  const [loadingLiveDetails, setLoadingLiveDetails] = useState(false);
-  const [isProcessingAnimation, setIsProcessingAnimation] = useState(true);
+  const [loadingLiveDetails, setLoadingLiveDetails] = useState(Boolean(confirmId && !confirmId.startsWith("GAC-")));
+  const [isProcessingAnimation, setIsProcessingAnimation] = useState(!isViewOnly);
 
-  // Play animation for 6 seconds before hitting tripId API
+  // Play animation for fresh booking checkout only
   useEffect(() => {
+    if (isViewOnly) {
+      setIsProcessingAnimation(false);
+      return;
+    }
     const timer = setTimeout(() => {
       setIsProcessingAnimation(false);
-    }, 6000);
+    }, 4000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isViewOnly]);
 
   useEffect(() => {
-    // Only hit trip ID API after the 3-second animation finishes
+    // Only hit trip ID API after animation finishes
     if (
       isProcessingAnimation ||
       !confirmId ||
@@ -1550,18 +1584,17 @@ export default function FlightBookingSuccessPage() {
       setLoadingLiveDetails(true);
 
       try {
-        const response =
-          await fetchTripDetailsApi(confirmId);
+        const response = await fetchTripDetailsApi(confirmId);
 
-        if (
-          !cancelled &&
-          response?.success &&
-          response?.data
-        ) {
-          setLiveDetails(
-            response.data.data ||
-              response.data
-          );
+        if (!cancelled && response) {
+          const tripData =
+            response.booking_details
+              ? response
+              : response.data?.booking_details
+              ? response.data
+              : response.data?.data || response.data || response;
+
+          setLiveDetails(tripData);
         }
       } catch (error) {
         console.warn(
@@ -1591,6 +1624,7 @@ export default function FlightBookingSuccessPage() {
 
     const details =
       liveDetails.booking_details ||
+      liveDetails.data?.booking_details ||
       liveDetails.data ||
       liveDetails;
 
@@ -1644,16 +1678,20 @@ export default function FlightBookingSuccessPage() {
     /* JOURNEY */
 
     const journey =
-      details.journey_details || {};
+      details.journey_details || details.journey || {};
 
     const travellers =
-      journey.traveller_details || [];
+      journey.traveller_details ||
+      journey.travellers ||
+      details.traveller_details ||
+      details.travellers ||
+      [];
 
     const airlinesMeta =
-      journey.meta_data?.airlines || {};
+      journey.meta_data?.airlines || details.meta_data?.airlines || {};
 
     const airportsMeta =
-      journey.meta_data?.airports || {};
+      journey.meta_data?.airports || details.meta_data?.airports || {};
 
     /* SEGMENTS */
 
@@ -1667,8 +1705,18 @@ export default function FlightBookingSuccessPage() {
       rawSegments =
         journey.flight_details.flatMap(
           (item) =>
-            item.segment_details || []
+            item.segment_details || (item.dep && item.arr ? [item] : [])
         );
+    } else if (Array.isArray(journey.segment_details)) {
+      rawSegments = journey.segment_details;
+    } else if (Array.isArray(journey.segments)) {
+      rawSegments = journey.segments;
+    } else if (Array.isArray(details.flight_details)) {
+      rawSegments = details.flight_details.flatMap(
+        (item) => item.segment_details || (item.dep && item.arr ? [item] : [])
+      );
+    } else if (Array.isArray(details.segments)) {
+      rawSegments = details.segments;
     }
 
     /* BOOKING INFO */
@@ -1707,17 +1755,17 @@ export default function FlightBookingSuccessPage() {
       adultBaggage?.cab ||
       adultBaggage?.cabin_baggage ||
       adultBaggage?.cabin ||
-      "";
+      "7 Kg";
 
     const includedCheckinBag =
       adultBaggage?.cib ||
       adultBaggage?.checkin_baggage ||
       adultBaggage?.checkin ||
-      "";
+      "15 Kg";
 
     /* PASSENGERS */
 
-    const mappedPassengers =
+    let mappedPassengers =
       travellers.map(
         (traveller, index) => {
           const paxId =
@@ -1764,6 +1812,7 @@ export default function FlightBookingSuccessPage() {
             email:
               details.user_details
                 ?.email ||
+              details.contact_details?.email ||
               fallbackPassenger.email ||
               "",
 
@@ -1791,32 +1840,53 @@ export default function FlightBookingSuccessPage() {
               includedCabinBag ||
               fallbackPassenger.includedCabinBag ||
               fallbackPassenger.cabinBag ||
-              "",
+              "7 Kg",
 
             includedCheckinBag:
               includedCheckinBag ||
               fallbackPassenger.includedCheckinBag ||
               fallbackPassenger.checkinBag ||
-              "",
+              "15 Kg",
           };
         }
       );
+
+    if (mappedPassengers.length === 0) {
+      const u = details.user_details || details.contact_details || {};
+      const bookingInfo = allBookingInfos?.[0] || {};
+      const fallbackPassenger = stateToUse.passengers?.[0] || stateToUse.passenger || {};
+      if (u.first_name || u.firstName || fallbackPassenger.firstName || u.email || details.email) {
+        mappedPassengers = [{
+          title: u.title || fallbackPassenger.title || "MR",
+          firstName: u.first_name || u.firstName || fallbackPassenger.firstName || "Traveller",
+          lastName: u.last_name || u.lastName || fallbackPassenger.lastName || "",
+          type: u.type || fallbackPassenger.type || "ADT",
+          email: u.email || details.email || fallbackPassenger.email || "",
+          ticketNumber: bookingInfo.ticket_number || bookingInfo.ticketNumber || fallbackPassenger.ticketNumber || "",
+          seatNumber: bookingInfo.seat_number || bookingInfo.seatNumber || fallbackPassenger.seatNumber || fallbackPassenger.selectedSeat || "",
+          selectedMeal: fallbackPassenger.selectedMeal || "",
+          confirmedMealTitle: fallbackPassenger.confirmedMealTitle || "",
+          includedCabinBag: includedCabinBag || fallbackPassenger.includedCabinBag || "7 Kg",
+          includedCheckinBag: includedCheckinBag || fallbackPassenger.includedCheckinBag || "15 Kg"
+        }];
+      }
+    }
 
     /* FLIGHTS */
 
     const mappedFlights =
       rawSegments.map((segment) => {
         const depEpoch =
-          normalizeEpoch(segment.dd);
+          normalizeEpoch(segment.dd || segment.departureDateTime || segment.depDate);
 
         const arrEpoch =
-          normalizeEpoch(segment.ad);
+          normalizeEpoch(segment.ad || segment.arrivalDateTime || segment.arrDate);
 
         const depAirport =
-          airportsMeta[segment.dep] || {};
+          airportsMeta[segment.dep] || airportsMeta[segment.origin] || {};
 
         const arrAirport =
-          airportsMeta[segment.arr] || {};
+          airportsMeta[segment.arr] || airportsMeta[segment.destination] || {};
 
         const depTimezone =
           depAirport.time_zone ||
@@ -1828,71 +1898,81 @@ export default function FlightBookingSuccessPage() {
           arrAirport.timezone ||
           "Asia/Kolkata";
 
+        const originCode = segment.dep || segment.origin || "";
+        const destCode = segment.arr || segment.destination || "";
+
         return {
           airlineCode:
-            segment.al || "FL",
+            segment.al || segment.oa || segment.airlineCode || "FL",
 
           airlineName:
             airlinesMeta[segment.al]
               ?.name ||
+            airlinesMeta[segment.oa]
+              ?.name ||
             segment.airline_name ||
+            segment.airlineName ||
             segment.al ||
             "Partner Airline",
 
           flightNumber:
             segment.al && segment.fn
               ? `${segment.al} ${segment.fn}`
-              : segment.fn || "",
+              : segment.fn || segment.flightNumber || "",
 
-          origin:
-            segment.dep || "",
+          origin: originCode,
 
           originCity:
             depAirport.city ||
-            segment.dep ||
+            AIRPORT_CITIES[originCode] ||
+            segment.originCity ||
+            originCode ||
             "Departure",
 
           originAirportName:
             depAirport.name ||
             depAirport.airport_name ||
+            segment.originAirportName ||
             "",
 
-          destination:
-            segment.arr || "",
+          destination: destCode,
 
           destinationCity:
             arrAirport.city ||
-            segment.arr ||
+            AIRPORT_CITIES[destCode] ||
+            segment.destinationCity ||
+            destCode ||
             "Arrival",
 
           destinationAirportName:
             arrAirport.name ||
             arrAirport.airport_name ||
+            segment.destinationAirportName ||
             "",
 
           depTime:
             formatEpochTime(
               depEpoch,
               depTimezone
-            ),
+            ) || segment.depTime || formatNormalTime(segment.departureDateTime),
 
           depDate:
             formatEpochDate(
               depEpoch,
               depTimezone
-            ),
+            ) || segment.depDate || formatNormalDate(segment.departureDateTime),
 
           arrTime:
             formatEpochTime(
               arrEpoch,
               arrTimezone
-            ),
+            ) || segment.arrTime || formatNormalTime(segment.arrivalDateTime),
 
           arrDate:
             formatEpochDate(
               arrEpoch,
               arrTimezone
-            ),
+            ) || segment.arrDate || formatNormalDate(segment.arrivalDateTime),
 
           departureDateTime:
             depEpoch,
@@ -1935,7 +2015,7 @@ export default function FlightBookingSuccessPage() {
     const liveTotal = paymentBreakup.total ?? details.fare_details?.totalAmount ?? null;
     const liveCabinClass = pricingBreakup.fare_group?.brand_name || details.cabin_class || "ECONOMY";
 
-    if (mappedFlights.length === 0 && details.flight_details && typeof details.flight_details === 'object') {
+    if (mappedFlights.length === 0 && details.flight_details && typeof details.flight_details === 'object' && !Array.isArray(details.flight_details)) {
       const fd = details.flight_details;
       const depDateObj = fd.departureTime ? new Date(fd.departureTime) : null;
       const arrDateObj = fd.arrivalTime ? new Date(fd.arrivalTime) : null;
@@ -1945,10 +2025,10 @@ export default function FlightBookingSuccessPage() {
         airlineName: fd.airline || "Airline",
         flightNumber: fd.flightNumber || "",
         origin: fd.departureAirport || "",
-        originCity: fd.departureCity || fd.departureAirport || "Departure",
+        originCity: fd.departureCity || AIRPORT_CITIES[fd.departureAirport] || fd.departureAirport || "Departure",
         originAirportName: fd.departureAirport || "",
         destination: fd.arrivalAirport || "",
-        destinationCity: fd.arrivalCity || fd.arrivalAirport || "Arrival",
+        destinationCity: fd.arrivalCity || AIRPORT_CITIES[fd.arrivalAirport] || fd.arrivalAirport || "Arrival",
         destinationAirportName: fd.arrivalAirport || "",
         depTime: depDateObj ? depDateObj.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "",
         depDate: depDateObj ? depDateObj.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "",
@@ -2203,6 +2283,7 @@ export default function FlightBookingSuccessPage() {
      ========================================================= */
 
   const ticketTotal =
+    resolvedLiveDetails?.fareDetails?.total ||
     flight?.price ||
     stateToUse.flight?.price ||
     bookingData?.price ||
@@ -2210,6 +2291,7 @@ export default function FlightBookingSuccessPage() {
     bookingData?.amount ||
     bookingData?.data?.price ||
     bookingData?.data?.totalAmount ||
+    location.state?.total ||
     holdData?.price ||
     holdData?.totalAmount ||
     holdData?.data?.price ||
