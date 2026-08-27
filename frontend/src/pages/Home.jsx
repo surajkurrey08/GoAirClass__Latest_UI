@@ -146,7 +146,8 @@ function CityAutocomplete({ label, value, onChange, onSelect, placeholder, fetch
   const revealUpward = () => {
     if (wrapRef.current) {
       const rect = wrapRef.current.getBoundingClientRect()
-      setOpenUp(rect.top > 160)
+      const spaceBelow = window.innerHeight - rect.bottom
+      setOpenUp(spaceBelow < 300 && rect.top > 300)
     }
   }
 
@@ -244,7 +245,8 @@ function TravelersField({ label, mode = 'flights', rooms, setRooms, adults, setA
       const willOpen = !wasOpen
       if (willOpen && ref.current) {
         const rect = ref.current.getBoundingClientRect()
-        setOpenUp(rect.top > 160)
+        const spaceBelow = window.innerHeight - rect.bottom
+        setOpenUp(spaceBelow < 300 && rect.top > 300)
       }
       return willOpen
     })
@@ -439,12 +441,11 @@ function DateField({ label, value, onChange, min, disabled, placeholder = 'dd/mm
     setOpen((wasOpen) => {
       const willOpen = !wasOpen
       if (willOpen && ref.current) {
-        // The search card intentionally overlaps the section below it, so
-        // "room below" is unreliable regardless of scroll position — open
-        // upward (into the hero image) unless the field is right at the
-        // top of the viewport, where there'd be nowhere else to go.
+        // Only open upward if there's genuinely not enough space below, 
+        // and we have sufficient space above to show the calendar.
         const rect = ref.current.getBoundingClientRect()
-        setOpenUp(rect.top > 160)
+        const spaceBelow = window.innerHeight - rect.bottom
+        setOpenUp(spaceBelow < 340 && rect.top > 340)
       }
       return willOpen
     })
@@ -468,7 +469,7 @@ function DateField({ label, value, onChange, min, disabled, placeholder = 'dd/mm
   )
 }
 
-export default function Home() {
+export default function Home({ defaultTab }) {
   const navigate = useNavigate()
 
   const [homeUserLoggedIn, setHomeUserLoggedIn] = useState(() => Boolean(
@@ -494,7 +495,16 @@ export default function Home() {
   }, [])
 
   // Search widget state
-  const [activeTab, setActiveTab] = useState('flights')
+  const [activeTab, setActiveTab] = useState(() => {
+    return defaultTab || localStorage.getItem('homeActiveTab') || 'flights'
+  })
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab)
+    }
+  }, [defaultTab])
+
   const [tripType, setTripType] = useState('oneway')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -521,24 +531,43 @@ export default function Home() {
 
   const today = new Date().toISOString().split('T')[0]
 
+  // Save activeTab whenever it changes
+  useEffect(() => {
+    localStorage.setItem('homeActiveTab', activeTab);
+  }, [activeTab]);
+
+  // Load search parameters based on activeTab
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('flightSearchParams');
-      if (saved) {
-        const p = JSON.parse(saved);
-        if (p.from) setFrom(p.from);
-        if (p.to) setTo(p.to);
-        if (p.departDate && p.departDate >= today) setDepartDate(p.departDate);
-        if (p.returnDate && p.returnDate >= today) setReturnDate(p.returnDate);
-        if (p.tripType) setTripType(p.tripType);
-        if (p.adults) setAdults(p.adults);
-        if (p.children !== undefined) setChildren(p.children);
-        if (p.infants !== undefined) setInfants(p.infants);
-        if (p.travelClass) setTravelClass(p.travelClass);
-        if (p.multiCitySectors && p.multiCitySectors.length) setMultiCitySectors(p.multiCitySectors);
+      if (activeTab === 'flights') {
+        const saved = localStorage.getItem('flightSearchParams');
+        if (saved) {
+          const p = JSON.parse(saved);
+          if (p.from) setFrom(p.from);
+          if (p.to) setTo(p.to);
+          if (p.departDate && p.departDate >= today) setDepartDate(p.departDate);
+          if (p.returnDate && p.returnDate >= today) setReturnDate(p.returnDate);
+          if (p.tripType) setTripType(p.tripType);
+          if (p.adults) setAdults(p.adults);
+          if (p.children !== undefined) setChildren(p.children);
+          if (p.infants !== undefined) setInfants(p.infants);
+          if (p.travelClass) setTravelClass(p.travelClass);
+          if (p.multiCitySectors && p.multiCitySectors.length) setMultiCitySectors(p.multiCitySectors);
+        }
+      } else if (activeTab === 'hotels') {
+        const saved = localStorage.getItem('hotelSearchParams');
+        if (saved) {
+          const p = JSON.parse(saved);
+          if (p.destination) setTo(p.destination);
+          if (p.checkIn && p.checkIn >= today) setDepartDate(p.checkIn);
+          if (p.checkOut && p.checkOut >= today) setReturnDate(p.checkOut);
+          if (p.rooms) setRooms(p.rooms);
+          if (p.adults) setAdults(p.adults);
+          if (p.children !== undefined) setChildren(p.children);
+        }
       }
     } catch(e) {}
-  }, [today]);
+  }, [activeTab, today]);
 
 
   useEffect(() => {
@@ -692,6 +721,17 @@ export default function Home() {
     } else if (activeTab === 'hotels') {
       if (!to.trim()) { toast.error('Please enter a destination'); return }
       if (!departDate) { toast.error('Please select check-in date'); return }
+      
+      // Save hotel search parameters
+      localStorage.setItem('hotelSearchParams', JSON.stringify({
+        destination: to.trim(),
+        checkIn: departDate,
+        checkOut: returnDate,
+        rooms,
+        adults,
+        children
+      }));
+
       navigate(
         `/hotels/list?destination=${encodeURIComponent(to.trim())}&checkIn=${departDate}&checkOut=${returnDate}` +
         `&rooms=${rooms}&adults=${adults}&children=${children}&guests=${adults + children}`
@@ -758,7 +798,12 @@ export default function Home() {
               <button
                 key={t.key}
                 className={`search2__tab ${activeTab === t.key ? 'active' : ''}`}
-                onClick={() => setActiveTab(t.key)}
+                onClick={() => {
+                  setActiveTab(t.key)
+                  if (t.key === 'flights') navigate('/flights')
+                  else if (t.key === 'hotels') navigate('/hotels')
+                  else navigate('/')
+                }}
               >
                 <t.icon size={16} /> {t.label}
               </button>

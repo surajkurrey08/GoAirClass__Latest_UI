@@ -231,12 +231,27 @@ export const fetchTripDetailsApi = async (tripId) => {
  * Fetch logged-in user's flight bookings
  * GET /api/flights/my-bookings
  */
-export const getUserFlightBookings = async (page = 1, limit = 3) => {
+export const getUserFlightBookings = async (page, limit) => {
     try {
-        const response = await API.get(`/flights/my-bookings?page=${page}&limit=${limit}`);
+        const url = page && limit ? `/flights/my-bookings?page=${page}&limit=${limit}` : '/flights/my-bookings';
+        const response = await API.get(url);
         return response.data;
     } catch (error) {
         console.error("Fetch user flight bookings failed:", error);
+        throw error;
+    }
+};
+
+/**
+ * Fetch logged-in user's flight trips
+ * GET /api/flights/my-trips
+ */
+export const getMyFlightTrips = async () => {
+    try {
+        const response = await API.get('/flights/my-trips');
+        return response.data;
+    } catch (error) {
+        console.error("Fetch my flight trips failed:", error);
         throw error;
     }
 };

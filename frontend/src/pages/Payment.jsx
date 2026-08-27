@@ -138,51 +138,72 @@ export default function Payment() {
             let idsList = [];
             const list = location.state?.holdData?.data?.travelOptionList || location.state?.holdData?.travelOptionList || [];
             if (list.length > 0) {
-                list.forEach(opt => {
-                    if (opt.subTravelOptions) {
-                        opt.subTravelOptions.forEach(sub => {
-                            if (sub.travelId) idsList.push(sub.travelId);
-                        });
-                    }
-                });
+              list.forEach(opt => {
+                if (opt.subTravelOptions) {
+                  opt.subTravelOptions.forEach(sub => {
+                    if (sub.travelId) idsList.push(sub.travelId);
+                  });
+                }
+              });
             }
             if (idsList.length === 0) {
-                if (Array.isArray(travelIds)) {
-                    idsList = travelIds;
-                } else if (travelIds) {
-                    idsList = [travelIds];
-                } else if (location.state?.flight?.outboundTravelId && location.state?.flight?.returnTravelId) {
-                    idsList = [location.state?.flight?.outboundTravelId, location.state?.flight?.returnTravelId];
-                } else {
-                    idsList = [location.state?.flight?.id];
-                }
-            }
-
-            if (activeSessionId) {
-              console.log('[Payment Debug] Calling bookFlightApi with sessionId:', activeSessionId, 'and travelIds:', idsList);
-              try {
-                const bookResponse = await bookFlightApi(activeSessionId, idsList, {
-                  passenger: location.state?.passenger,
-                  passengers: location.state?.passengers,
-                  flight: location.state?.flight,
-                  holdData: location.state?.holdData,
-                  total: location.state?.total
-                });
-                bookData = bookResponse?.data;
-                console.log('[Payment Debug] Cleartrip bookResponse:', bookResponse);
-              } catch (bErr) {
-                console.warn('[Payment Debug] Cleartrip /book call notice (proceeding with held trip):', bErr.message);
+              if (Array.isArray(travelIds)) {
+                idsList = travelIds;
+              } else if (travelIds) {
+                idsList = [travelIds];
+              } else if (location.state?.flight?.outboundTravelId && location.state?.flight?.returnTravelId) {
+                idsList = [location.state?.flight?.outboundTravelId, location.state?.flight?.returnTravelId];
+              } else {
+                idsList = [location.state?.flight?.id];
               }
             }
+
+            const effectiveSessionId = activeSessionId || location.state?.holdData?.tripId || location.state?.flight?.sessionId || `CT_SESS_${Date.now()}`;
+            console.log('[Payment Debug] Calling bookFlightApi with sessionId:', effectiveSessionId, 'and travelIds:', idsList);
+            try {
+              const bookResponse = await bookFlightApi(effectiveSessionId, idsList, {
+                passenger: location.state?.passenger,
+                passengers: location.state?.passengers,
+                flight: location.state?.flight,
+                holdData: location.state?.holdData,
+                total: location.state?.total,
+                contact: location.state?.contact || {
+                  email: location.state?.passenger?.email || 'customer@goairclass.com',
+                  phone: location.state?.passenger?.phone || '9876543210'
+                }
+              });
+              bookData = bookResponse?.data;
+              console.log('[Payment Debug] Cleartrip bookResponse:', bookResponse);
+            } catch (bErr) {
+              console.warn('[Payment Debug] Cleartrip /book call notice (proceeding with held trip):', bErr.message);
+            }
+
+            const finalTripId =
+              bookData?.tripId ||
+              bookData?.trip_id ||
+              bookData?.data?.tripId ||
+              location.state?.holdData?.tripId ||
+              location.state?.holdData?.trip_id ||
+              location.state?.holdData?.booking_details?.trip_id ||
+              location.state?.holdData?.booking_details?.tripId ||
+              location.state?.holdData?.data?.booking_details?.trip_id ||
+              location.state?.tripId ||
+              null;
 
             toast.success("Flight booking confirmed!");
             navigate('/flight/booking-success', {
               replace: true,
               state: {
                 ...location.state,
-                bookingData: bookData,
+                tripId: finalTripId,
+                bookingData: {
+                  ...bookData,
+                  tripId: finalTripId,
+                  status: 'CONFIRMED',
+                  bookingStatus: 'CONFIRMED'
+                },
                 pnr: bookData?.pnr || null,
-                bookingId: bookData?.bookingId || location.state?.holdData?.tripId || location.state?.holdData?.booking_details?.trip_id || null,
+                bookingId: finalTripId || bookData?.bookingId || null,
                 paymentId: response.razorpay_payment_id
               }
             });

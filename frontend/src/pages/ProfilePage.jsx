@@ -1,12 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  AlertCircle,
   ArrowLeft,
   BedDouble,
   CalendarDays,
   ChevronRight,
   Clock3,
   Hotel,
+  Loader2,
   LogOut,
   Mail,
   MapPin,
@@ -20,7 +22,9 @@ import {
   WalletCards,
 } from 'lucide-react';
 import Footer from '../components/Footer';
-import { getBookingHistory } from '../utils/bookingHistory';
+import { getBookingHistory } from '../utils/BookingHistory';
+import { getUserFlightBookings } from '../services/flightApi';
+import { getUserHotelBookings } from '../services/hotelApi';
 
 const readJSON = (key) => {
   try {
@@ -92,7 +96,7 @@ const normalizeType = (item) => {
 };
 
 const getStatus = (item) =>
-  String(item.status || item.bookingStatus || item.state || 'Confirmed');
+  String(item.status || item.bookingStatus || item.ticketStatus || item.state || 'Confirmed');
 
 const formatMoney = (value) => {
   const amount = Number(value || 0);
@@ -119,6 +123,8 @@ const getBookingTitle = (item, type) => {
     item.from ||
     item.origin ||
     item.originCity ||
+    item.flightDetails?.departureCity ||
+    item.flightDetails?.departureAirport ||
     item.segments?.[0]?.origin ||
     item.segments?.[0]?.originCity;
 
@@ -127,10 +133,12 @@ const getBookingTitle = (item, type) => {
     item.to ||
     item.destination ||
     item.destinationCity ||
+    item.flightDetails?.arrivalCity ||
+    item.flightDetails?.arrivalAirport ||
     lastSegment?.destination ||
     lastSegment?.destinationCity;
 
-  return from && to ? `${from} → ${to}` : item.airlineName || 'Flight Booking';
+  return from && to ? `${from} → ${to}` : item.airlineName || item.flightDetails?.airline || 'Flight Booking';
 };
 
 const getSubtitle = (item, type) => {
@@ -138,26 +146,29 @@ const getSubtitle = (item, type) => {
     return item.roomName || item.hotelAddress || item.city || 'Hotel reservation';
   }
 
+  const flightNum = item.flightNumber || item.flightDetails?.flightNumber;
+  const airline = item.airlineName || item.flightDetails?.airline;
+
   return (
-    item.airlineName ||
-    item.flightNumber ||
+    (airline && flightNum ? `${airline} (${flightNum})` : (flightNum || airline)) ||
     item.pnr ||
     item.tripId ||
     'Flight reservation'
   );
 };
 
-function BookingCard({ booking }) {
+function BookingCard({ booking, onClick }) {
   const type = normalizeType(booking);
   const TypeIcon = type === 'hotel' ? BedDouble : Plane;
 
   const status = getStatus(booking);
   const statusLower = status.toLowerCase();
-  const success = statusLower.includes('confirm') || statusLower.includes('success') || statusLower.includes('book');
+  const success = statusLower.includes('confirm') || statusLower.includes('success') || statusLower.includes('book') || statusLower.includes('paid');
   const cancelled = statusLower.includes('cancel');
 
   const amount =
     booking.totalAmount ||
+    booking.fareDetails?.totalAmount ||
     booking.finalPrice ||
     booking.price ||
     booking.amount ||
@@ -165,6 +176,7 @@ function BookingCard({ booking }) {
 
   const date =
     booking.departureDate ||
+    booking.flightDetails?.departureTime ||
     booking.checkIn ||
     booking.travelDate ||
     booking.date ||
@@ -172,17 +184,28 @@ function BookingCard({ booking }) {
     booking.bookedAt;
 
   const bookingRef =
-    booking.pnr ||
     booking.tripId ||
-    booking.confirmationNumber ||
+    booking.pnr ||
     booking.bookingId ||
+    booking.confirmationNumber ||
     booking.id;
 
   return (
-    <article className="overflow-hidden rounded-[10px] border border-[#dfe6ef] bg-white shadow-[0_5px_18px_rgba(19,35,63,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(19,35,63,0.08)]">
+    <article
+      onClick={() => onClick && onClick(booking)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick && onClick(booking);
+        }
+      }}
+      className="group cursor-pointer overflow-hidden rounded-[10px] border border-[#dfe6ef] bg-white shadow-[0_5px_18px_rgba(19,35,63,0.04)] transition hover:-translate-y-0.5 hover:border-[#2f6fed]/40 hover:shadow-[0_10px_28px_rgba(19,35,63,0.08)] focus:outline-none focus:ring-2 focus:ring-[#2f6fed]"
+    >
       <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[9px] ${
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[9px] transition-transform group-hover:scale-105 ${
             type === 'hotel' ? 'bg-orange-50 text-[#ef6b1d]' : 'bg-blue-50 text-[#174f9c]'
           }`}>
             <TypeIcon size={21} />
@@ -202,9 +225,14 @@ function BookingCard({ booking }) {
               }`}>
                 {status}
               </span>
+              {booking.source === 'SERVER' && (
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[8px] font-bold text-[#174f9c]">
+                  Verified
+                </span>
+              )}
             </div>
 
-            <h3 className="mt-1 break-words text-[16px] font-extrabold leading-5 text-[#17243b]">
+            <h3 className="mt-1 break-words text-[16px] font-extrabold leading-5 text-[#17243b] group-hover:text-[#123f86]">
               {getBookingTitle(booking, type)}
             </h3>
             <p className="mt-1 break-words text-[11px] leading-5 text-[#6d7a90]">
@@ -236,17 +264,21 @@ function BookingCard({ booking }) {
             </div>
           </div>
 
-          <ChevronRight size={18} className="text-[#9aa7b8]" />
+          <div className="flex items-center gap-1 text-[11px] font-bold text-[#2f6fed] opacity-80 group-hover:opacity-100">
+            <span>View Ticket</span>
+            <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
       </div>
     </article>
   );
 }
-
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
   const user = useMemo(() => getCurrentUser(), []);
@@ -260,9 +292,91 @@ export default function ProfilePage() {
     localStorage.getItem('isLoggedIn') === 'true'
   );
 
-  const loadHistory = () => {
-    setHistory(getBookingHistory());
-  };
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Parallel fetch authenticated user flight & hotel bookings from server
+      const [flightRes, hotelRes] = await Promise.allSettled([
+        getUserFlightBookings(),
+        getUserHotelBookings()
+      ]);
+
+      const localHistory = getBookingHistory() || [];
+
+      const serverFlights = (flightRes.status === 'fulfilled' && Array.isArray(flightRes.value?.bookings) ? flightRes.value.bookings : []).map((b) => ({
+        id: b.tripId || b.bookingId || b._id,
+        tripId: b.tripId,
+        bookingId: b.bookingId,
+        pnr: b.pnr,
+        type: 'flight',
+        status: b.bookingStatus || b.ticketStatus || 'Confirmed',
+        airlineName: b.flightDetails?.airline || 'Airline',
+        flightNumber: b.flightDetails?.flightNumber || '',
+        from: b.flightDetails?.departureCity || b.flightDetails?.departureAirport || '',
+        to: b.flightDetails?.arrivalCity || b.flightDetails?.arrivalAirport || '',
+        origin: b.flightDetails?.departureAirport || '',
+        destination: b.flightDetails?.arrivalAirport || '',
+        departureDate: b.flightDetails?.departureTime,
+        arrivalDate: b.flightDetails?.arrivalTime,
+        totalAmount: b.fareDetails?.totalAmount,
+        passengers: b.passengers || [],
+        contactDetails: b.contactDetails || {},
+        createdAt: b.createdAt,
+        source: 'SERVER',
+        raw: b
+      }));
+
+      const serverHotels = (hotelRes.status === 'fulfilled' && Array.isArray(hotelRes.value?.bookings) ? hotelRes.value.bookings : []).map((h) => ({
+        id: h.tripId || h.bookingId || h._id,
+        tripId: h.tripId,
+        bookingId: h.bookingId || h.tripId,
+        type: 'hotel',
+        status: h.status || 'Confirmed',
+        hotelName: h.hotelName || h.hotelTitle || 'Hotel Reservation',
+        roomName: h.roomName || h.roomType || '',
+        city: h.city || '',
+        checkIn: h.checkIn,
+        checkOut: h.checkOut,
+        totalAmount: h.totalPrice || h.amount || h.totalAmount,
+        createdAt: h.createdAt,
+        source: 'SERVER',
+        raw: h
+      }));
+
+      // Combine server and local bookings, removing duplicates
+      const combined = [...serverFlights, ...serverHotels, ...localHistory];
+      const seen = new Set();
+      const unique = [];
+
+      combined.forEach((item) => {
+        if (!item || typeof item !== 'object') return;
+        const key = String(item.tripId || item.bookingId || item.pnr || item.id || '');
+        if (key && seen.has(key)) return;
+        if (key) seen.add(key);
+        unique.push(item);
+      });
+
+      unique.sort((a, b) => {
+        const da = new Date(a.createdAt || a.departureDate || a.checkIn || a.travelDate || a.date || 0).getTime();
+        const db = new Date(b.createdAt || b.departureDate || b.checkIn || b.travelDate || b.date || 0).getTime();
+        return db - da;
+      });
+
+      setHistory(unique);
+
+      if (flightRes.status === 'rejected' && hotelRes.status === 'rejected') {
+        setError('Could not reach booking server. Showing available cached history.');
+      }
+    } catch (err) {
+      console.error('[ProfilePage] Error fetching bookings:', err);
+      setError('Unable to load bookings from server.');
+      setHistory(getBookingHistory() || []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -270,16 +384,16 @@ export default function ProfilePage() {
       return;
     }
 
-    loadHistory();
+    fetchBookings();
 
-    const sync = () => loadHistory();
+    const sync = () => fetchBookings();
     window.addEventListener('storage', sync);
     window.addEventListener('goairclass-booking-history-updated', sync);
     return () => {
       window.removeEventListener('storage', sync);
       window.removeEventListener('goairclass-booking-history-updated', sync);
     };
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, navigate, fetchBookings]);
 
   const counts = useMemo(() => {
     const flights = history.filter((item) => normalizeType(item) === 'flight').length;
@@ -298,6 +412,23 @@ export default function ProfilePage() {
       return haystack.includes(search.trim().toLowerCase());
     });
   }, [history, activeTab, search]);
+
+  const handleBookingClick = (booking) => {
+    const type = normalizeType(booking);
+    if (type === 'flight') {
+      const tripRef = booking.tripId || booking.bookingId || booking.id;
+      navigate('/flight/booking-success', {
+        state: {
+          bookingId: tripRef,
+          tripId: booking.tripId || tripRef,
+          pnr: booking.pnr || '',
+          bookingData: booking.raw || booking
+        }
+      });
+    } else {
+      navigate('/hotels');
+    }
+  };
 
   const initials = user.name
     .split(/\s+/)
@@ -401,6 +532,22 @@ export default function ProfilePage() {
           ))}
         </section>
 
+        {error && (
+          <div className="mt-4 flex items-center justify-between rounded-[8px] border border-amber-200 bg-amber-50 p-3.5 text-[11px] text-amber-800">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} className="shrink-0 text-amber-600" />
+              <span>{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={fetchBookings}
+              className="font-bold underline hover:text-amber-950"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         <section className="mt-4 overflow-hidden rounded-[10px] border border-[#dfe6ef] bg-white shadow-[0_5px_18px_rgba(19,35,63,0.04)]">
           <div className="flex flex-col gap-3 border-b border-[#edf1f5] bg-[#fbfcfe] p-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -445,10 +592,21 @@ export default function ProfilePage() {
           </div>
 
           <div className="p-3 sm:p-4">
-            {filtered.length > 0 ? (
+            {loading ? (
+              <div className="flex min-h-[260px] flex-col items-center justify-center py-12 text-center">
+                <Loader2 size={32} className="animate-spin text-[#174f9c]" />
+                <p className="mt-3 text-[12px] font-bold text-[#6d7a90]">
+                  Loading your confirmed bookings...
+                </p>
+              </div>
+            ) : filtered.length > 0 ? (
               <div className="space-y-3">
                 {filtered.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
+                  <BookingCard
+                    key={booking.id || booking.tripId}
+                    booking={booking}
+                    onClick={handleBookingClick}
+                  />
                 ))}
               </div>
             ) : (
@@ -470,14 +628,14 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       onClick={() => navigate('/flights')}
-                      className="inline-flex h-10 items-center gap-2 rounded-[6px] bg-[#123f86] px-4 text-[11px] font-extrabold text-white"
+                      className="inline-flex h-10 items-center gap-2 rounded-[6px] bg-[#123f86] px-4 text-[11px] font-extrabold text-white transition hover:bg-[#0e336d]"
                     >
                       <Plane size={14} /> Book Flight
                     </button>
                     <button
                       type="button"
                       onClick={() => navigate('/hotels')}
-                      className="inline-flex h-10 items-center gap-2 rounded-[6px] bg-[#ff650d] px-4 text-[11px] font-extrabold text-white"
+                      className="inline-flex h-10 items-center gap-2 rounded-[6px] bg-[#ff650d] px-4 text-[11px] font-extrabold text-white transition hover:bg-[#e05607]"
                     >
                       <BedDouble size={14} /> Find Hotel
                     </button>
@@ -496,17 +654,18 @@ export default function ProfilePage() {
             <div>
               <h3 className="text-[12px] font-extrabold text-[#17243b]">Secure account</h3>
               <p className="mt-1 text-[10px] leading-5 text-[#738096]">
-                Your booking history is only shown after login.
+                Your booking history is securely synced with your GoAirClass account.
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={loadHistory}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#d7e2ef] bg-white px-3 text-[10px] font-bold text-[#36547b] transition hover:bg-[#f7faff]"
+            onClick={fetchBookings}
+            disabled={loading}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-[6px] border border-[#d7e2ef] bg-white px-3 text-[10px] font-bold text-[#36547b] transition hover:bg-[#f7faff] disabled:opacity-60"
           >
-            <RefreshCw size={13} /> Refresh history
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh history
           </button>
         </section>
       </main>
